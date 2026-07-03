@@ -1,1 +1,65 @@
-<p>header works!</p>
+<header class="header" [class.collapsed]="isSidebarCollapsed">
+  <div class="header-left">
+    <button 
+      mat-icon-button 
+      class="menu-toggle"
+      (click)="onToggleSidebar()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    
+    <div class="logo">
+      <mat-icon>account_balance</mat-icon>
+      <span>ATB Credit</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <!-- Notifications -->
+    <button mat-icon-button class="notification-btn">
+      <mat-icon>notifications</mat-icon>
+      <span class="badge">3</span>
+    </button>
+
+    <!-- User Menu -->
+    <button 
+      mat-icon-button 
+      [matMenuTriggerFor]="userMenu"
+      class="user-btn">
+      <div class="user-avatar">
+        {{ getInitials() }}
+      </div>
+    </button>
+    
+    <mat-menu #userMenu="matMenu" class="user-menu">
+      <div class="user-info">
+        <div class="user-avatar-large">
+          {{ getInitials() }}
+        </div>
+        <div class="user-details">
+          <strong>{{ getFullName() }}</strong>
+          <span>{{ user?.email || '' }}</span>
+          <span class="user-role">{{ user?.role || '' }}</span>
+        </div>
+      </div>
+      
+      <mat-divider></mat-divider>
+      
+      <button mat-menu-item routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        <span>Mon profil</span>
+      </button>
+      
+      <button mat-menu-item routerLink="/settings">
+        <mat-icon>settings</mat-icon>
+        <span>Paramètres</span>
+      </button>
+      
+      <mat-divider></mat-divider>
+      
+      <button mat-menu-item (click)="logout()" class="logout-btn">
+        <mat-icon>exit_to_app</mat-icon>
+        <span>Déconnexion</span>
+      </button>
+    </mat-menu>
+  </div>
+</header>

@@ -8,33 +8,24 @@ export interface User {
   phoneNumber?: string;
   active: boolean;
   locked: boolean;
+  profilePicture?: string;
   createdAt: string;
   updatedAt: string;
+  lastLoginAt?: string;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  role: string;
-}
-
-export interface AuthResponse {
+export interface UserResponse {
   id: string;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
   role: string;
-  accessToken: string;
-  refreshToken: string;
-  expirationDate: string;
+  phoneNumber: string;
+  active: boolean;
+  locked: boolean;
+  lastLoginAt: string;
+  createdAt: string;
+  totalCreditRequests: number;
+  totalNotifications: number;
 }

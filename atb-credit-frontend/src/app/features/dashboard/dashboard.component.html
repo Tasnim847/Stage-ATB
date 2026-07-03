@@ -1,1 +1,109 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <!-- Spinner de chargement -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- Contenu du dashboard -->
+  <ng-container *ngIf="!isLoading">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>Tableau de bord</h1>
+        <p>Bienvenue, {{ getFullName() }}</p>
+      </div>
+      <div class="header-right">
+        <div class="user-avatar">
+          {{ getInitials() }}
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <div class="stat-icon clients">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalClients }}</h3>
+          <p>Clients</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon requests">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalCreditRequests }}</h3>
+          <p>Demandes de crédit</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon pending">
+          <mat-icon>pending</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.pendingRequests }}</h3>
+          <p>En attente</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon approved">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.approvedRequests }}</h3>
+          <p>Approuvées</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon risk">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.highRiskRequests }}</h3>
+          <p>Risque élevé</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon fraud">
+          <mat-icon>security</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.fraudAlerts }}</h3>
+          <p>Alertes fraude</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Actions rapides</h2>
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" routerLink="/clients">
+          <mat-icon>person_add</mat-icon>
+          Nouveau client
+        </button>
+        <button mat-raised-button color="accent" routerLink="/credit-requests">
+          <mat-icon>add</mat-icon>
+          Nouvelle demande
+        </button>
+        <button mat-raised-button color="warn" routerLink="/fraud-alerts">
+          <mat-icon>report</mat-icon>
+          Voir les alertes
+        </button>
+        <button mat-raised-button routerLink="/copilot">
+          <mat-icon>smart_toy</mat-icon>
+          Assistant IA
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

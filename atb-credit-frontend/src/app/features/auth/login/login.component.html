@@ -1,8 +1,12 @@
 <div class="login-container">
   <mat-card class="login-card">
+    <!-- Header -->
     <mat-card-header>
       <mat-card-title>
         <div class="logo-container">
+          <div class="logo-icon">
+            <mat-icon>account_balance</mat-icon>
+          </div>
           <h1>ATB Credit Intelligence</h1>
           <p>Plateforme d'aide à la décision bancaire</p>
         </div>
@@ -10,6 +14,12 @@
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Message d'erreur global -->
+      <div *ngIf="errorMessage" class="error-global">
+        <mat-icon>error</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <!-- Email Field -->
         <mat-form-field appearance="outline" class="full-width">
@@ -43,6 +53,7 @@
             matSuffix
             type="button"
             (click)="hidePassword = !hidePassword"
+            [attr.aria-label]="'Masquer le mot de passe'"
           >
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
@@ -65,6 +76,12 @@
           <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
           <span *ngIf="!isLoading">Se connecter</span>
         </button>
+
+        <!-- Register Link -->
+        <div class="register-link">
+          <span>Vous n'avez pas de compte ?</span>
+          <a routerLink="/register">S'inscrire</a>
+        </div>
       </form>
     </mat-card-content>
   </mat-card>

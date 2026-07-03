@@ -1,0 +1,241 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+  padding: 20px;
+}
+
+.register-card {
+  max-width: 600px;
+  width: 100%;
+  padding: 30px 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #1a237e;
+    border-radius: 3px;
+  }
+
+  mat-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+
+      .logo-icon {
+        width: 70px;
+        height: 70px;
+        background: #1a237e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+
+        mat-icon {
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          color: white;
+        }
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #1a237e;
+        margin: 0;
+      }
+
+      p {
+        font-size: 14px;
+        color: #666;
+        margin: 0;
+      }
+    }
+  }
+
+  mat-card-content {
+    .error-global {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .row {
+        display: flex;
+        gap: 16px;
+
+        .half-width {
+          flex: 1;
+        }
+      }
+
+      .full-width {
+        width: 100%;
+      }
+
+      .register-btn {
+        height: 48px;
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+        background: #1a237e !important;
+
+        &:hover:not(:disabled) {
+          background: #0d47a1 !important;
+        }
+
+        mat-spinner {
+          display: inline-block;
+          margin: 0 auto;
+        }
+      }
+
+      .login-link {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 14px;
+        color: #666;
+
+        a {
+          color: #1a237e;
+          text-decoration: none;
+          font-weight: 500;
+          margin-left: 8px;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .register-card {
+    padding: 20px 16px;
+
+    mat-card-header {
+      .logo-container {
+        h1 {
+          font-size: 20px;
+        }
+      }
+    }
+
+    mat-card-content {
+      form {
+        .row {
+          flex-direction: column;
+          gap: 0;
+
+          .half-width {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 4px;
+
+  button {
+    flex: 1;
+    border-radius: 6px;
+    color: #666;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: #1a237e;
+      color: white;
+
+      mat-icon {
+        color: white;
+      }
+    }
+
+    mat-icon {
+      margin-right: 8px;
+      color: #666;
+    }
+
+    &:hover:not(.active) {
+      background: rgba(26, 35, 126, 0.1);
+    }
+  }
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+
+  .half-width {
+    flex: 1;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 0;
+  }
+}

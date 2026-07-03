@@ -1,9 +1,9 @@
 export const environment = {
-  production: false,
+  production: true,
   
-  // URLs de l'API
-  apiUrl: 'http://localhost:8081/api',
-  authUrl: 'http://localhost:8081/api/auth',
+  // URLs de l'API - Production
+  apiUrl: 'https://api.atb-ci.com/api',
+  authUrl: 'https://api.atb-ci.com/api/auth',
   
   // Informations de l'application
   appName: 'ATB Credit Intelligence',
@@ -21,7 +21,7 @@ export const environment = {
   maxFileSize: 10 * 1024 * 1024, // 10 MB
   
   // Configuration des logs
-  enableLogs: true,
+  enableLogs: false,
   
   // Configuration des features
   features: {

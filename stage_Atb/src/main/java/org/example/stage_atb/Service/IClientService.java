@@ -1,8 +1,9 @@
 package org.example.stage_atb.Service;
 
-
+import org.example.stage_atb.dto.request.ClientRegisterRequest;
 import org.example.stage_atb.dto.request.ClientRequestDTO;
 import org.example.stage_atb.dto.response.ClientResponseDTO;
+import org.example.stage_atb.entity.User;
 
 import java.util.List;
 
@@ -31,4 +32,7 @@ public interface IClientService {
     void deactivateClient(String id);
 
     long countActiveClients();
+
+    // ✅ Nouvelle méthode pour créer un client à partir d'une inscription
+    ClientResponseDTO createClientFromUser(User user, ClientRegisterRequest request);
 }

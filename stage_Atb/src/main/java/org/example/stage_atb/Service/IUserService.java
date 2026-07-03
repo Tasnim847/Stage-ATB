@@ -1,6 +1,8 @@
 package org.example.stage_atb.Service;
 
 
+import org.example.stage_atb.dto.request.ClientRegisterRequest;
+import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
 import org.example.stage_atb.dto.request.LoginRequest;
 import org.example.stage_atb.dto.request.RegisterRequest;
 import org.example.stage_atb.dto.response.AuthResponse;
@@ -40,5 +42,9 @@ public interface IUserService {
     long countActiveUsers();
 
     User getUserEntityById(String id); // Récupère l'entity User directement
+
+    AuthResponse registerClient(ClientRegisterRequest clientRegisterRequest);
+
+    AuthResponse registerEmployee(EmployeeRegisterRequest employeeRegisterRequest); // ✅ NOUVEAU
 
 }

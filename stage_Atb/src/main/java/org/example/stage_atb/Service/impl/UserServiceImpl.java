@@ -1,6 +1,8 @@
 package org.example.stage_atb.Service.impl;
 
 import org.example.stage_atb.Service.IUserService;
+import org.example.stage_atb.dto.request.ClientRegisterRequest;
+import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
 import org.example.stage_atb.dto.request.LoginRequest;
 import org.example.stage_atb.dto.request.RegisterRequest;
 import org.example.stage_atb.dto.response.AuthResponse;
@@ -52,11 +54,9 @@ public class UserServiceImpl implements IUserService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Update last login
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
-        // Utiliser directement User (plus simple)
         String jwtToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
@@ -77,7 +77,6 @@ public class UserServiceImpl implements IUserService {
     public AuthResponse register(RegisterRequest registerRequest) {
         log.info("Registering new user: {}", registerRequest.getEmail());
 
-        // Check if user exists
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new RuntimeException("User already exists with email: " + registerRequest.getEmail());
         }
@@ -86,18 +85,60 @@ public class UserServiceImpl implements IUserService {
             throw new RuntimeException("User already exists with username: " + registerRequest.getUsername());
         }
 
-        // Create user
         User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
-        // Set default role if not provided
         if (user.getRole() == null) {
             user.setRole(UserRole.ANALYST);
         }
 
         User savedUser = userRepository.save(user);
 
-        // Utiliser directement User (plus simple)
+        String jwtToken = jwtService.generateToken(savedUser);
+        String refreshToken = jwtService.generateRefreshToken(savedUser);
+
+        return AuthResponse.builder()
+                .id(savedUser.getId())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .role(savedUser.getRole())
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .expirationDate(LocalDateTime.now().plusHours(24))
+                .build();
+    }
+
+    // ✅ IMPLÉMENTER LA MÉTHODE registerClient
+    @Override
+    public AuthResponse registerClient(ClientRegisterRequest clientRegisterRequest) {
+        log.info("Registering new client: {}", clientRegisterRequest.getEmail());
+
+        // Vérifier si l'email existe déjà
+        if (userRepository.existsByEmail(clientRegisterRequest.getEmail())) {
+            throw new RuntimeException("User already exists with email: " + clientRegisterRequest.getEmail());
+        }
+
+        if (userRepository.existsByUsername(clientRegisterRequest.getUsername())) {
+            throw new RuntimeException("User already exists with username: " + clientRegisterRequest.getUsername());
+        }
+
+        // Créer l'utilisateur avec le rôle CLIENT
+        User user = new User();
+        user.setUsername(clientRegisterRequest.getUsername());
+        user.setEmail(clientRegisterRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(clientRegisterRequest.getPassword()));
+        user.setFirstName(clientRegisterRequest.getFirstName());
+        user.setLastName(clientRegisterRequest.getLastName());
+        user.setPhoneNumber(clientRegisterRequest.getPhoneNumber());
+        user.setRole(UserRole.CLIENT); // ✅ Rôle CLIENT
+        user.setActive(true);
+        user.setLocked(false);
+
+        User savedUser = userRepository.save(user);
+
+        // Générer les tokens
         String jwtToken = jwtService.generateToken(savedUser);
         String refreshToken = jwtService.generateRefreshToken(savedUser);
 
@@ -230,5 +271,55 @@ public class UserServiceImpl implements IUserService {
     public User getUserEntityById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    }
+
+    @Override
+    public AuthResponse registerEmployee(EmployeeRegisterRequest employeeRegisterRequest) {
+        log.info("Registering new employee: {}", employeeRegisterRequest.getEmail());
+
+        // Vérifier si l'email existe déjà
+        if (userRepository.existsByEmail(employeeRegisterRequest.getEmail())) {
+            throw new RuntimeException("User already exists with email: " + employeeRegisterRequest.getEmail());
+        }
+
+        if (userRepository.existsByUsername(employeeRegisterRequest.getUsername())) {
+            throw new RuntimeException("User already exists with username: " + employeeRegisterRequest.getUsername());
+        }
+
+        // Vérifier que le rôle est valide pour un employé
+        UserRole role = employeeRegisterRequest.getRole();
+        if (role == UserRole.CLIENT) {
+            throw new RuntimeException("Invalid role for employee registration: CLIENT");
+        }
+
+        // Créer l'utilisateur avec le rôle correspondant
+        User user = new User();
+        user.setUsername(employeeRegisterRequest.getUsername());
+        user.setEmail(employeeRegisterRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(employeeRegisterRequest.getPassword()));
+        user.setFirstName(employeeRegisterRequest.getFirstName());
+        user.setLastName(employeeRegisterRequest.getLastName());
+        user.setPhoneNumber(employeeRegisterRequest.getPhoneNumber());
+        user.setRole(role);
+        user.setActive(true);
+        user.setLocked(false);
+
+        User savedUser = userRepository.save(user);
+
+        // Générer les tokens
+        String jwtToken = jwtService.generateToken(savedUser);
+        String refreshToken = jwtService.generateRefreshToken(savedUser);
+
+        return AuthResponse.builder()
+                .id(savedUser.getId())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .role(savedUser.getRole())
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .expirationDate(LocalDateTime.now().plusHours(24))
+                .build();
     }
 }

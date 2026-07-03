@@ -1,1 +1,37 @@
-<p>sidebar works!</p>
+<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="isMobile">
+  <!-- Overlay pour mobile -->
+  <div class="sidebar-overlay" *ngIf="isMobile && !collapsed" (click)="toggleSidebar()"></div>
+
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo-container">
+      <mat-icon class="logo-icon">account_balance</mat-icon>
+      <span class="logo-text" *ngIf="!collapsed">ATB Credit</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li *ngFor="let item of filteredMenuItems" class="nav-item">
+        <a 
+          [routerLink]="item.path" 
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-link"
+          (click)="isMobile && toggleSidebar()">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer" *ngIf="!collapsed">
+    <div class="version">
+      <mat-icon>info</mat-icon>
+      <span>Version 1.0.0</span>
+    </div>
+  </div>
+</aside>

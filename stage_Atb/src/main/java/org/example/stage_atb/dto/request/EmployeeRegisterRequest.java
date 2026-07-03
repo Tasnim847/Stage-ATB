@@ -1,6 +1,5 @@
 package org.example.stage_atb.dto.request;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,36 +14,38 @@ import org.example.stage_atb.enums.UserRole;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Requête d'inscription")
-public class RegisterRequest {
+public class EmployeeRegisterRequest {
 
     @NotBlank(message = "Le nom d'utilisateur est requis")
     @Size(min = 3, max = 50, message = "Le nom d'utilisateur doit contenir entre 3 et 50 caractères")
-    @Schema(description = "Nom d'utilisateur", example = "johndoe", required = true)
     private String username;
 
     @NotBlank(message = "L'email est requis")
     @Email(message = "L'email doit être valide")
-    @Schema(description = "Email de l'utilisateur", example = "john.doe@atb.com", required = true)
     private String email;
 
     @NotBlank(message = "Le mot de passe est requis")
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
-    @Schema(description = "Mot de passe (minimum 6 caractères)", example = "password123", required = true)
     private String password;
 
     @NotBlank(message = "Le prénom est requis")
-    @Schema(description = "Prénom de l'utilisateur", example = "John", required = true)
     private String firstName;
 
     @NotBlank(message = "Le nom est requis")
-    @Schema(description = "Nom de l'utilisateur", example = "Doe", required = true)
     private String lastName;
 
-    @Schema(description = "Numéro de téléphone", example = "+216 98 765 432")
     private String phoneNumber;
 
     @NotNull(message = "Le rôle est requis")
-    @Schema(description = "Rôle de l'utilisateur (ADMIN, ANALYST, ADVISOR, MANAGER)", example = "ANALYST", required = true)
     private UserRole role;
+
+    private String department;
+
+    private String position;
+
+    private String address;
+
+    private String city;
+
+    private String country;
 }

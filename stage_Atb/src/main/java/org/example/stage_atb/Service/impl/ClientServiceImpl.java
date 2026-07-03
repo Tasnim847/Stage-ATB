@@ -2,6 +2,7 @@ package org.example.stage_atb.Service.impl;
 
 import org.example.stage_atb.Service.IClientService;
 import org.example.stage_atb.Service.IUserService;
+import org.example.stage_atb.dto.request.ClientRegisterRequest;
 import org.example.stage_atb.dto.request.ClientRequestDTO;
 import org.example.stage_atb.dto.response.ClientResponseDTO;
 import org.example.stage_atb.entity.Client;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,16 +33,13 @@ public class ClientServiceImpl implements IClientService {
     public ClientResponseDTO createClient(ClientRequestDTO clientRequestDTO) {
         log.info("Creating client: {}", clientRequestDTO.getEmail());
 
-        // Vérifier si le client existe déjà
         if (clientRepository.findByEmail(clientRequestDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Client already exists with email: " + clientRequestDTO.getEmail());
         }
 
         Client client = clientMapper.toEntity(clientRequestDTO);
 
-        // Si un conseiller est spécifié
         if (clientRequestDTO.getAdvisorId() != null && !clientRequestDTO.getAdvisorId().isEmpty()) {
-            // Utiliser la nouvelle méthode pour récupérer l'entity User
             User advisor = userService.getUserEntityById(clientRequestDTO.getAdvisorId());
             client.setAdvisor(advisor);
         }
@@ -50,6 +50,54 @@ public class ClientServiceImpl implements IClientService {
         return clientMapper.toResponseDTO(savedClient);
     }
 
+    // ✅ IMPLÉMENTER LA MÉTHODE createClientFromUser
+    @Override
+    public ClientResponseDTO createClientFromUser(User user, ClientRegisterRequest request) {
+        log.info("Creating client from user registration: {}", user.getEmail());
+
+        // Vérifier si le client existe déjà
+        if (clientRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Client already exists with email: " + user.getEmail());
+        }
+
+        // Créer le client à partir des données de l'utilisateur
+        Client client = Client.builder()
+                .clientNumber(generateClientNumber())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .dateOfBirth(request.getDateOfBirth())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                // Champs supplémentaires
+                .placeOfBirth(request.getPlaceOfBirth())
+                .nationality(request.getNationality())
+                .maritalStatus(request.getMaritalStatus())
+                .gender(request.getGender())
+                .identityNumber(request.getIdentityNumber())
+                .identityType(request.getIdentityType())
+                .profession(request.getProfession())
+                .employer(request.getEmployer())
+                .monthlyIncome(request.getMonthlyIncome())
+                .postalCode(request.getPostalCode())
+                .notes(request.getNotes())
+                .active(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Client savedClient = clientRepository.save(client);
+        log.info("Client created from user registration with id: {}", savedClient.getId());
+
+        return clientMapper.toResponseDTO(savedClient);
+    }
+
+    private String generateClientNumber() {
+        return "CLT-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
+    }
+
+    // ... Autres méthodes (getClientById, getAllClients, etc.)
     @Override
     public ClientResponseDTO getClientById(String id) {
         Client client = clientRepository.findById(id)
@@ -102,9 +150,7 @@ public class ClientServiceImpl implements IClientService {
 
         clientMapper.updateEntity(client, clientRequestDTO);
 
-        // Mettre à jour le conseiller si spécifié
         if (clientRequestDTO.getAdvisorId() != null && !clientRequestDTO.getAdvisorId().isEmpty()) {
-            // Utiliser la nouvelle méthode pour récupérer l'entity User
             User advisor = userService.getUserEntityById(clientRequestDTO.getAdvisorId());
             client.setAdvisor(advisor);
         }

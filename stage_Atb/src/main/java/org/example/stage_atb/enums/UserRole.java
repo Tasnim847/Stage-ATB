@@ -4,5 +4,6 @@ public enum UserRole {
     ADMIN,
     ANALYST,
     ADVISOR,
-    MANAGER
+    MANAGER,
+    CLIENT
 }
