@@ -1,6 +1,5 @@
 package org.example.stage_atb.Service;
 
-
 import org.example.stage_atb.dto.request.ClientRegisterRequest;
 import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
 import org.example.stage_atb.dto.request.LoginRequest;
@@ -41,10 +40,14 @@ public interface IUserService {
 
     long countActiveUsers();
 
-    User getUserEntityById(String id); // Récupère l'entity User directement
+    User getUserEntityById(String id);
 
     AuthResponse registerClient(ClientRegisterRequest clientRegisterRequest);
 
-    AuthResponse registerEmployee(EmployeeRegisterRequest employeeRegisterRequest); // ✅ NOUVEAU
+    AuthResponse registerEmployee(EmployeeRegisterRequest employeeRegisterRequest);
 
+    // ✅ NOUVELLES MÉTHODES
+    User createUser(User user);
+    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
 }

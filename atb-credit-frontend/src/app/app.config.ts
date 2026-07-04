@@ -13,7 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([
-        authInterceptor,
+        authInterceptor,   // ✅ Vérifier que c'est bien présent
         errorInterceptor
       ])
     ),
@@ -24,7 +24,6 @@ export const appConfig: ApplicationConfig = {
       preventDuplicates: true,
       closeButton: true,
       progressBar: true,
-      progressAnimation: 'increasing'
     })
   ]
 };

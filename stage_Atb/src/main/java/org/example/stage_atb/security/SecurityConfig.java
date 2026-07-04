@@ -33,26 +33,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    /**
-     * Configuration de l'AuthenticationManager
-     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Configuration du PasswordEncoder avec BCrypt
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Configuration du filtre Multipart pour les uploads de fichiers
-     */
     @Bean
     public MultipartFilter multipartFilter() {
         MultipartFilter multipartFilter = new MultipartFilter();
@@ -60,39 +51,17 @@ public class SecurityConfig {
         return multipartFilter;
     }
 
-    /**
-     * Configuration CORS complète pour Angular
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // ========== ORIGINES AUTORISÉES ==========
-        // Solution 1: Origines explicites (Recommandée)
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",
                 "http://localhost:4201",
                 "http://127.0.0.1:4200"
         ));
-
-        // Solution 2: Patterns (pour plus de flexibilité)
-        // configuration.setAllowedOriginPatterns(Arrays.asList(
-        //     "http://localhost:*",
-        //     "http://127.0.0.1:*"
-        // ));
-
-        // ========== MÉTHODES HTTP AUTORISÉES ==========
         configuration.setAllowedMethods(Arrays.asList(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "PATCH",
-                "OPTIONS",
-                "HEAD"
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
         ));
-
-        // ========== HEADERS AUTORISÉS ==========
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
@@ -105,29 +74,19 @@ public class SecurityConfig {
                 "Access-Control-Allow-Methods",
                 "Access-Control-Allow-Credentials"
         ));
-
-        // ========== HEADERS EXPOSÉS ==========
         configuration.setExposedHeaders(Arrays.asList(
                 "Authorization",
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Credentials"
         ));
-
-        // ========== CREDENTIALS ==========
         configuration.setAllowCredentials(true);
-
-        // ========== DURÉE DE VIE DU CACHE CORS ==========
         configuration.setMaxAge(3600L);
 
-        // ========== APPLICATION DE LA CONFIGURATION ==========
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
-    /**
-     * Configuration du Provider d'authentification
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -136,92 +95,52 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * Configuration principale de la sécurité
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ========== 1. CONFIGURATION CORS ==========
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // ========== 2. DÉSACTIVATION CSRF (API REST) ==========
                 .csrf(csrf -> csrf.disable())
-
-                // ========== 3. FILTRES ==========
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(multipartFilter(), JwtAuthenticationFilter.class)
-
-                // ========== 4. AUTHORISATIONS ==========
                 .authorizeHttpRequests(auth -> auth
-
-                        // ----- 4.1. OPTIONS pour CORS -----
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ----- 4.2. Endpoints publics -----
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        // Endpoints publics
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        // ----- 4.3. Swagger / OpenAPI -----
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api-docs/**").permitAll()
-
-                        // ----- 4.4. Actuator (Monitoring) -----
                         .requestMatchers("/actuator/**").permitAll()
-
-                        // ----- 4.5. Uploads -----
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // ========================================
-                        // 4.6. ROLES ET PERMISSIONS
-                        // ========================================
+                        // ✅ ADMIN uniquement - AVEC ROLE_
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/role/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/count/active").hasRole("ADMIN")
 
-                        // ----- ADMIN uniquement -----
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/users/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/users/role/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/users/count/active").hasAuthority("ADMIN")
+                        // ✅ ANALYST et ADMIN - AVEC hasAnyRole
+                        .requestMatchers("/api/financial-analysis/**").hasAnyRole("ANALYST", "ADMIN")
+                        .requestMatchers("/api/risk-analysis/**").hasAnyRole("ANALYST", "ADMIN")
+                        .requestMatchers("/api/fraud-alerts/**").hasAnyRole("ANALYST", "ADMIN")
 
-                        // ----- ANALYST et ADMIN -----
-                        .requestMatchers("/api/analyst/**").hasAnyAuthority("ANALYST", "ADMIN")
-                        .requestMatchers("/api/financial-analysis/**").hasAnyAuthority("ANALYST", "ADMIN")
-                        .requestMatchers("/api/risk-analysis/**").hasAnyAuthority("ANALYST", "ADMIN")
-                        .requestMatchers("/api/fraud-alerts/**").hasAnyAuthority("ANALYST", "ADMIN")
+                        // ✅ ADVISOR, ANALYST, ADMIN - Clients
+                        .requestMatchers("/api/clients/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        .requestMatchers("/api/clients/advisor/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ----- ADVISOR, ANALYST et ADMIN -----
-                        .requestMatchers("/api/advisor/**").hasAnyAuthority("ADVISOR", "ANALYST", "ADMIN")
-                        .requestMatchers("/api/clients/**").hasAnyAuthority("ADVISOR", "ANALYST", "ADMIN")
+                        // ✅ Copilot (Premium)
+                        .requestMatchers("/api/copilot/**").hasAnyRole("ANALYST", "ADMIN")
 
-                        // ----- Copilot (Premium) -----
-                        .requestMatchers("/api/copilot/**").hasAnyAuthority("ANALYST", "ADMIN")
+                        // ✅ KYC
+                        .requestMatchers("/api/kyc/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ----- KYC -----
-                        .requestMatchers("/api/kyc/**").hasAnyAuthority("ADVISOR", "ANALYST", "ADMIN")
-
-                        // ----- Notifications -----
+                        // ✅ Notifications, Dashboard, Credit Requests
                         .requestMatchers("/api/notifications/**").authenticated()
-
-                        // ----- Dashboard -----
                         .requestMatchers("/api/dashboard/**").authenticated()
-
-                        // ----- Credit Requests -----
                         .requestMatchers("/api/credit-requests/**").authenticated()
 
-                        // ----- Credit Requests -----
-                        .requestMatchers("/api/credit-requests/**").authenticated()
-
-                        // ========================================
-                        // 4.7. Toute autre requête
-                        // ========================================
                         .anyRequest().authenticated()
                 )
-
-                // ========== 5. SESSION STATELESS (JWT) ==========
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-
-                // ========== 6. PROVIDER D'AUTHENTIFICATION ==========
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider());
 
         return http.build();

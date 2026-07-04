@@ -6,8 +6,15 @@
   <div class="sidebar-header">
     <div class="logo-container">
       <mat-icon class="logo-icon">account_balance</mat-icon>
-      <span class="logo-text" *ngIf="!collapsed">ATB Credit</span>
+      <span class="logo-text" *ngIf="!collapsed">
+        ATB <span>Credit</span>
+      </span>
     </div>
+  </div>
+
+  <!-- Séparateur de rôle -->
+  <div class="role-badge" *ngIf="!collapsed">
+    <span class="role-label">{{ getUserRole() || 'Utilisateur' }}</span>
   </div>
 
   <!-- Navigation -->
@@ -22,6 +29,7 @@
           (click)="isMobile && toggleSidebar()">
           <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
           <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+          <span class="badge" *ngIf="item.badge > 0 && !collapsed">{{ item.badge }}</span>
         </a>
       </li>
     </ul>
@@ -32,6 +40,10 @@
     <div class="version">
       <mat-icon>info</mat-icon>
       <span>Version 1.0.0</span>
+    </div>
+    <div class="user-role-footer">
+      <mat-icon>account_circle</mat-icon>
+      <span>{{ getUserInfo()?.firstName }} {{ getUserInfo()?.lastName }}</span>
     </div>
   </div>
 </aside>

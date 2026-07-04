@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '@core/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -17,13 +18,14 @@ import { ToastrService } from 'ngx-toastr';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css']
+  styleUrls: ['./header.component.css'] // ✅ Garder .css
 })
 export class HeaderComponent {
-  @Input() isSidebarCollapsed = false; // ✅ Input pour l'état
+  @Input() isSidebarCollapsed = false;
   @Output() toggleSidebar = new EventEmitter<void>();
 
   private authService = inject(AuthService);

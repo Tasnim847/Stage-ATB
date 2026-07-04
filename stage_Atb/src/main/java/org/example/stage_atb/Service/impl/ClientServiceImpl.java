@@ -7,14 +7,15 @@ import org.example.stage_atb.dto.request.ClientRequestDTO;
 import org.example.stage_atb.dto.response.ClientResponseDTO;
 import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.User;
+import org.example.stage_atb.enums.UserRole;
 import org.example.stage_atb.Mappers.ClientMapper;
 import org.example.stage_atb.Repositories.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,15 +29,38 @@ public class ClientServiceImpl implements IClientService {
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
     private final IUserService userService;
+    private final PasswordEncoder passwordEncoder; // ✅ Ajouter PasswordEncoder
 
     @Override
     public ClientResponseDTO createClient(ClientRequestDTO clientRequestDTO) {
         log.info("Creating client: {}", clientRequestDTO.getEmail());
 
+        // ✅ Vérifier si le client existe déjà
         if (clientRepository.findByEmail(clientRequestDTO.getEmail()).isPresent()) {
             throw new RuntimeException("Client already exists with email: " + clientRequestDTO.getEmail());
         }
 
+        // ✅ Vérifier si l'utilisateur existe déjà
+        if (userService.existsByEmail(clientRequestDTO.getEmail())) {
+            throw new RuntimeException("User already exists with email: " + clientRequestDTO.getEmail());
+        }
+
+        // ✅ 1. Créer l'utilisateur avec le rôle CLIENT
+        User newUser = new User();
+        newUser.setUsername(generateUsername(clientRequestDTO.getFirstName(), clientRequestDTO.getLastName()));
+        newUser.setEmail(clientRequestDTO.getEmail());
+        newUser.setPassword(passwordEncoder.encode("default123")); // Mot de passe par défaut
+        newUser.setFirstName(clientRequestDTO.getFirstName());
+        newUser.setLastName(clientRequestDTO.getLastName());
+        newUser.setPhoneNumber(clientRequestDTO.getPhoneNumber());
+        newUser.setRole(UserRole.CLIENT);
+        newUser.setActive(true);
+        newUser.setLocked(false);
+
+        User savedUser = userService.createUser(newUser);
+        log.info("User created with id: {}", savedUser.getId());
+
+        // ✅ 2. Créer le client avec l'ID de l'utilisateur
         Client client = clientMapper.toEntity(clientRequestDTO);
 
         if (clientRequestDTO.getAdvisorId() != null && !clientRequestDTO.getAdvisorId().isEmpty()) {
@@ -50,17 +74,26 @@ public class ClientServiceImpl implements IClientService {
         return clientMapper.toResponseDTO(savedClient);
     }
 
-    // ✅ IMPLÉMENTER LA MÉTHODE createClientFromUser
+    private String generateUsername(String firstName, String lastName) {
+        String base = firstName.toLowerCase() + "." + lastName.toLowerCase();
+        String username = base;
+        int counter = 1;
+        while (userService.existsByUsername(username)) {
+            username = base + counter;
+            counter++;
+        }
+        return username;
+    }
+
+    // ... autres méthodes
     @Override
     public ClientResponseDTO createClientFromUser(User user, ClientRegisterRequest request) {
         log.info("Creating client from user registration: {}", user.getEmail());
 
-        // Vérifier si le client existe déjà
         if (clientRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("Client already exists with email: " + user.getEmail());
         }
 
-        // Créer le client à partir des données de l'utilisateur
         Client client = Client.builder()
                 .clientNumber(generateClientNumber())
                 .firstName(user.getFirstName())
@@ -71,7 +104,6 @@ public class ClientServiceImpl implements IClientService {
                 .address(request.getAddress())
                 .city(request.getCity())
                 .country(request.getCountry())
-                // Champs supplémentaires
                 .placeOfBirth(request.getPlaceOfBirth())
                 .nationality(request.getNationality())
                 .maritalStatus(request.getMaritalStatus())
@@ -97,7 +129,6 @@ public class ClientServiceImpl implements IClientService {
         return "CLT-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
     }
 
-    // ... Autres méthodes (getClientById, getAllClients, etc.)
     @Override
     public ClientResponseDTO getClientById(String id) {
         Client client = clientRepository.findById(id)

@@ -1,229 +1,327 @@
+/* ============================================
+   HEADER
+   ============================================ */
+
 .header {
   position: fixed;
   top: 0;
   right: 0;
-  left: 250px;
-  height: 70px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  left: 280px;
+  height: 72px;
+  background: #ffffff;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px;
   z-index: 1000;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(26, 35, 126, 0.06);
+}
 
-  &.collapsed {
-    left: 70px;
+.header.collapsed {
+  left: 80px;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1a237e, #c9a84c, #1a237e);
+  background-size: 200% 100%;
+  animation: gradientMove 4s ease infinite;
+}
+
+@keyframes gradientMove {
+  0%, 100% {
+    background-position: 0% 50%;
   }
-
-  @media screen and (max-width: 992px) {
-    left: 70px;
-
-    &.collapsed {
-      left: 0;
-    }
-  }
-
-  @media screen and (max-width: 768px) {
-    left: 0;
-    padding: 0 16px;
-
-    .logo {
-      span {
-        display: none;
-      }
-    }
-  }
-
-  @media screen and (max-width: 480px) {
-    height: 60px;
-    padding: 0 12px;
-
-    .logo {
-      mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-      }
-    }
-
-    .user-btn {
-      .user-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-      }
-    }
+  50% {
+    background-position: 100% 50%;
   }
 }
+
+@media (max-width: 992px) {
+  .header {
+    left: 80px;
+  }
+  .header.collapsed {
+    left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+    padding: 0 16px;
+    height: 64px;
+  }
+  .header::after {
+    height: 2px;
+  }
+}
+
+/* ============================================
+   HEADER LEFT
+   ============================================ */
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+}
 
-  .menu-toggle {
-    color: #1a237e;
+.header-left .menu-toggle {
+  color: #1a237e;
+  transition: transform 0.2s ease;
+}
 
-    @media screen and (max-width: 480px) {
-      mat-icon {
-        font-size: 20px;
-      }
-    }
+.header-left .menu-toggle:hover {
+  transform: scale(1.1);
+  background: rgba(26, 35, 126, 0.08);
+}
+
+.header-left .menu-toggle mat-icon {
+  font-size: 24px;
+}
+
+.header-left .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a237e;
+  letter-spacing: -0.5px;
+}
+
+.header-left .logo mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #c9a84c;
+}
+
+.header-left .logo span {
+  background: linear-gradient(135deg, #1a237e, #c9a84c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 480px) {
+  .header-left .logo {
+    font-size: 16px;
   }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a237e;
-
-    mat-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
-    }
-
-    @media screen and (max-width: 480px) {
-      font-size: 14px;
-      
-      mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
-      }
-    }
+  .header-left .logo mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  .header-left .logo span {
+    display: none;
   }
 }
+
+/* ============================================
+   HEADER RIGHT
+   ============================================ */
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
 
-  .notification-btn {
-    position: relative;
-    color: #666;
+.header-right .notification-btn {
+  position: relative;
+  color: #757575;
+  transition: all 0.2s ease;
+}
 
-    .badge {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      background: #f44336;
-      color: white;
-      font-size: 10px;
-      font-weight: 600;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.header-right .notification-btn:hover {
+  color: #1a237e;
+  transform: scale(1.05);
+}
 
-    @media screen and (max-width: 480px) {
-      mat-icon {
-        font-size: 20px;
-      }
+.header-right .notification-btn .badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #c62828;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  animation: pulse 2s infinite;
+}
 
-      .badge {
-        width: 16px;
-        height: 16px;
-        font-size: 8px;
-      }
-    }
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
   }
-
-  .user-btn {
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #1a237e;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    @media screen and (max-width: 480px) {
-      .user-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-      }
-    }
+  50% {
+    transform: scale(1.05);
   }
 }
 
+.header-right .user-btn .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a237e, #0d47a1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 8px rgba(26, 35, 126, 0.2);
+}
+
+.header-right .user-btn .user-avatar:hover {
+  transform: scale(1.05);
+  border-color: #c9a84c;
+  box-shadow: 0 4px 16px rgba(26, 35, 126, 0.3);
+}
+
+@media (max-width: 480px) {
+  .header-right .user-btn .user-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   USER MENU
+   ============================================ */
+
 .user-menu {
-  min-width: 260px;
+  min-width: 280px;
   padding: 8px 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+}
 
-  @media screen and (max-width: 480px) {
-    min-width: 200px;
-  }
+.user-menu .user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px 20px;
+  background: linear-gradient(135deg, #1a237e, #0d1445);
+  margin: -8px -8px 8px;
+  border-radius: 12px 12px 0 0;
+}
 
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
+.user-menu .user-info .user-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 24px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
 
-    .user-avatar-large {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #1a237e;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
+.user-menu .user-info .user-details {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  flex: 1;
+  min-width: 0;
+}
 
-    .user-details {
-      display: flex;
-      flex-direction: column;
+.user-menu .user-info .user-details strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-      strong {
-        font-size: 14px;
-        color: #1a237e;
-      }
+.user-menu .user-info .user-details span {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-      span {
-        font-size: 12px;
-        color: #666;
-      }
+.user-menu .user-info .user-details .user-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: #c9a84c;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 2px 12px;
+  border-radius: 12px;
+  align-self: flex-start;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
-      .user-role {
-        font-size: 11px;
-        color: #1a237e;
-        background: #e8eaf6;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-top: 4px;
-        align-self: flex-start;
-      }
-    }
-  }
+.user-menu .mat-menu-item {
+  height: 44px;
+  font-size: 14px;
+  color: #424242;
+  padding: 0 20px;
+}
 
-  .logout-btn {
-    color: #f44336;
+.user-menu .mat-menu-item mat-icon {
+  color: #757575;
+  margin-right: 12px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
 
-    mat-icon {
-      color: #f44336;
-    }
+.user-menu .mat-menu-item:hover {
+  background: rgba(26, 35, 126, 0.06);
+}
 
-    &:hover {
-      background: #ffebee;
-    }
+.user-menu .mat-menu-item:hover mat-icon {
+  color: #1a237e;
+}
+
+.user-menu .logout-btn {
+  color: #c62828 !important;
+}
+
+.user-menu .logout-btn mat-icon {
+  color: #c62828 !important;
+}
+
+.user-menu .logout-btn:hover {
+  background: rgba(198, 40, 40, 0.08) !important;
+}
+
+.user-menu mat-divider {
+  margin: 4px 0;
+}
+
+@media (max-width: 480px) {
+  .user-menu {
+    min-width: 240px;
   }
 }

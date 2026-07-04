@@ -1,1 +1,122 @@
-<p>clients works!</p>
+<div class="clients-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>Clients</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" routerLink="/clients/new">
+        <mat-icon>person_add</mat-icon>
+        Nouveau client
+      </button>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <mat-card class="search-card">
+    <mat-card-content>
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un client</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="searchQuery" 
+            (input)="searchClients()"
+            placeholder="Nom, email, numéro client..."
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        <span class="client-count">{{ filteredClients.length }} client(s)</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Table -->
+  <mat-card class="table-card">
+    <mat-card-content>
+      <div class="table-container">
+        <mat-table [dataSource]="filteredClients" matSort>
+          <!-- Numéro Client -->
+          <ng-container matColumnDef="clientNumber">
+            <mat-header-cell *matHeaderCellDef> Numéro </mat-header-cell>
+            <mat-cell *matCellDef="let client"> {{ client.clientNumber }} </mat-cell>
+          </ng-container>
+
+          <!-- Nom -->
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef> Nom </mat-header-cell>
+            <mat-cell *matCellDef="let client"> 
+              {{ client.firstName }} {{ client.lastName }}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Email -->
+          <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef> Email </mat-header-cell>
+            <mat-cell *matCellDef="let client"> {{ client.email }} </mat-cell>
+          </ng-container>
+
+          <!-- Téléphone -->
+          <ng-container matColumnDef="phone">
+            <mat-header-cell *matHeaderCellDef> Téléphone </mat-header-cell>
+            <mat-cell *matCellDef="let client"> {{ client.phoneNumber || '-' }} </mat-cell>
+          </ng-container>
+
+          <!-- Conseiller -->
+          <ng-container matColumnDef="advisor">
+            <mat-header-cell *matHeaderCellDef> Conseiller </mat-header-cell>
+            <mat-cell *matCellDef="let client"> {{ client.advisorName || 'Non assigné' }} </mat-cell>
+          </ng-container>
+
+          <!-- Statut -->
+          <ng-container matColumnDef="status">
+            <mat-header-cell *matHeaderCellDef> Statut </mat-header-cell>
+            <mat-cell *matCellDef="let client">
+              <mat-chip [color]="client.active ? 'primary' : 'warn'" selected>
+                {{ client.active ? 'Actif' : 'Inactif' }}
+              </mat-chip>
+            </mat-cell>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+            <mat-cell *matCellDef="let client">
+              <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button [color]="client.active ? 'warn' : 'primary'" (click)="toggleClientStatus(client.id, client.active)">
+                <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteClient(client.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+        </mat-table>
+
+        <!-- Loading spinner -->
+        <div class="loading-spinner" *ngIf="isLoading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Chargement des clients...</p>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" *ngIf="!isLoading && filteredClients.length === 0">
+          <mat-icon>people_outline</mat-icon>
+          <h3>Aucun client trouvé</h3>
+          <p *ngIf="searchQuery">Aucun client ne correspond à votre recherche.</p>
+          <p *ngIf="!searchQuery">Commencez par ajouter votre premier client.</p>
+          <button mat-raised-button color="primary" routerLink="/clients/new">
+            <mat-icon>person_add</mat-icon>
+            Ajouter un client
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

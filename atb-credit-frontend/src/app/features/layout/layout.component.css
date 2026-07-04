@@ -1,46 +1,108 @@
+/* ============================================
+   LAYOUT
+   ============================================ */
+
 .app-container {
   display: flex;
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #f0f2f5;
 }
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
 
 .main-content {
   flex: 1;
-  margin-left: 250px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  position: relative;
+}
 
-  &.sidebar-collapsed {
-    margin-left: 70px;
+.main-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 80px;
   }
-
-  @media screen and (max-width: 992px) {
-    margin-left: 70px;
-
-    &.sidebar-collapsed {
-      margin-left: 0;
-    }
-  }
-
-  @media screen and (max-width: 768px) {
+  .main-content.sidebar-collapsed {
     margin-left: 0;
-
-    &.sidebar-collapsed {
-      margin-left: 0;
-    }
   }
 }
 
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  .main-content.sidebar-collapsed {
+    margin-left: 0;
+  }
+}
+
+/* ============================================
+   PAGE CONTENT
+   ============================================ */
+
 .page-content {
   flex: 1;
-  padding: 20px;
-  margin-top: 70px;
-  transition: margin-left 0.3s ease;
+  padding: 24px 32px;
+  margin-top: 72px;
+  animation: fadeInUp 0.4s ease;
+}
 
-  @media screen and (max-width: 480px) {
+.page-content.sidebar-collapsed {
+  padding-left: 32px;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 16px;
+    margin-top: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
     padding: 12px;
-    margin-top: 60px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
   }
 }

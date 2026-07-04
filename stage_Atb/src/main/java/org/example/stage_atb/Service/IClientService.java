@@ -33,6 +33,5 @@ public interface IClientService {
 
     long countActiveClients();
 
-    // ✅ Nouvelle méthode pour créer un client à partir d'une inscription
     ClientResponseDTO createClientFromUser(User user, ClientRegisterRequest request);
 }
