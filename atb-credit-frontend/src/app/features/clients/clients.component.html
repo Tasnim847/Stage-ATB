@@ -1,13 +1,50 @@
+<!-- clients.component.html -->
 <div class="clients-container">
   <!-- Header -->
   <div class="header">
-    <h1>Clients</h1>
+    <div class="header-left">
+      <h1>Gestion des clients</h1>
+      <p class="subtitle">Gérez votre portefeuille clients</p>
+    </div>
     <div class="header-actions">
       <button mat-raised-button color="primary" routerLink="/clients/new">
         <mat-icon>person_add</mat-icon>
         Nouveau client
       </button>
     </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-content">
+        <mat-icon>people</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ totalClients }}</span>
+          <span class="stat-label">Total clients</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card active">
+      <div class="stat-content">
+        <mat-icon>check_circle</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ activeClients }}</span>
+          <span class="stat-label">Clients actifs</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card inactive">
+      <div class="stat-content">
+        <mat-icon>block</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ inactiveClients }}</span>
+          <span class="stat-label">Clients inactifs</span>
+        </div>
+      </div>
+    </mat-card>
   </div>
 
   <!-- Search -->
@@ -29,94 +66,110 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Table -->
-  <mat-card class="table-card">
-    <mat-card-content>
-      <div class="table-container">
-        <mat-table [dataSource]="filteredClients" matSort>
-          <!-- Numéro Client -->
-          <ng-container matColumnDef="clientNumber">
-            <mat-header-cell *matHeaderCellDef> Numéro </mat-header-cell>
-            <mat-cell *matCellDef="let client"> {{ client.clientNumber }} </mat-cell>
-          </ng-container>
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des clients...</p>
+  </div>
 
-          <!-- Nom -->
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef> Nom </mat-header-cell>
-            <mat-cell *matCellDef="let client"> 
-              {{ client.firstName }} {{ client.lastName }}
-            </mat-cell>
-          </ng-container>
-
-          <!-- Email -->
-          <ng-container matColumnDef="email">
-            <mat-header-cell *matHeaderCellDef> Email </mat-header-cell>
-            <mat-cell *matCellDef="let client"> {{ client.email }} </mat-cell>
-          </ng-container>
-
-          <!-- Téléphone -->
-          <ng-container matColumnDef="phone">
-            <mat-header-cell *matHeaderCellDef> Téléphone </mat-header-cell>
-            <mat-cell *matCellDef="let client"> {{ client.phoneNumber || '-' }} </mat-cell>
-          </ng-container>
-
-          <!-- Conseiller -->
-          <ng-container matColumnDef="advisor">
-            <mat-header-cell *matHeaderCellDef> Conseiller </mat-header-cell>
-            <mat-cell *matCellDef="let client"> {{ client.advisorName || 'Non assigné' }} </mat-cell>
-          </ng-container>
-
-          <!-- Statut -->
-          <ng-container matColumnDef="status">
-            <mat-header-cell *matHeaderCellDef> Statut </mat-header-cell>
-            <mat-cell *matCellDef="let client">
-              <mat-chip [color]="client.active ? 'primary' : 'warn'" selected>
-                {{ client.active ? 'Actif' : 'Inactif' }}
-              </mat-chip>
-            </mat-cell>
-          </ng-container>
-
-          <!-- Actions -->
-          <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
-            <mat-cell *matCellDef="let client">
-              <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]">
-                <mat-icon>visibility</mat-icon>
-              </button>
-              <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button [color]="client.active ? 'warn' : 'primary'" (click)="toggleClientStatus(client.id, client.active)">
-                <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deleteClient(client.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </mat-cell>
-          </ng-container>
-
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-        </mat-table>
-
-        <!-- Loading spinner -->
-        <div class="loading-spinner" *ngIf="isLoading">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Chargement des clients...</p>
+  <!-- Cards Grid -->
+  <div class="cards-grid" *ngIf="!isLoading && filteredClients.length > 0">
+    <mat-card *ngFor="let client of filteredClients" class="client-card">
+      <!-- En-tête de la carte avec dégradé -->
+      <div class="card-header" [class.active]="client.active">
+        <div class="card-avatar">
+          {{ getInitials(client.firstName, client.lastName) }}
         </div>
-
-        <!-- Empty state -->
-        <div class="empty-state" *ngIf="!isLoading && filteredClients.length === 0">
-          <mat-icon>people_outline</mat-icon>
-          <h3>Aucun client trouvé</h3>
-          <p *ngIf="searchQuery">Aucun client ne correspond à votre recherche.</p>
-          <p *ngIf="!searchQuery">Commencez par ajouter votre premier client.</p>
-          <button mat-raised-button color="primary" routerLink="/clients/new">
-            <mat-icon>person_add</mat-icon>
-            Ajouter un client
-          </button>
+        <div class="card-title">
+          <h3>{{ getFullName(client.firstName, client.lastName) }}</h3>
+          <span class="client-number">{{ client.clientNumber }}</span>
+        </div>
+        <div class="card-status">
+          <span class="status-badge" [class]="getStatusColor(client.active)">
+            {{ getStatusLabel(client.active) }}
+          </span>
         </div>
       </div>
-    </mat-card-content>
-  </mat-card>
+
+      <!-- Corps de la carte -->
+      <div class="card-body">
+        <div class="info-row">
+          <mat-icon>email</mat-icon>
+          <span>{{ client.email }}</span>
+        </div>
+        <div class="info-row">
+          <mat-icon>phone</mat-icon>
+          <span>{{ client.phoneNumber || 'Non renseigné' }}</span>
+        </div>
+        <div class="info-row" *ngIf="client.advisorName">
+          <mat-icon>person</mat-icon>
+          <span>Conseiller : {{ client.advisorName }}</span>
+        </div>
+        <div class="info-row" *ngIf="client.averageCreditScore">
+          <mat-icon>trending_up</mat-icon>
+          <span>Score : {{ client.averageCreditScore }}/100</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]" matTooltip="Voir les détails">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']" matTooltip="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button 
+          mat-icon-button 
+          [color]="client.active ? 'warn' : 'primary'" 
+          (click)="toggleClientStatus(client.id, client.active)"
+          matTooltip="{{ client.active ? 'Désactiver' : 'Activer' }}"
+        >
+          <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
+        </button>
+        <button 
+          mat-icon-button 
+          color="warn" 
+          (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))"
+          matTooltip="Supprimer"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item [routerLink]="['/clients', client.id]">
+            <mat-icon>visibility</mat-icon>
+            <span>Détails</span>
+          </button>
+          <button mat-menu-item [routerLink]="['/clients', client.id, 'edit']">
+            <mat-icon>edit</mat-icon>
+            <span>Modifier</span>
+          </button>
+          <button mat-menu-item (click)="toggleClientStatus(client.id, client.active)">
+            <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
+            <span>{{ client.active ? 'Désactiver' : 'Activer' }}</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))" class="danger-item">
+            <mat-icon color="warn">delete</mat-icon>
+            <span>Supprimer</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading && filteredClients.length === 0">
+    <mat-icon class="empty-icon">people_outline</mat-icon>
+    <h3>Aucun client trouvé</h3>
+    <p *ngIf="searchQuery">Aucun client ne correspond à votre recherche "{{ searchQuery }}".</p>
+    <p *ngIf="!searchQuery">Commencez par ajouter votre premier client.</p>
+    <button mat-raised-button color="primary" routerLink="/clients/new">
+      <mat-icon>person_add</mat-icon>
+      Ajouter un client
+    </button>
+  </div>
 </div>

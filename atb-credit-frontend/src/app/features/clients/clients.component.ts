@@ -2,13 +2,15 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider'; // ✅ AJOUTÉ
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ClientService, ClientResponseDTO } from '@core/services/client.service';
@@ -22,13 +24,15 @@ import { AuthService } from '@core/services/auth.service';
     RouterModule,
     FormsModule,
     MatCardModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    MatMenuModule,
+    MatDividerModule // ✅ AJOUTÉ
   ],
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.css']
@@ -40,43 +44,39 @@ export class ClientsComponent implements OnInit {
 
   clients: ClientResponseDTO[] = [];
   filteredClients: ClientResponseDTO[] = [];
-  displayedColumns: string[] = ['clientNumber', 'name', 'email', 'phone', 'advisor', 'status', 'actions'];
-  
   isLoading = true;
   searchQuery = '';
   currentUser: any = null;
   isAdvisor = false;
 
+  // Statistiques
+  totalClients = 0;
+  activeClients = 0;
+  inactiveClients = 0;
+
   ngOnInit(): void {
     this.currentUser = this.authService.getUserInfo();
     this.isAdvisor = this.authService.hasRole('ADVISOR');
-    console.log('Current user:', this.currentUser);
-    console.log('Is Advisor:', this.isAdvisor);
     this.loadClients();
   }
 
   loadClients(): void {
     this.isLoading = true;
     
-    // ✅ Utiliser getAllClients pour récupérer tous les clients
     this.clientService.getAllClients().subscribe({
       next: (clients) => {
-        console.log('Tous les clients reçus:', clients);
-        
-        // ✅ Filtrer uniquement les clients de l'ADVISOR connecté
         if (this.isAdvisor && this.currentUser) {
           this.clients = clients.filter(client => client.advisorId === this.currentUser.id);
-          console.log('Clients de l\'advisor:', this.clients);
         } else {
           this.clients = clients;
         }
         
         this.filteredClients = this.clients;
+        this.updateStats();
         this.isLoading = false;
-        console.log('Clients chargés:', this.clients.length);
         
         if (this.clients.length === 0) {
-          this.toastr.info('Aucun client trouvé pour ce conseiller', 'Information');
+          this.toastr.info('Aucun client trouvé', 'Information');
         }
       },
       error: (error) => {
@@ -85,6 +85,12 @@ export class ClientsComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  updateStats(): void {
+    this.totalClients = this.clients.length;
+    this.activeClients = this.clients.filter(c => c.active).length;
+    this.inactiveClients = this.clients.filter(c => !c.active).length;
   }
 
   searchClients(): void {
@@ -103,8 +109,8 @@ export class ClientsComponent implements OnInit {
     );
   }
 
-  deleteClient(id: string): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+  deleteClient(id: string, name: string): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le client ${name} ?`)) {
       this.clientService.deleteClient(id).subscribe({
         next: () => {
           this.toastr.success('Client supprimé avec succès', 'Succès');
@@ -118,26 +124,37 @@ export class ClientsComponent implements OnInit {
   }
 
   toggleClientStatus(id: string, currentStatus: boolean): void {
-    if (currentStatus) {
-      this.clientService.deactivateClient(id).subscribe({
+    const action = currentStatus ? 'désactiver' : 'activer';
+    if (confirm(`Voulez-vous ${action} ce client ?`)) {
+      const serviceCall = currentStatus 
+        ? this.clientService.deactivateClient(id)
+        : this.clientService.activateClient(id);
+      
+      serviceCall.subscribe({
         next: () => {
-          this.toastr.success('Client désactivé', 'Succès');
+          this.toastr.success(`Client ${currentStatus ? 'désactivé' : 'activé'} avec succès`, 'Succès');
           this.loadClients();
         },
         error: (error) => {
-          this.toastr.error('Erreur lors de la désactivation', 'Erreur');
-        }
-      });
-    } else {
-      this.clientService.activateClient(id).subscribe({
-        next: () => {
-          this.toastr.success('Client activé', 'Succès');
-          this.loadClients();
-        },
-        error: (error) => {
-          this.toastr.error('Erreur lors de l\'activation', 'Erreur');
+          this.toastr.error('Erreur lors de l\'opération', 'Erreur');
         }
       });
     }
+  }
+
+  getInitials(firstName: string, lastName: string): string {
+    return (firstName?.charAt(0) || '') + (lastName?.charAt(0) || '');
+  }
+
+  getFullName(firstName: string, lastName: string): string {
+    return `${firstName || ''} ${lastName || ''}`.trim();
+  }
+
+  getStatusColor(active: boolean): string {
+    return active ? 'active' : 'inactive';
+  }
+
+  getStatusLabel(active: boolean): string {
+    return active ? 'Actif' : 'Inactif';
   }
 }

@@ -1,108 +1,394 @@
+/* client-form.component.css */
+:host {
+  --primary-color: #8B1A1A;
+  --primary-dark: #5C0E0E;
+  --primary-light: #C0392B;
+  --primary-lighter: #E74C3C;
+  --primary-lightest: #FADBD8;
+  --primary-bg: #FFF5F5;
+  --primary-gradient-start: #FEF0EF;
+  --primary-gradient-end: #FDEDEC;
+  --text-primary: #1a2332;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --border-color: #f0d6d4;
+  --shadow-sm: 0 1px 3px rgba(139, 26, 26, 0.08);
+  --shadow-md: 0 4px 16px rgba(139, 26, 26, 0.10);
+  --shadow-lg: 0 8px 32px rgba(139, 26, 26, 0.12);
+  --radius: 12px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Conteneur principal */
 .client-form-container {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
+  padding: 24px 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+  background: var(--primary-bg);
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(231, 76, 60, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(139, 26, 26, 0.02) 0%, transparent 50%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
 
-  .form-card {
-    max-width: 800px;
-    margin: 0 auto;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Carte principale */
+.form-card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  background: white;
+  width: 100%;
+  max-width: 900px;
+  position: relative;
+}
 
-    mat-card-header {
-      padding: 24px 24px 0;
+.form-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light), var(--primary-lighter));
+}
 
-      .header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+/* En-tête de la carte */
+::ng-deep .mat-card-header {
+  padding: 28px 32px 16px !important;
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  border-bottom: 1px solid var(--border-color);
+}
 
-        h1 {
-          font-size: 24px;
-          font-weight: 600;
-          color: #1a237e;
-          margin: 0;
-        }
-      }
-    }
+::ng-deep .mat-card-title {
+  margin-bottom: 4px !important;
+}
 
-    mat-card-content {
-      padding: 24px;
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-      h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1a237e;
-        margin: 24px 0 16px;
-        padding-bottom: 8px;
-        border-bottom: 2px solid #e8eaf6;
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
 
-        &:first-of-type {
-          margin-top: 0;
-        }
-      }
+.header h1::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--primary-color), var(--primary-light));
+  border-radius: 2px;
+  margin-right: 14px;
+  vertical-align: middle;
+}
 
-      .row {
-        display: flex;
-        gap: 16px;
+::ng-deep .mat-card-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px !important;
+  padding-left: 8px;
+}
 
-        .half-width {
-          flex: 1;
-        }
-      }
+/* Bouton retour */
+.header button {
+  color: var(--text-secondary);
+  transition: var(--transition);
+  margin-left: -8px;
+}
 
-      .full-width {
-        width: 100%;
-      }
+.header button:hover {
+  color: var(--primary-color);
+  background: var(--primary-lightest);
+}
 
-      .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        margin-top: 24px;
-        padding-top: 16px;
-        border-top: 1px solid #e0e0e0;
+/* Contenu de la carte */
+::ng-deep .mat-card-content {
+  padding: 32px !important;
+}
 
-        button {
-          min-width: 120px;
-          height: 44px;
+/* Sections */
+h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 28px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+}
 
-          mat-spinner {
-            display: inline-block;
-            margin: 0 auto;
-          }
-        }
-      }
-    }
+h3::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  border-radius: 2px;
+}
 
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-      gap: 12px;
+h3:first-of-type {
+  margin-top: 0;
+}
 
-      p {
-        color: #666;
-      }
-    }
+/* Lignes de formulaire */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin-bottom: 4px;
+}
+
+/* Champs de formulaire */
+.half-width {
+  width: 100%;
+}
+
+.full-width {
+  width: 100%;
+  grid-column: 1 / -1;
+}
+
+/* Style des champs Material */
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+  color: var(--border-color);
+}
+
+::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline-thick {
+  color: var(--primary-color);
+}
+
+::ng-deep .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--primary-color);
+}
+
+::ng-deep .mat-form-field-label {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-form-field-label {
+  color: var(--primary-color) !important;
+}
+
+::ng-deep .mat-input-element {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+::ng-deep .mat-input-element::placeholder {
+  color: var(--text-muted);
+}
+
+::ng-deep .mat-select-value-text {
+  color: var(--text-primary);
+}
+
+::ng-deep .mat-select-arrow {
+  color: var(--text-muted);
+}
+
+::ng-deep .mat-form-field.mat-focused .mat-select-arrow {
+  color: var(--primary-color);
+}
+
+/* Messages d'erreur */
+::ng-deep .mat-error {
+  color: #dc3545;
+  font-size: 12px;
+}
+
+/* Textarea */
+::ng-deep textarea.mat-input-element {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Loading container */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Actions du formulaire */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.form-actions button[mat-button] {
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0 24px;
+  height: 44px;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.form-actions button[mat-button]:hover {
+  background: var(--primary-lightest);
+  color: var(--primary-color);
+}
+
+.form-actions button[mat-raised-button] {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  font-weight: 600;
+  padding: 0 32px;
+  height: 44px;
+  border-radius: 8px;
+  border: none;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-actions button[mat-raised-button]:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(139, 26, 26, 0.25);
+}
+
+.form-actions button[mat-raised-button]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-actions button[mat-raised-button] mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .client-form-container {
+    padding: 16px;
+  }
+
+  ::ng-deep .mat-card-header {
+    padding: 20px 20px 12px !important;
+  }
+
+  ::ng-deep .mat-card-content {
+    padding: 20px !important;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .header h1::before {
+    height: 20px;
+    margin-right: 10px;
+  }
+
+  h3 {
+    font-size: 15px;
+    margin-top: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  ::ng-deep .mat-form-field {
+    margin-bottom: 4px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .client-form-container {
-    padding: 16px;
-
-    .form-card {
-      mat-card-content {
-        padding: 16px;
-
-        .row {
-          flex-direction: column;
-          gap: 0;
-        }
-      }
-    }
+    padding: 12px;
   }
+
+  ::ng-deep .mat-card-header {
+    padding: 16px 16px 10px !important;
+  }
+
+  ::ng-deep .mat-card-content {
+    padding: 16px !important;
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+
+  ::ng-deep .mat-card-subtitle {
+    font-size: 13px;
+  }
+
+  h3 {
+    font-size: 14px;
+  }
+}
+
+/* Animation d'entrée */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-card {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-bg);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-light);
 }

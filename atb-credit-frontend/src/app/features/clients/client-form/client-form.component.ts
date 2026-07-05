@@ -14,6 +14,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { ClientService, ClientRequestDTO } from '@core/services/client.service';
 import { AuthService } from '@core/services/auth.service';
+import { MatTooltipModule } from '@angular/material/tooltip'; // ✅ AJOUTÉ
+
 
 @Component({
   selector: 'app-client-form',
@@ -30,7 +32,9 @@ import { AuthService } from '@core/services/auth.service';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule // ✅ AJOUTÉ
+
   ],
   templateUrl: './client-form.component.html',
   styleUrls: ['./client-form.component.css']

@@ -1,27 +1,40 @@
+<!-- client-form.component.html -->
 <div class="client-form-container">
   <mat-card class="form-card">
     <mat-card-header>
       <mat-card-title>
         <div class="header">
-          <button mat-icon-button (click)="goBack()">
+          <button mat-icon-button (click)="goBack()" matTooltip="Retour à la liste">
             <mat-icon>arrow_back</mat-icon>
           </button>
           <h1>{{ isEditMode ? 'Modifier le client' : 'Nouveau client' }}</h1>
         </div>
       </mat-card-title>
       <mat-card-subtitle>
+        <mat-icon>info</mat-icon>
         {{ isEditMode ? 'Mettez à jour les informations du client' : 'Ajoutez un nouveau client à votre portefeuille' }}
       </mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement des données...</p>
+      </div>
+
+      <!-- Formulaire -->
       <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
         <!-- Section: Informations personnelles -->
-        <h3>Informations personnelles</h3>
+        <h3>
+          <mat-icon>person</mat-icon>
+          Informations personnelles
+        </h3>
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Prénom</mat-label>
-            <input matInput formControlName="firstName" />
+            <input matInput formControlName="firstName" placeholder="Ex: Jean" />
+            <mat-icon matPrefix>badge</mat-icon>
             <mat-error *ngIf="firstName?.invalid && firstName?.touched">
               Le prénom est requis
             </mat-error>
@@ -29,7 +42,8 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Nom</mat-label>
-            <input matInput formControlName="lastName" />
+            <input matInput formControlName="lastName" placeholder="Ex: Dupont" />
+            <mat-icon matPrefix>badge</mat-icon>
             <mat-error *ngIf="lastName?.invalid && lastName?.touched">
               Le nom est requis
             </mat-error>
@@ -39,7 +53,7 @@
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Deuxième prénom</mat-label>
-            <input matInput formControlName="middleName" />
+            <input matInput formControlName="middleName" placeholder="Ex: Pierre" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-width">
@@ -53,11 +67,15 @@
         </div>
 
         <!-- Section: Contact -->
-        <h3>Coordonnées</h3>
+        <h3>
+          <mat-icon>contact_mail</mat-icon>
+          Coordonnées
+        </h3>
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" />
+            <input matInput type="email" formControlName="email" placeholder="exemple@email.com" />
+            <mat-icon matPrefix>email</mat-icon>
             <mat-error *ngIf="email?.invalid && email?.touched">
               <span *ngIf="email?.errors?.['required']">L'email est requis</span>
               <span *ngIf="email?.errors?.['email']">Email invalide</span>
@@ -67,20 +85,26 @@
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Téléphone</mat-label>
             <input matInput formControlName="phoneNumber" placeholder="+216 98 765 432" />
+            <mat-icon matPrefix>phone</mat-icon>
           </mat-form-field>
         </div>
 
         <!-- Section: Détails personnels -->
-        <h3>Détails personnels</h3>
+        <h3>
+          <mat-icon>event_note</mat-icon>
+          Détails personnels
+        </h3>
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Date de naissance</mat-label>
             <input matInput type="date" formControlName="dateOfBirth" />
+            <mat-icon matPrefix>calendar_today</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Lieu de naissance</mat-label>
-            <input matInput formControlName="placeOfBirth" />
+            <input matInput formControlName="placeOfBirth" placeholder="Ex: Tunis" />
+            <mat-icon matPrefix>location_on</mat-icon>
           </mat-form-field>
         </div>
 
@@ -105,7 +129,10 @@
         </div>
 
         <!-- Section: Identité -->
-        <h3>Pièce d'identité</h3>
+        <h3>
+          <mat-icon>assignment_ind</mat-icon>
+          Pièce d'identité
+        </h3>
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Type de pièce</mat-label>
@@ -118,73 +145,92 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Numéro de pièce</mat-label>
-            <input matInput formControlName="identityNumber" />
+            <input matInput formControlName="identityNumber" placeholder="Ex: 12345678" />
+            <mat-icon matPrefix>numbers</mat-icon>
           </mat-form-field>
         </div>
 
         <!-- Section: Profession -->
-        <h3>Profession</h3>
+        <h3>
+          <mat-icon>work</mat-icon>
+          Profession
+        </h3>
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Profession</mat-label>
-            <input matInput formControlName="profession" />
+            <input matInput formControlName="profession" placeholder="Ex: Ingénieur" />
+            <mat-icon matPrefix>work_outline</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Employeur</mat-label>
-            <input matInput formControlName="employer" />
+            <input matInput formControlName="employer" placeholder="Ex: Entreprise ABC" />
+            <mat-icon matPrefix>business</mat-icon>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Revenu mensuel</mat-label>
           <input matInput formControlName="monthlyIncome" placeholder="Ex: 2500" />
+          <mat-icon matPrefix>euro_symbol</mat-icon>
+          <mat-hint>Montant en euros</mat-hint>
         </mat-form-field>
 
         <!-- Section: Adresse -->
-        <h3>Adresse</h3>
+        <h3>
+          <mat-icon>home</mat-icon>
+          Adresse
+        </h3>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Adresse</mat-label>
-          <input matInput formControlName="address" />
+          <input matInput formControlName="address" placeholder="Ex: 123 Rue Principale" />
+          <mat-icon matPrefix>home</mat-icon>
         </mat-form-field>
 
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Ville</mat-label>
-            <input matInput formControlName="city" />
+            <input matInput formControlName="city" placeholder="Ex: Tunis" />
+            <mat-icon matPrefix>location_city</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Pays</mat-label>
-            <input matInput formControlName="country" />
+            <input matInput formControlName="country" placeholder="Ex: Tunisie" />
+            <mat-icon matPrefix>flag</mat-icon>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Code postal</mat-label>
-          <input matInput formControlName="postalCode" />
+          <input matInput formControlName="postalCode" placeholder="Ex: 1000" />
+          <mat-icon matPrefix>mail_outline</mat-icon>
         </mat-form-field>
 
         <!-- Section: Notes -->
+        <h3>
+          <mat-icon>note</mat-icon>
+          Notes
+        </h3>
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Notes</mat-label>
-          <textarea matInput formControlName="notes" rows="3"></textarea>
+          <textarea matInput formControlName="notes" rows="3" placeholder="Informations complémentaires..."></textarea>
+          <mat-icon matPrefix>sticky_note_2</mat-icon>
         </mat-form-field>
 
         <!-- Actions -->
         <div class="form-actions">
-          <button mat-button type="button" (click)="goBack()">Annuler</button>
+          <button mat-button type="button" (click)="goBack()">
+            <mat-icon>cancel</mat-icon>
+            Annuler
+          </button>
           <button mat-raised-button color="primary" type="submit" [disabled]="clientForm.invalid || isLoading">
             <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-            <span *ngIf="!isLoading">{{ isEditMode ? 'Mettre à jour' : 'Créer' }}</span>
+            <mat-icon *ngIf="!isLoading">{{ isEditMode ? 'save' : 'person_add' }}</mat-icon>
+            <span *ngIf="!isLoading">{{ isEditMode ? 'Mettre à jour' : 'Créer le client' }}</span>
           </button>
         </div>
       </form>
-
-      <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner diameter="40"></mat-spinner>
-        <p>Chargement...</p>
-      </div>
     </mat-card-content>
   </mat-card>
 </div>
