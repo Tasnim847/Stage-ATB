@@ -25,10 +25,12 @@ export class SidebarComponent {
   @Input() collapsed = false;
   @Output() toggle = new EventEmitter<void>();
 
-  public authService = new AuthService();
+  // ✅ Injection correcte
+  constructor(private authService: AuthService) {}
+
   isMobile = false;
 
-  constructor() {
+  ngOnInit() {
     this.checkScreenSize();
   }
 
@@ -94,7 +96,7 @@ export class SidebarComponent {
     { path: '/dashboard', icon: 'dashboard', label: 'Mon tableau de bord', badge: 0 },
     { path: '/my-credits', icon: 'assignment', label: 'Mes demandes de crédit', badge: 2 },
     { path: '/new-credit-request', icon: 'add', label: 'Nouvelle demande', badge: 0 },    
-    { path: '/my-profile', icon: 'person', label: 'Mon profil', badge: 0 },
+    { path: '/profile', icon: 'person', label: 'Mon profil', badge: 0 },  // ✅ Changé de '/my-profile' à '/profile'
     { path: '/my-documents', icon: 'folder', label: 'Mes documents', badge: 0 },
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 3 }
   ];

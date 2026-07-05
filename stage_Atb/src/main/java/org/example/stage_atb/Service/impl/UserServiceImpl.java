@@ -1,11 +1,11 @@
 package org.example.stage_atb.Service.impl;
 
+import org.example.stage_atb.Repositories.ClientRepository;
+import org.example.stage_atb.Repositories.EmployeeRepository;
 import org.example.stage_atb.Service.IUserService;
-import org.example.stage_atb.dto.request.ClientRegisterRequest;
-import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
-import org.example.stage_atb.dto.request.LoginRequest;
-import org.example.stage_atb.dto.request.RegisterRequest;
+import org.example.stage_atb.dto.request.*;
 import org.example.stage_atb.dto.response.AuthResponse;
+import org.example.stage_atb.dto.response.ProfileResponseDTO;
 import org.example.stage_atb.dto.response.UserResponseDTO;
 import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.UserRole;
@@ -14,6 +14,7 @@ import org.example.stage_atb.Repositories.UserRepository;
 import org.example.stage_atb.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +40,9 @@ public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final ClientRepository clientRepository;
+    private final EmployeeRepository employeeRepository;
+
 
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
@@ -339,4 +345,92 @@ public class UserServiceImpl implements IUserService {
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
+
+
+    @Override
+    public ProfileResponseDTO getProfile(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        ProfileResponseDTO profile = ProfileResponseDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phoneNumber(user.getPhoneNumber())
+                .profilePicture(user.getProfilePicture())
+                .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .lastLoginAt(user.getLastLoginAt())
+                .build();
+
+        // Si l'utilisateur est un employé, ajouter les infos employé
+        if (user.getRole() != UserRole.CLIENT) {
+            employeeRepository.findByUserId(user.getId()).ifPresent(employee -> {
+                profile.setEmployeeNumber(employee.getEmployeeNumber());
+                profile.setDepartment(employee.getDepartment());
+                profile.setPosition(employee.getPosition());
+            });
+        }
+
+        // Si l'utilisateur est un client, ajouter les infos client
+        if (user.getRole() == UserRole.CLIENT) {
+            clientRepository.findByEmail(user.getEmail()).ifPresent(client -> {
+                profile.setClientNumber(client.getClientNumber());
+                profile.setDateOfBirth(client.getDateOfBirth());
+                profile.setAddress(client.getAddress());
+                profile.setCity(client.getCity());
+                profile.setCountry(client.getCountry());
+                profile.setPostalCode(client.getPostalCode());
+            });
+        }
+
+        return profile;
+    }
+
+    @Override
+    public ProfileResponseDTO updateProfile(String userId, ProfileUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Mettre à jour les champs de base
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getProfilePicture() != null) user.setProfilePicture(request.getProfilePicture());
+
+        User updatedUser = userRepository.save(user);
+
+        // Mettre à jour les infos du client si c'est un client
+        if (user.getRole() == UserRole.CLIENT) {
+            clientRepository.findByEmail(user.getEmail()).ifPresent(client -> {
+                if (request.getAddress() != null) client.setAddress(request.getAddress());
+                if (request.getCity() != null) client.setCity(request.getCity());
+                if (request.getCountry() != null) client.setCountry(request.getCountry());
+                if (request.getPostalCode() != null) client.setPostalCode(request.getPostalCode());
+                clientRepository.save(client);
+            });
+        }
+
+        return getProfile(updatedUser.getId());
+    }
+
+    @Override
+    public void updatePassword(String userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Vérifier que le mot de passe actuel est correct
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Mettre à jour le mot de passe
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        log.info("Password updated successfully for user: {}", userId);
+    }
+
 }

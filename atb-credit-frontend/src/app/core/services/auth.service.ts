@@ -198,4 +198,14 @@ export class AuthService {
       message: errorMessage
     }));
   }
+
+  // core/services/auth.service.ts - AJOUTER CETTE MÉTHODE
+
+updateUserInfo(userData: any): void {
+  const currentUser = this.getUserInfo();
+  if (currentUser) {
+    const updatedUser = { ...currentUser, ...userData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  }
+}
 }

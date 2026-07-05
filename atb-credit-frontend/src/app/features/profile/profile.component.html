@@ -1,1 +1,268 @@
-<p>profile works!</p>
+<!-- profile.component.html -->
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <button mat-icon-button (click)="goBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Mon Profil</h1>
+    <span class="role-badge" [class]="userRole.toLowerCase()">
+      {{ getRoleLabel(userRole) }}
+    </span>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!isLoading" class="profile-content">
+    <!-- Profile Header Card -->
+    <mat-card class="profile-header-card">
+      <div class="profile-cover"></div>
+      <div class="profile-info">
+        <div class="profile-avatar-wrapper">
+          <div class="profile-avatar">
+            {{ getInitials() }}
+          </div>
+          <button mat-mini-fab color="primary" class="edit-avatar-btn">
+            <mat-icon>camera_alt</mat-icon>
+          </button>
+        </div>
+        <div class="profile-details">
+          <h2>{{ profileForm.get('firstName')?.value }} {{ profileForm.get('lastName')?.value }}</h2>
+          <p class="profile-email">{{ profileForm.get('email')?.value }}</p>
+          <div class="profile-stats">
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.projects }}</span>
+              <span class="stat-label">Projets</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.events }}</span>
+              <span class="stat-label">Événements</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.completedTasks }}</span>
+              <span class="stat-label">Tâches complétées</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">{{ userStats.rating }}</span>
+              <span class="stat-label">
+                <mat-icon *ngFor="let star of getStarArray(userStats.rating)">star</mat-icon>
+                <mat-icon *ngIf="userStats.rating % 1 >= 0.5">star_half</mat-icon>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Tabs -->
+    <mat-card class="profile-tabs-card">
+      <mat-tab-group [(selectedIndex)]="activeTab" animationDuration="0ms">
+        <!-- Personal Details Tab -->
+        <mat-tab label="Informations personnelles">
+          <div class="tab-content">
+            <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Prénom</mat-label>
+                  <input matInput formControlName="firstName" required>
+                  <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">
+                    Le prénom est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Nom</mat-label>
+                  <input matInput formControlName="lastName" required>
+                  <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">
+                    Le nom est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Département</mat-label>
+                  <input matInput formControlName="department">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" [disabled]="true">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Téléphone</mat-label>
+                  <input matInput formControlName="phoneNumber">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="userRole === 'CLIENT'">
+                  <mat-label>Adresse</mat-label>
+                  <input matInput formControlName="address">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="userRole === 'CLIENT'">
+                  <mat-label>Ville</mat-label>
+                  <input matInput formControlName="city">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="userRole === 'CLIENT'">
+                  <mat-label>Pays</mat-label>
+                  <input matInput formControlName="country">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" *ngIf="userRole === 'CLIENT'">
+                  <mat-label>Code postal</mat-label>
+                  <input matInput formControlName="postalCode">
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="profileForm.invalid || isUpdating">
+                  <mat-icon *ngIf="isUpdating">refresh</mat-icon>
+                  {{ isUpdating ? 'Mise à jour...' : 'Enregistrer les modifications' }}
+                </button>
+              </div>
+            </form>
+
+            <!-- Password Change Section -->
+            <mat-divider class="section-divider"></mat-divider>
+            <h3>Changer le mot de passe</h3>
+            <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()" class="password-form">
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Mot de passe actuel</mat-label>
+                  <input matInput type="password" formControlName="currentPassword" required>
+                  <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
+                    Le mot de passe actuel est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Nouveau mot de passe</mat-label>
+                  <input matInput type="password" formControlName="newPassword" required>
+                  <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+                    Le nouveau mot de passe est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Confirmer le mot de passe</mat-label>
+                  <input matInput type="password" formControlName="confirmPassword" required>
+                  <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+                    La confirmation est requise
+                  </mat-error>
+                  <mat-error *ngIf="passwordForm.hasError('mismatch')">
+                    Les mots de passe ne correspondent pas
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="passwordForm.invalid || isPasswordUpdating">
+                  <mat-icon *ngIf="isPasswordUpdating">refresh</mat-icon>
+                  {{ isPasswordUpdating ? 'Mise à jour...' : 'Changer le mot de passe' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Skills Tab -->
+        <mat-tab label="Mes compétences">
+          <div class="tab-content">
+            <div class="skills-header">
+              <h3>Mes compétences</h3>
+              <div class="add-skill-form">
+                <mat-form-field appearance="outline" class="skill-input">
+                  <mat-label>Nouvelle compétence</mat-label>
+                  <input matInput formControlName="newSkill" placeholder="Ex: Angular">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="skill-level-select">
+                  <mat-label>Niveau</mat-label>
+                  <mat-select formControlName="skillLevel">
+                    <mat-option value="beginner">Débutant</mat-option>
+                    <mat-option value="intermediate">Intermédiaire</mat-option>
+                    <mat-option value="advanced">Avancé</mat-option>
+                    <mat-option value="master">Expert</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <button mat-raised-button color="primary" (click)="addSkill()" [disabled]="!skillsForm.get('newSkill')?.value">
+                  <mat-icon>add</mat-icon>
+                  Ajouter
+                </button>
+              </div>
+            </div>
+
+            <div class="skills-grid">
+              <div *ngFor="let skill of skills; let i = index" class="skill-item">
+                <div class="skill-header">
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <button mat-icon-button color="warn" (click)="removeSkill(i)" matTooltip="Supprimer">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+                <div class="skill-progress">
+                  <mat-progress-bar 
+                    mode="determinate" 
+                    [value]="skill.level"
+                    [color]="skill.color">
+                  </mat-progress-bar>
+                  <span class="skill-percentage">{{ skill.level }}%</span>
+                </div>
+                <div class="skill-level-badge">
+                  <span *ngIf="skill.level < 40">Débutant</span>
+                  <span *ngIf="skill.level >= 40 && skill.level < 70">Intermédiaire</span>
+                  <span *ngIf="skill.level >= 70 && skill.level < 90">Avancé</span>
+                  <span *ngIf="skill.level >= 90">Expert</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Events Tab -->
+        <mat-tab label="Mes événements">
+          <div class="tab-content">
+            <div class="events-header">
+              <h3>Mes événements en cours</h3>
+              <button mat-raised-button color="primary">
+                <mat-icon>add</mat-icon>
+                Nouvel événement
+              </button>
+            </div>
+
+            <div class="events-grid">
+              <mat-card *ngFor="let event of events" class="event-card">
+                <div class="event-header">
+                  <div class="event-icon" [style.background-color]="event.color">
+                    <mat-icon>event</mat-icon>
+                  </div>
+                  <div class="event-title">
+                    <h4>{{ event.title }}</h4>
+                    <span class="event-days">{{ event.days }} Jours</span>
+                  </div>
+                </div>
+                <div class="event-progress">
+                  <mat-progress-bar 
+                    mode="determinate" 
+                    [value]="event.progress"
+                    [style.background-color]="event.color">
+                  </mat-progress-bar>
+                  <span class="event-progress-text">{{ event.progress }}%</span>
+                </div>
+                <div class="event-actions">
+                  <button mat-stroked-button color="primary">Continuer</button>
+                  <button mat-icon-button color="warn">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                </div>
+              </mat-card>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card>
+  </div>
+</div>

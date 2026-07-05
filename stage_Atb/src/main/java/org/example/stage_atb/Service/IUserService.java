@@ -1,10 +1,8 @@
 package org.example.stage_atb.Service;
 
-import org.example.stage_atb.dto.request.ClientRegisterRequest;
-import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
-import org.example.stage_atb.dto.request.LoginRequest;
-import org.example.stage_atb.dto.request.RegisterRequest;
+import org.example.stage_atb.dto.request.*;
 import org.example.stage_atb.dto.response.AuthResponse;
+import org.example.stage_atb.dto.response.ProfileResponseDTO;
 import org.example.stage_atb.dto.response.UserResponseDTO;
 import org.example.stage_atb.entity.User;
 
@@ -50,4 +48,14 @@ public interface IUserService {
     User createUser(User user);
     boolean existsByEmail(String email);
     boolean existsByUsername(String username);
+
+
+    // ✅ NOUVELLES MÉTHODES POUR LE PROFIL
+    ProfileResponseDTO getProfile(String userId);
+
+    ProfileResponseDTO updateProfile(String userId, ProfileUpdateRequest request);
+
+    void updatePassword(String userId, String currentPassword, String newPassword);
+
+
 }
