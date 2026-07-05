@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/copilot")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CopilotController {
 
     private final ICopilotService copilotService;

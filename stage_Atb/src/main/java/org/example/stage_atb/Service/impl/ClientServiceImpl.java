@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -220,5 +221,132 @@ public class ClientServiceImpl implements IClientService {
     @Override
     public long countActiveClients() {
         return clientRepository.countActiveClients();
+    }
+
+    @Override
+    public ClientResponseDTO assignAdvisorToClient(String clientId, String advisorId) {
+        log.info("Assigning advisor {} to client {}", advisorId, clientId);
+
+        // Récupérer le client
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        // Vérifier que l'advisor existe et a le rôle ADVISOR
+        User advisor = userService.getUserEntityById(advisorId);
+        if (advisor.getRole() != UserRole.ADVISOR) {
+            throw new RuntimeException("User is not an ADVISOR");
+        }
+
+        // Affecter l'advisor
+        client.setAdvisor(advisor);
+        Client updatedClient = clientRepository.save(client);
+
+        log.info("Advisor {} assigned to client {}", advisorId, clientId);
+        return clientMapper.toResponseDTO(updatedClient);
+    }
+
+    @Override
+    public List<ClientResponseDTO> assignAdvisorToMultipleClients(List<String> clientIds, String advisorId) {
+        log.info("Assigning advisor {} to {} clients", advisorId, clientIds.size());
+
+        // Vérifier que l'advisor existe et a le rôle ADVISOR
+        User advisor = userService.getUserEntityById(advisorId);
+        if (advisor.getRole() != UserRole.ADVISOR) {
+            throw new RuntimeException("User is not an ADVISOR");
+        }
+
+        List<ClientResponseDTO> updatedClients = new ArrayList<>();
+
+        for (String clientId : clientIds) {
+            try {
+                Client client = clientRepository.findById(clientId)
+                        .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+                client.setAdvisor(advisor);
+                Client updatedClient = clientRepository.save(client);
+                updatedClients.add(clientMapper.toResponseDTO(updatedClient));
+            } catch (Exception e) {
+                log.error("Error assigning advisor to client {}: {}", clientId, e.getMessage());
+            }
+        }
+
+        log.info("Advisor {} assigned to {} clients successfully", advisorId, updatedClients.size());
+        return updatedClients;
+    }
+
+    @Override
+    public ClientResponseDTO reassignAdvisor(String clientId, String newAdvisorId) {
+        log.info("Reassigning client {} to advisor {}", clientId, newAdvisorId);
+
+        // Récupérer le client
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        // Vérifier que le nouvel advisor existe et a le rôle ADVISOR
+        User newAdvisor = userService.getUserEntityById(newAdvisorId);
+        if (newAdvisor.getRole() != UserRole.ADVISOR) {
+            throw new RuntimeException("User is not an ADVISOR");
+        }
+
+        // Vérifier que ce n'est pas le même advisor
+        if (client.getAdvisor() != null && client.getAdvisor().getId().equals(newAdvisorId)) {
+            throw new RuntimeException("Client is already assigned to this advisor");
+        }
+
+        // Réaffecter
+        client.setAdvisor(newAdvisor);
+        Client updatedClient = clientRepository.save(client);
+
+        log.info("Client {} reassigned to advisor {}", clientId, newAdvisorId);
+        return clientMapper.toResponseDTO(updatedClient);
+    }
+
+    @Override
+    public List<ClientResponseDTO> getClientsWithoutAdvisor() {
+        log.info("Fetching clients without advisor");
+
+        // Récupérer tous les clients
+        List<Client> allClients = clientRepository.findAll();
+
+        // Filtrer ceux qui n'ont pas d'advisor
+        List<Client> clientsWithoutAdvisor = allClients.stream()
+                .filter(client -> client.getAdvisor() == null)
+                .collect(Collectors.toList());
+
+        log.info("Found {} clients without advisor", clientsWithoutAdvisor.size());
+
+        return clientsWithoutAdvisor.stream()
+                .map(clientMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ClientResponseDTO> getClientsByAdvisorId(String advisorId) {
+        log.info("Fetching clients for advisor {}", advisorId);
+
+        // Vérifier que l'advisor existe
+        userService.getUserEntityById(advisorId);
+
+        List<Client> clients = clientRepository.findByAdvisorId(advisorId);
+
+        log.info("Found {} clients for advisor {}", clients.size(), advisorId);
+
+        return clients.stream()
+                .map(clientMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Service/impl/ClientServiceImpl.java - IMPLÉMENTER
+    @Override
+    public void removeAdvisorFromClient(String clientId) {
+        log.info("Removing advisor from client {}", clientId);
+
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        client.setAdvisor(null);
+        clientRepository.save(client);
+
+        log.info("Advisor removed from client {}", clientId);
     }
 }

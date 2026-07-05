@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/kyc-verifications")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class KYCVerificationController {
 
     private final IKYCVService kycVerificationService;

@@ -1,7 +1,8 @@
+// environments/environment.ts - DÉVELOPPEMENT
 export const environment = {
   production: false,
   
-  // URLs de l'API
+  // URLs de l'API - ✅ CORRIGÉ
   apiUrl: 'http://localhost:8081/api',
   authUrl: 'http://localhost:8081/api/auth',
   

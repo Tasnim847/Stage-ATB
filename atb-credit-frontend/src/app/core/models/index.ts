@@ -18,3 +18,6 @@ export * from './risk.model';
 
 // Notification
 export * from './notification.model';
+
+//assign
+export * from './client-assignment.model';

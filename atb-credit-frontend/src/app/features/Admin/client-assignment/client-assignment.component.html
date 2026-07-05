@@ -1,0 +1,223 @@
+<!-- features/admin/client-assignment/client-assignment.component.html -->
+<div class="assignment-container">
+  <div class="header">
+    <div>
+      <h1>Affectation des clients</h1>
+      <p class="subtitle">Gérez l'affectation des clients aux conseillers</p>
+    </div>
+    <div class="header-actions">
+      <span class="client-count-badge">{{ totalClients() }} clients</span>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-content">
+        <mat-icon>people</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ allClients().length }}</span>
+          <span class="stat-label">Total clients</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card unassigned">
+      <div class="stat-content">
+        <mat-icon>person_add</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ unassignedCount() }}</span>
+          <span class="stat-label">Sans conseiller</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card assigned">
+      <div class="stat-content">
+        <mat-icon>person</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ assignedCount() }}</span>
+          <span class="stat-label">Avec conseiller</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Sélection du conseiller -->
+  <mat-card class="selection-card">
+    <mat-card-content>
+      <div class="advisor-selection">
+        <mat-form-field appearance="outline" class="advisor-select">
+          <mat-label>Sélectionner un conseiller</mat-label>
+          <mat-select [(ngModel)]="selectedAdvisorId">
+            <mat-option [value]="null">Choisir un conseiller...</mat-option>
+            <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
+              <div class="advisor-option">
+                <span class="advisor-avatar">{{ getInitialsAdvisor(advisor) }}</span>
+                <span>{{ advisor.firstName }} {{ advisor.lastName }}</span>
+                <span class="advisor-email">{{ advisor.email }}</span>
+              </div>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            (click)="assignSelectedClients()"
+            [disabled]="!canAssign()">
+            <mat-icon>assignment</mat-icon>
+            Affecter {{ selectedCount() }} client(s)
+          </button>
+          <button 
+            mat-raised-button 
+            color="warn" 
+            (click)="unassignSelectedClients()"
+            [disabled]="!canUnassign()">
+            <mat-icon>remove_circle</mat-icon>
+            Désaffecter {{ selectedCount() }} client(s)
+          </button>
+          <button 
+            mat-stroked-button 
+            (click)="selectAll()"
+            [disabled]="totalClients() === 0">
+            <mat-icon>select_all</mat-icon>
+            Tout
+          </button>
+          <button 
+            mat-stroked-button 
+            (click)="deselectAll()"
+            [disabled]="selectedCount() === 0">
+            <mat-icon>deselect</mat-icon>
+            Effacer
+          </button>
+          <button mat-icon-button (click)="refreshData()" matTooltip="Rafraîchir">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <div class="filter-group">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filtrer par conseiller</mat-label>
+            <mat-select [(ngModel)]="filterByAdvisor">
+              <mat-option [value]="null">Tous les conseillers</mat-option>
+              <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
+                {{ advisor.firstName }} {{ advisor.lastName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field search-field">
+            <mat-label>Rechercher un client</mat-label>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Nom, email, numéro..." />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <mat-slide-toggle [(ngModel)]="showOnlyUnassigned" color="primary">
+            Clients sans conseiller uniquement
+          </mat-slide-toggle>
+          <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
+            <mat-icon>clear_all</mat-icon>
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading()">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des données...</p>
+  </div>
+
+  <!-- Liste des clients -->
+  <div class="clients-grid" *ngIf="!isLoading() && filteredClients().length > 0">
+    <mat-card 
+      *ngFor="let client of filteredClients()" 
+      class="client-card"
+      [class.selected]="isClientSelected(client.id)"
+      [class.assigned]="client.advisorId"
+      (click)="toggleClientSelection(client.id)">
+      
+      <div class="card-content">
+        <div class="card-left">
+          <div class="checkbox-wrapper">
+            <mat-icon *ngIf="isClientSelected(client.id)" class="checked">check_circle</mat-icon>
+            <mat-icon *ngIf="!isClientSelected(client.id)" class="unchecked">radio_button_unchecked</mat-icon>
+          </div>
+          
+          <div class="client-avatar">
+            {{ getInitials(client) }}
+          </div>
+          
+          <div class="client-info">
+            <h4>{{ getFullName(client) }}</h4>
+            <p class="client-number">{{ client.clientNumber }}</p>
+          </div>
+        </div>
+        
+        <div class="card-right">
+          <div class="client-details">
+            <span class="email"><mat-icon>email</mat-icon> {{ client.email }}</span>
+            <span class="phone" *ngIf="client.phoneNumber"><mat-icon>phone</mat-icon> {{ client.phoneNumber }}</span>
+            <span class="advisor-tag" *ngIf="client.advisorId">
+              <mat-icon>person</mat-icon>
+              {{ getAdvisorName(client.advisorId) }}
+            </span>
+            <span class="advisor-tag unassigned" *ngIf="!client.advisorId">
+              <mat-icon>person_outline</mat-icon>
+              Non assigné
+            </span>
+          </div>
+          
+          <div class="quick-actions" (click)="$event.stopPropagation()">
+            <!-- Affectation rapide -->
+            <mat-form-field appearance="outline" class="quick-select" *ngIf="!client.advisorId">
+              <mat-label>Affecter à</mat-label>
+              <mat-select (selectionChange)="assignSingleClient(client.id, $event.value)">
+                <mat-option [value]="null">Choisir...</mat-option>
+                <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
+                  {{ advisor.firstName }} {{ advisor.lastName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Désaffectation rapide -->
+            <button 
+              *ngIf="client.advisorId"
+              mat-icon-button 
+              color="warn"
+              (click)="unassignClient(client.id)"
+              matTooltip="Retirer le conseiller">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading() && filteredClients().length === 0">
+    <mat-icon class="empty-icon">check_circle_outline</mat-icon>
+    <h3>Aucun client trouvé</h3>
+    <p *ngIf="searchQuery()">Aucun client ne correspond à votre recherche "{{ searchQuery() }}".</p>
+    <p *ngIf="!searchQuery() && filterByAdvisor()">Aucun client pour ce conseiller.</p>
+    <p *ngIf="!searchQuery() && !filterByAdvisor() && showOnlyUnassigned()">Tous les clients ont un conseiller.</p>
+    <button mat-raised-button color="primary" (click)="resetFilters()">
+      <mat-icon>clear_all</mat-icon>
+      Réinitialiser les filtres
+    </button>
+  </div>
+</div>

@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class UserController {
 
     private final IUserService userService;
@@ -33,21 +32,21 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         List<UserResponseDTO> response = userService.getAllUsers();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/role/{role}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getUsersByRole(@PathVariable String role) {
         List<UserResponseDTO> response = userService.getUsersByRole(role);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable String id,
             @Valid @RequestBody RegisterRequest registerRequest) {
@@ -56,35 +55,35 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/activate")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> activateUser(@PathVariable String id) {
         userService.activateUser(id);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/deactivate")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivateUser(@PathVariable String id) {
         userService.deactivateUser(id);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/lock")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> lockUser(@PathVariable String id) {
         userService.lockUser(id);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/unlock")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> unlockUser(@PathVariable String id) {
         userService.unlockUser(id);
         return ResponseEntity.ok().build();
@@ -99,7 +98,7 @@ public class UserController {
     }
 
     @GetMapping("/count/active")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> countActiveUsers() {
         long count = userService.countActiveUsers();
         return ResponseEntity.ok(count);

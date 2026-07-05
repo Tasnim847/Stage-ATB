@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/risk-analyses")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class RiskAnalysisController {
 
     private final IRiskAnalysisService riskAnalysisService;

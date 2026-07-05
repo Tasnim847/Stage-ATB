@@ -1,7 +1,8 @@
+// environments/environment.prod.ts - PRODUCTION
 export const environment = {
   production: true,
   
-  // URLs de l'API - Production
+  // URLs de l'API - ✅ CORRIGÉ
   apiUrl: 'https://api.atb-ci.com/api',
   authUrl: 'https://api.atb-ci.com/api/auth',
   

@@ -110,6 +110,14 @@ export const routes: Routes = [
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component')
           .then(m => m.ProfileComponent)
+      },
+      // app.routes.ts - AJOUTER LA ROUTE
+      {
+        path: 'admin/client-assignment',
+        loadComponent: () => import('./features/Admin/client-assignment/client-assignment.component')
+          .then(m => m.ClientAssignmentComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN'] }
       }
     ]
   },

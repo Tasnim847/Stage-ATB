@@ -50,6 +50,7 @@ export class SidebarComponent {
   adminMenuItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Tableau de bord', badge: 0 },
     { path: '/clients', icon: 'people', label: 'Clients', badge: 0 },
+    { path: '/admin/client-assignment', icon: 'swap_horiz', label: 'Affectation clients', badge: 0 }, // ✅ AJOUTÉ
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
     { path: '/risk-analysis', icon: 'warning', label: 'Analyse des risques', badge: 3 },

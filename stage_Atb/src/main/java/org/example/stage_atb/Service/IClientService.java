@@ -34,4 +34,22 @@ public interface IClientService {
     long countActiveClients();
 
     ClientResponseDTO createClientFromUser(User user, ClientRegisterRequest request);
+
+    // ✅ AJOUTER CETTE MÉTHODE
+    ClientResponseDTO assignAdvisorToClient(String clientId, String advisorId);
+
+    // ✅ AJOUTER CETTE MÉTHODE (affectation multiple)
+    List<ClientResponseDTO> assignAdvisorToMultipleClients(List<String> clientIds, String advisorId);
+
+    // ✅ AJOUTER CETTE MÉTHODE (réaffectation)
+    ClientResponseDTO reassignAdvisor(String clientId, String newAdvisorId);
+
+    // ✅ AJOUTER CETTE MÉTHODE (pour lister les clients sans advisor)
+    List<ClientResponseDTO> getClientsWithoutAdvisor();
+
+    // ✅ AJOUTER CETTE MÉTHODE (pour lister les clients d'un advisor)
+    List<ClientResponseDTO> getClientsByAdvisorId(String advisorId);
+
+    // Service/IClientService.java - AJOUTER
+    void removeAdvisorFromClient(String clientId);
 }

@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/fraud-alerts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class FraudAlertController {
 
     private final IFraudAlertService fraudAlertService;

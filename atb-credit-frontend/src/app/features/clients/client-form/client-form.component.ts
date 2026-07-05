@@ -12,9 +12,10 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastrService } from 'ngx-toastr';
-import { ClientService, ClientRequestDTO } from '@core/services/client.service';
 import { AuthService } from '@core/services/auth.service';
 import { MatTooltipModule } from '@angular/material/tooltip'; // ✅ AJOUTÉ
+import { ClientService } from '@app/core/services/client.service';
+import { ClientRequestDTO } from '@app/core/models';
 
 
 @Component({
