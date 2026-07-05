@@ -1,14 +1,20 @@
 package org.example.stage_atb.Controller;
 
-
+import lombok.extern.slf4j.Slf4j;
 import org.example.stage_atb.Service.ICreditRequestService;
+import org.example.stage_atb.Service.ICreditSimulationService;
 import org.example.stage_atb.dto.request.CreditRequestDTO;
 import org.example.stage_atb.dto.response.CreditResponseDTO;
+import org.example.stage_atb.dto.response.CreditSimulationDTO;
+import org.example.stage_atb.entity.CreditRequest;
+import org.example.stage_atb.entity.CreditSimulation;
 import org.example.stage_atb.enums.CreditStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,10 +24,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/credit-requests")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@Slf4j
 public class CreditRequestController {
 
     private final ICreditRequestService creditRequestService;
+    private final ICreditSimulationService creditSimulationService;
 
     @PostMapping
     public ResponseEntity<CreditResponseDTO> createCreditRequest(@Valid @RequestBody CreditRequestDTO requestDTO) {
@@ -127,4 +134,107 @@ public class CreditRequestController {
         List<CreditResponseDTO> response = creditRequestService.getHighRiskCreditRequests();
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * ✅ Récupérer les crédits du client connecté
+     */
+    @GetMapping("/my-credits")
+    public ResponseEntity<List<CreditResponseDTO>> getMyCreditRequests() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        List<CreditResponseDTO> credits = creditRequestService.getCreditRequestsByClientEmail(email);
+        return ResponseEntity.ok(credits);
+    }
+
+    /**
+     * ✅ Récupérer les crédits du client connecté par statut
+     */
+    @GetMapping("/my-credits/status/{status}")
+    public ResponseEntity<List<CreditResponseDTO>> getMyCreditRequestsByStatus(@PathVariable CreditStatus status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        List<CreditResponseDTO> credits = creditRequestService.getCreditRequestsByClientEmailAndStatus(email, status);
+        return ResponseEntity.ok(credits);
+    }
+
+    /**
+     * ✅ Compter les crédits du client connecté
+     */
+    @GetMapping("/my-credits/count")
+    public ResponseEntity<Long> countMyCreditRequests() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        long count = creditRequestService.countCreditRequestsByClientEmail(email);
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * ✅ Récupérer la simulation d'une demande de crédit
+     */
+    @GetMapping("/{id}/simulation")
+    public ResponseEntity<CreditSimulationDTO> getSimulationByCreditRequestId(@PathVariable String id) {
+        try {
+            log.info("Récupération de la simulation pour la demande: {}", id);
+
+            // Récupérer la demande de crédit
+            CreditRequest creditRequest = creditRequestService.getCreditRequestEntityById(id);
+            if (creditRequest == null) {
+                log.warn("Demande de crédit non trouvée: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Vérifier que l'utilisateur connecté est bien le propriétaire
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userEmail = authentication.getName();
+            log.info("Utilisateur connecté: {}", userEmail);
+
+            // Vérifier si l'utilisateur est le client ou un admin/analyst
+            boolean isOwner = creditRequest.getClient().getEmail().equals(userEmail);
+            boolean isAuthorized = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
+                            a.getAuthority().equals("ROLE_ANALYST"));
+
+            if (!isOwner && !isAuthorized) {
+                log.warn("Accès non autorisé à la simulation pour l'utilisateur: {}", userEmail);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            // Récupérer la simulation liée
+            CreditSimulation simulation = creditRequest.getCreditSimulation();
+            if (simulation == null) {
+                log.warn("Simulation non trouvée pour la demande: {}", id);
+                return ResponseEntity.notFound().build();
+            }
+
+            // Convertir en DTO
+            CreditSimulationDTO dto = CreditSimulationDTO.builder()
+                    .id(simulation.getId())
+                    .creditRequestId(simulation.getCreditRequest().getId())
+                    .userId(simulation.getUser().getId())
+                    .clientId(simulation.getClient() != null ? simulation.getClient().getId() : null)
+                    .amount(simulation.getAmount())
+                    .durationMonths(simulation.getDurationMonths())
+                    .interestRate(simulation.getInterestRate())
+                    .monthlyPayment(simulation.getMonthlyPayment())
+                    .totalInterest(simulation.getTotalInterest())
+                    .totalPayment(simulation.getTotalPayment())
+                    .borrowingCapacity(simulation.getBorrowingCapacity())
+                    .simulationResults(simulation.getSimulationResults())
+                    .comparisonResults(simulation.getComparisonResults())
+                    .simulationName(simulation.getSimulationName())
+                    .createdAt(simulation.getCreatedAt())
+                    .updatedAt(simulation.getUpdatedAt())
+                    .build();
+
+            log.info("Simulation récupérée avec succès pour la demande: {}", id);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération de la simulation: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

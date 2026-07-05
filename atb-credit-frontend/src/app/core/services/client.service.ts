@@ -142,4 +142,11 @@ export class ClientService {
   countActiveClients(): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/clients/count/active`);
   }
+
+  /**
+   * ✅ Récupérer le client connecté (pour le rôle CLIENT)
+   */
+  getCurrentClient(): Observable<ClientResponseDTO> {
+    return this.http.get<ClientResponseDTO>(`${this.apiUrl}/clients/me`);
+  }
 }

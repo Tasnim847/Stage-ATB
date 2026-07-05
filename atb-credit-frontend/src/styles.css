@@ -8,22 +8,27 @@
 
 /* Variables */
 :root {
-  /* Couleurs principales - ATB */
-  --atb-primary: #1a237e;
-  --atb-primary-dark: #0d1445;
-  --atb-primary-light: #3949ab;
-  --atb-secondary: #0d47a1;
-  --atb-accent: #ff6f00;
+  /* Couleurs principales - ATB (Rouge) */
+  --atb-primary: #8b0000;
+  --atb-primary-dark: #5c0000;
+  --atb-primary-light: #b71c1c;
+  --atb-secondary: #c62828;
+  --atb-accent: #d32f2f;
   --atb-gold: #c9a84c;
   --atb-gold-light: #f5e6b8;
   
+  /* Dégradés rouges */
+  --atb-gradient-primary: linear-gradient(135deg, #5c0000 0%, #8b0000 50%, #b71c1c 100%);
+  --atb-gradient-secondary: linear-gradient(135deg, #8b0000 0%, #c62828 100%);
+  --atb-gradient-light: linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%);
+  
   /* Couleurs de fond */
-  --bg-body: #f0f2f5;
+  --bg-body: #f5f0f0;
   --bg-card: #ffffff;
-  --bg-sidebar: #0d1445;
+  --bg-sidebar: #5c0000;
   
   /* Couleurs de texte */
-  --text-primary: #1a237e;
+  --text-primary: #8b0000;
   --text-secondary: #424242;
   --text-muted: #757575;
   --text-white: #ffffff;
@@ -35,10 +40,10 @@
   --info: #0d47a1;
   
   /* Ombres */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 2px 8px rgba(139, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(139, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(139, 0, 0, 0.15);
+  --shadow-xl: 0 16px 48px rgba(139, 0, 0, 0.2);
   
   /* Arrondis */
   --radius-sm: 8px;

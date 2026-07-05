@@ -41,6 +41,7 @@ public class JwtService {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("userId", user.getId());
         extraClaims.put("role", user.getRole().name());
+        extraClaims.put("authorities", new String[]{"ROLE_" + user.getRole().name()});
         return buildToken(extraClaims, user.getEmail(), jwtExpiration);
     }
 
@@ -86,7 +87,8 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
+    // ✅ Rendre cette méthode publique
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
                 .build()

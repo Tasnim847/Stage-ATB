@@ -88,6 +88,10 @@ public class CreditRequest {
     @OneToOne(mappedBy = "creditRequest", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private DecisionRecommendation decisionRecommendation;
 
+    // ✅ Ajouter la relation avec CreditSimulation
+    @OneToOne(mappedBy = "creditRequest", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private CreditSimulation creditSimulation;
+
     @OneToMany(mappedBy = "creditRequest", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AuditLog> auditLogs = new ArrayList<>();
 

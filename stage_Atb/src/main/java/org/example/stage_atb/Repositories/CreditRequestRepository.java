@@ -57,4 +57,11 @@ public interface CreditRequestRepository extends JpaRepository<CreditRequest, St
 
     @Query("SELECT cr FROM CreditRequest cr WHERE cr.status IN :statuses ORDER BY cr.createdAt DESC")
     List<CreditRequest> findLatestByStatuses(@Param("statuses") List<CreditStatus> statuses);
+
+    /**
+     * ✅ Compter les crédits par ID client
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.client.id = :clientId")
+    long countByClientId(@Param("clientId") String clientId);
+
 }

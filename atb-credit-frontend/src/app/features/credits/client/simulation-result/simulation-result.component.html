@@ -1,0 +1,190 @@
+<div class="simulation-result-container">
+  <mat-card class="result-card">
+    <!-- Header -->
+    <mat-card-header>
+      <mat-card-title>
+        <div class="header">
+          <button mat-icon-button (click)="goBack()" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-content">
+            <h1>Résultat de la simulation</h1>
+            <p *ngIf="simulation">Demande N°{{ simulation.simulationName }}</p>
+          </div>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Analyse en cours...</p>
+      </div>
+
+      <!-- Résultats -->
+      <div *ngIf="!isLoading && simulation" class="results">
+
+        <!-- Décision -->
+        <div class="decision-banner" [class]="getDecisionClass()">
+          <div class="decision-content">
+            <div class="decision-icon">
+              <mat-icon>{{ decision === 'approuve' ? 'check_circle' : decision === 'approuve_conditionnel' ? 'warning' : 'cancel' }}</mat-icon>
+            </div>
+            <div class="decision-text">
+              <h2>{{ getDecisionLabel() }}</h2>
+              <p>{{ recommandation }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résumé des indicateurs -->
+        <div class="indicators-grid">
+          <div class="indicator-card">
+            <div class="indicator-icon revenus">
+              <mat-icon>attach_money</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Revenus mensuels</span>
+              <span class="value">{{ revenusMensuels | number }} TND</span>
+            </div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-icon charges">
+              <mat-icon>credit_card</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Charges mensuelles</span>
+              <span class="value">{{ chargesMensuelles | number }} TND</span>
+            </div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-icon taux">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Taux d'endettement</span>
+              <span class="value" [class]="getTauxEndettementClass()">{{ tauxEndettement }}%</span>
+            </div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-icon reste">
+              <mat-icon>savings</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Reste à vivre</span>
+              <span class="value">{{ resteAVivre | number }} TND</span>
+            </div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-icon mensualite">
+              <mat-icon>payments</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Mensualité estimée</span>
+              <span class="value">{{ mensualite | number }} TND</span>
+            </div>
+          </div>
+
+          <div class="indicator-card">
+            <div class="indicator-icon nouveau-taux">
+              <mat-icon>trending_down</mat-icon>
+            </div>
+            <div class="indicator-content">
+              <span class="label">Nouveau taux d'endettement</span>
+              <span class="value" [class]="getTauxEndettementClass()">{{ nouveauTauxEndettement }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scores -->
+        <div class="scores-grid">
+          <div class="score-card">
+            <h4>🎯 Score de solvabilité</h4>
+            <div class="score-display">
+              <span class="score-number" [class]="getScoreClass()">{{ scoreSolvabilite }}/100</span>
+              <mat-progress-bar mode="determinate" [value]="scoreSolvabilite" [color]="getScoreClass()"></mat-progress-bar>
+              <span class="score-label">{{ getScoreLabel() }}</span>
+            </div>
+          </div>
+
+          <div class="score-card">
+            <h4>🤖 Risque IA</h4>
+            <div class="score-display">
+              <span class="score-number" [class]="getRisqueClass()">{{ risqueIA }}/100</span>
+              <mat-progress-bar mode="determinate" [value]="risqueIA" [color]="getRisqueClass()"></mat-progress-bar>
+              <span class="score-label">{{ getRisqueLabel() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motifs -->
+        <div class="motifs-section">
+          <h4>📋 Motifs de la décision</h4>
+          <ul>
+            <li *ngFor="let motif of motifs">{{ motif }}</li>
+          </ul>
+        </div>
+
+        <!-- Détails de la simulation -->
+        <div class="details-section">
+          <h4>📊 Détails de la simulation</h4>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="label">Montant demandé</span>
+              <span class="value">{{ simulation.amount | number }} TND</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Durée</span>
+              <span class="value">{{ simulation.durationMonths }} mois</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Taux d'intérêt</span>
+              <span class="value">{{ simulation.interestRate }}%</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Mensualité</span>
+              <span class="value">{{ simulation.monthlyPayment | number }} TND</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total des intérêts</span>
+              <span class="value">{{ simulation.totalInterest | number }} TND</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Total à payer</span>
+              <span class="value">{{ simulation.totalPayment | number }} TND</span>
+            </div>
+            <div class="detail-item full-width">
+              <span class="label">Capacité d'emprunt</span>
+              <span class="value">{{ simulation.borrowingCapacity | number }} TND</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button mat-stroked-button (click)="goBack()" class="back-btn-action">
+            <mat-icon>arrow_back</mat-icon> Retour
+          </button>
+          <button mat-raised-button color="primary" routerLink="/credit-requests/new" class="submit-btn">
+            <mat-icon>add</mat-icon> Faire une nouvelle demande
+          </button>
+        </div>
+      </div>
+
+      <!-- Pas de résultats -->
+      <div *ngIf="!isLoading && !simulation" class="no-results">
+        <mat-icon>analytics</mat-icon>
+        <h3>Aucune simulation trouvée</h3>
+        <p>La simulation n'a pas encore été générée pour cette demande.</p>
+        <button mat-raised-button color="primary" (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon> Retour
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

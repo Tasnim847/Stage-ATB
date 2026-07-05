@@ -105,39 +105,70 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Endpoints publics
+                        // ============================================
+                        // 1. ENDPOINTS PUBLICS
+                        // ============================================
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api-docs/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
 
-                        // ✅ ADMIN uniquement - AVEC ROLE_
+                        // ============================================
+                        // 2. RÈGLES SPÉCIFIQUES - CLIENT
+                        // ============================================
+
+                        // ✅ CLIENT peut voir ses propres informations
+                        .requestMatchers("/api/clients/me").hasRole("CLIENT")
+
+                        // ✅ CLIENT peut voir ses propres crédits
+                        .requestMatchers("/api/credit-requests/my-credits/**").hasRole("CLIENT")
+                        .requestMatchers("/api/credit-requests/my-credits").hasRole("CLIENT")
+
+                        // ✅ CLIENT peut créer des demandes de crédit (POST)
+                        .requestMatchers(HttpMethod.POST, "/api/credit-requests").hasRole("CLIENT")
+
+                        // ✅ CLIENT peut voir la simulation de son crédit
+                        .requestMatchers("/api/credit-requests/*/simulation").hasRole("CLIENT")
+
+
+                        // ============================================
+                        // 3. RÈGLES GÉNÉRIQUES
+                        // ============================================
+
+                        // ADMIN uniquement
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/role/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/count/active").hasRole("ADMIN")
 
-                        // ✅ ANALYST et ADMIN - AVEC hasAnyRole
+                        // ANALYST et ADMIN
                         .requestMatchers("/api/financial-analysis/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/risk-analysis/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/fraud-alerts/**").hasAnyRole("ANALYST", "ADMIN")
 
-                        // ✅ ADVISOR, ANALYST, ADMIN - Clients
+                        // ADVISOR, ANALYST, ADMIN - Clients
                         .requestMatchers("/api/clients/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers("/api/clients/advisor/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ Copilot (Premium)
+                        // ANALYST, ADMIN - Gestion complète des crédits
+                        .requestMatchers("/api/credit-requests/**").hasAnyRole("ANALYST", "ADMIN")
+
+                        // Copilot (Premium)
                         .requestMatchers("/api/copilot/**").hasAnyRole("ANALYST", "ADMIN")
 
-                        // ✅ KYC
+                        // KYC
                         .requestMatchers("/api/kyc/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ Notifications, Dashboard, Credit Requests
+                        // ============================================
+                        // 4. AUTHENTIFIÉ UNIQUEMENT
+                        // ============================================
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/dashboard/**").authenticated()
-                        .requestMatchers("/api/credit-requests/**").authenticated()
 
+                        // ============================================
+                        // 5. TOUTE AUTRE REQUÊTE
+                        // ============================================
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

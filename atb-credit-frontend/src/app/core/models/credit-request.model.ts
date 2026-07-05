@@ -17,6 +17,7 @@ export enum CreditStatus {
  */
 export interface CreditRequestDTO {
   clientId: string;
+  userId: string; // ✅ AJOUTER CETTE LIGNE
   amount: number;
   currency: string;
   durationMonths: number;

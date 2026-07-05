@@ -1,5 +1,6 @@
 package org.example.stage_atb.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -34,43 +39,56 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        // ✅ LOG POUR VOIR LE HEADER
-        System.out.println("🔍 Authorization Header: " + authHeader);
-        System.out.println("🔍 Request URI: " + request.getRequestURI());
+        log.info("🔍 Authorization Header: {}", authHeader != null ? authHeader.substring(0, Math.min(authHeader.length(), 30)) + "..." : "null");
+        log.info("🔍 Request URI: {}", request.getRequestURI());
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("⚠️ No Bearer token found");
+            log.warn("⚠️ No Bearer token found");
             filterChain.doFilter(request, response);
             return;
         }
 
         final String jwt = authHeader.substring(7);
-        System.out.println("🔍 JWT Token: " + jwt.substring(0, Math.min(jwt.length(), 30)) + "...");
+        log.info("🔍 JWT Token: {}...", jwt.substring(0, Math.min(jwt.length(), 30)));
 
         try {
             final String userEmail = jwtService.extractUsername(jwt);
-            System.out.println("🔍 Extracted email: " + userEmail);
+            log.info("🔍 Extracted email: {}", userEmail);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                System.out.println("🔍 User authorities: " + userDetails.getAuthorities());
+
+                // ✅ Extraire les autorités du token
+                Claims claims = jwtService.extractAllClaims(jwt);
+                List<String> authoritiesFromToken = claims.get("authorities", List.class);
+
+                Collection<? extends GrantedAuthority> authorities;
+                if (authoritiesFromToken != null && !authoritiesFromToken.isEmpty()) {
+                    authorities = authoritiesFromToken.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
+                    log.info("✅ Authorities from token: {}", authorities);
+                } else {
+                    // Fallback: utiliser les autorités de UserDetails
+                    authorities = userDetails.getAuthorities();
+                    log.info("⚠️ Using authorities from UserDetails: {}", authorities);
+                }
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
+                            authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("✅ Authentication successful for: " + userEmail);
+                    log.info("✅ Authentication successful for: {} with authorities: {}", userEmail, authorities);
                 } else {
-                    System.out.println("⚠️ Token invalid for: " + userEmail);
+                    log.warn("⚠️ Token invalid for: {}", userEmail);
                 }
             }
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ Error processing JWT: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);

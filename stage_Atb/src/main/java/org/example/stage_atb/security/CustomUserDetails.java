@@ -18,7 +18,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // ✅ AJOUTER "ROLE_" devant le nom du rôle
+        // ✅ Retourner "ROLE_CLIENT" pour que hasRole("CLIENT") fonctionne
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 

@@ -5,20 +5,23 @@ import org.example.stage_atb.dto.response.CreditResponseDTO;
 import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.CreditRequest;
 import org.example.stage_atb.entity.User;
+import org.example.stage_atb.Repositories.ClientRepository;
+import org.example.stage_atb.Repositories.UserRepository;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.math.RoundingMode;
 
 @Mapper(componentModel = "spring")
 public interface CreditRequestMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "requestNumber", expression = "java(generateRequestNumber())")
-    @Mapping(target = "client", expression = "java(buildClient(creditRequestDTO.getClientId()))")
-    @Mapping(target = "user", expression = "java(buildUser(creditRequestDTO.getUserId()))")
+    @Mapping(target = "client", expression = "java(resolveClient(creditRequestDTO.getClientId(), clientRepository))")
+    @Mapping(target = "user", expression = "java(resolveUser(creditRequestDTO.getUserId(), userRepository))")
     @Mapping(target = "status", constant = "DRAFT")
     @Mapping(target = "monthlyPayment", expression = "java(calculateMonthlyPayment(creditRequestDTO))")
     @Mapping(target = "documents", ignore = true)
@@ -32,7 +35,9 @@ public interface CreditRequestMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
     @Mapping(target = "approvalDate", ignore = true)
-    CreditRequest toEntity(CreditRequestDTO creditRequestDTO);
+    CreditRequest toEntity(CreditRequestDTO creditRequestDTO,
+                           @Context ClientRepository clientRepository,
+                           @Context UserRepository userRepository);
 
     @Mapping(target = "clientId", expression = "java(creditRequest.getClient().getId())")
     @Mapping(target = "clientName", expression = "java(creditRequest.getClient().getFirstName() + \" \" + creditRequest.getClient().getLastName())")
@@ -52,26 +57,23 @@ public interface CreditRequestMapper {
         return "CR-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000);
     }
 
-    default Client buildClient(String clientId) {
+    default Client resolveClient(String clientId, ClientRepository clientRepository) {
         if (clientId == null) return null;
-        Client client = new Client();
-        client.setId(clientId);
-        return client;
+        return clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
     }
 
-    default User buildUser(String userId) {
+    default User resolveUser(String userId, UserRepository userRepository) {
         if (userId == null) return null;
-        User user = new User();
-        user.setId(userId);
-        return user;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
     }
 
     default BigDecimal calculateMonthlyPayment(CreditRequestDTO dto) {
         if (dto.getAmount() == null || dto.getInterestRate() == null || dto.getDurationMonths() == null) {
             return BigDecimal.ZERO;
         }
-        // Simple amortization calculation
-        BigDecimal monthlyRate = dto.getInterestRate().divide(new BigDecimal("1200"));
+        BigDecimal monthlyRate = dto.getInterestRate().divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP);
         BigDecimal power = BigDecimal.ONE;
         for (int i = 0; i < dto.getDurationMonths(); i++) {
             power = power.multiply(monthlyRate.add(BigDecimal.ONE));
@@ -79,9 +81,9 @@ public interface CreditRequestMapper {
         BigDecimal numerator = dto.getAmount().multiply(monthlyRate).multiply(power);
         BigDecimal denominator = power.subtract(BigDecimal.ONE);
         if (denominator.compareTo(BigDecimal.ZERO) == 0) {
-            return dto.getAmount().divide(new BigDecimal(dto.getDurationMonths()), 2);
+            return dto.getAmount().divide(new BigDecimal(dto.getDurationMonths()), 2, RoundingMode.HALF_UP);
         }
-        return numerator.divide(denominator, 2);
+        return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
     }
 
     default String getAnalystName(CreditRequest creditRequest) {

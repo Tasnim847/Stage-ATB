@@ -3,6 +3,7 @@ package org.example.stage_atb.Service;
 
 import org.example.stage_atb.dto.request.CreditRequestDTO;
 import org.example.stage_atb.dto.response.CreditResponseDTO;
+import org.example.stage_atb.entity.CreditRequest;
 import org.example.stage_atb.enums.CreditStatus;
 
 import java.math.BigDecimal;
@@ -42,4 +43,24 @@ public interface ICreditRequestService {
     List<Object[]> getStatusDistribution();
 
     List<CreditResponseDTO> getHighRiskCreditRequests();
+
+    /**
+     * ✅ Récupérer les crédits d'un client par email
+     */
+    List<CreditResponseDTO> getCreditRequestsByClientEmail(String email);
+
+    /**
+     * ✅ Récupérer les crédits d'un client par email et statut
+     */
+    List<CreditResponseDTO> getCreditRequestsByClientEmailAndStatus(String email, CreditStatus status);
+
+    /**
+     * ✅ Compter les crédits d'un client par email
+     */
+    long countCreditRequestsByClientEmail(String email);
+
+    /**
+     * ✅ Récupérer une demande de crédit par ID (entité)
+     */
+    CreditRequest getCreditRequestEntityById(String id);
 }

@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CreditSimulationRepository extends JpaRepository<CreditSimulation, String> {
@@ -16,12 +16,9 @@ public interface CreditSimulationRepository extends JpaRepository<CreditSimulati
 
     List<CreditSimulation> findByClientId(String clientId);
 
-    @Query("SELECT cs FROM CreditSimulation cs WHERE cs.amount BETWEEN :minAmount AND :maxAmount")
-    List<CreditSimulation> findByAmountRange(@Param("minAmount") BigDecimal minAmount, @Param("maxAmount") BigDecimal maxAmount);
+    @Query("SELECT cs FROM CreditSimulation cs WHERE cs.creditRequest.id = :creditRequestId")
+    Optional<CreditSimulation> findByCreditRequestId(@Param("creditRequestId") String creditRequestId);
 
     @Query("SELECT cs FROM CreditSimulation cs WHERE cs.user.id = :userId ORDER BY cs.createdAt DESC")
     List<CreditSimulation> findLatestByUserId(@Param("userId") String userId);
-
-    @Query("SELECT AVG(cs.monthlyPayment) FROM CreditSimulation cs")
-    Double averageMonthlyPayment();
 }

@@ -58,6 +58,24 @@ export const routes: Routes = [
         loadComponent: () => import('./features/credit-requests/credit-requests.component')
           .then(m => m.CreditRequestsComponent)
       },
+      // ✅ Route pour les crédits du client (my-credits)
+      {
+        path: 'my-credits',
+        loadComponent: () => import('./features/credits/client/credit-client/credit-client.component')
+          .then(m => m.CreditClientComponent)
+      },
+      // ✅ Route pour nouvelle demande de crédit
+      {
+        path: 'credit-requests/new',
+        loadComponent: () => import('./features/credits/client/add-credit/add-credit.component')
+          .then(m => m.AddCreditComponent)
+      },
+      // ✅ Route pour le résultat de la simulation - CORRIGÉ
+      {
+        path: 'simulation-result/:id',
+        loadComponent: () => import('./features/credits/client/simulation-result/simulation-result.component')
+          .then(m => m.SimulationResultComponent)
+      },
       {
         path: 'financial-analysis',
         loadComponent: () => import('./features/financial-analysis/financial-analysis.component')

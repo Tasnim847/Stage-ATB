@@ -1,6 +1,5 @@
 package org.example.stage_atb.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +22,11 @@ public class CreditSimulation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    // ✅ Ajouter la relation avec CreditRequest
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "credit_request_id")
+    private CreditRequest creditRequest;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

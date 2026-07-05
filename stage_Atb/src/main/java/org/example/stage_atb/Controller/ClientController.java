@@ -161,4 +161,17 @@ public class ClientController {
         long count = clientService.countActiveClients();
         return ResponseEntity.ok(count);
     }
+
+    /**
+     * ✅ Récupérer le client connecté (pour le rôle CLIENT)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ClientResponseDTO> getCurrentClient() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Récupération du client connecté: {}", email);
+        ClientResponseDTO client = clientService.getClientByEmail(email);
+        return ResponseEntity.ok(client);
+    }
 }

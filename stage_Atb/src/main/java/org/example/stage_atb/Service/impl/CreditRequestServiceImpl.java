@@ -1,10 +1,15 @@
 package org.example.stage_atb.Service.impl;
 
+import org.example.stage_atb.Repositories.ClientRepository;
+import org.example.stage_atb.Repositories.UserRepository;
 import org.example.stage_atb.Service.ICreditRequestService;
+import org.example.stage_atb.Service.ICreditSimulationService;
 import org.example.stage_atb.Service.IUserService;
 import org.example.stage_atb.dto.request.CreditRequestDTO;
 import org.example.stage_atb.dto.response.CreditResponseDTO;
+import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.CreditRequest;
+import org.example.stage_atb.entity.CreditSimulation;
 import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.CreditStatus;
 import org.example.stage_atb.Mappers.CreditRequestMapper;
@@ -29,6 +34,10 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
     private final CreditRequestRepository creditRequestRepository;
     private final CreditRequestMapper creditRequestMapper;
     private final IUserService userService;
+    private final ClientRepository clientRepository; // ✅ AJOUTER
+    private final UserRepository userRepository; // ✅ AJOUTER CETTE LIGNE
+
+    private final ICreditSimulationService creditSimulationService; // ✅ AJOUTER
 
     @Override
     public CreditResponseDTO createCreditRequest(CreditRequestDTO creditRequestDTO) {
@@ -36,11 +45,23 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
         User currentUser = userService.getCurrentUser();
 
-        CreditRequest creditRequest = creditRequestMapper.toEntity(creditRequestDTO);
+        CreditRequest creditRequest = creditRequestMapper.toEntity(
+                creditRequestDTO,
+                clientRepository,
+                userRepository // ✅ Assurez-vous d'avoir UserRepository injecté
+        );
         creditRequest.setUser(currentUser);
 
         CreditRequest savedRequest = creditRequestRepository.save(creditRequest);
         log.info("Credit request created with number: {}", savedRequest.getRequestNumber());
+
+        // ✅ Créer automatiquement la simulation
+        try {
+            CreditSimulation simulation = creditSimulationService.createSimulationFromCreditRequest(savedRequest, currentUser);
+            log.info("Simulation created with id: {}", simulation.getId());
+        } catch (Exception e) {
+            log.error("Error creating simulation: {}", e.getMessage(), e);
+        }
 
         return creditRequestMapper.toResponseDTO(savedRequest);
     }
@@ -162,5 +183,62 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
                 .stream()
                 .map(creditRequestMapper::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * ✅ Récupérer les crédits d'un client par email
+     */
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByClientEmail(String email) {
+        log.info("Getting credit requests for client email: {}", email);
+
+        // Récupérer le client par email
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Client not found with email: " + email));
+
+        // Récupérer les crédits du client
+        List<CreditRequest> creditRequests = creditRequestRepository.findByClientId(client.getId());
+
+        return creditRequests.stream()
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * ✅ Récupérer les crédits d'un client par email et statut
+     */
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByClientEmailAndStatus(String email, CreditStatus status) {
+        log.info("Getting credit requests for client email: {} and status: {}", email, status);
+
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Client not found with email: " + email));
+
+        // Récupérer les crédits du client avec un statut spécifique
+        return creditRequestRepository.findByClientId(client.getId())
+                .stream()
+                .filter(cr -> cr.getStatus() == status)
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * ✅ Compter les crédits d'un client par email
+     */
+    @Override
+    public long countCreditRequestsByClientEmail(String email) {
+        log.info("Counting credit requests for client email: {}", email);
+
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Client not found with email: " + email));
+
+        return creditRequestRepository.countByClientId(client.getId());
+    }
+
+    @Override
+    public CreditRequest getCreditRequestEntityById(String id) {
+        return creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
     }
 }

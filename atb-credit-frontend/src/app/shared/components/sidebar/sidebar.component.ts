@@ -92,8 +92,8 @@ export class SidebarComponent {
 
   clientMenuItems = [
     { path: '/dashboard', icon: 'dashboard', label: 'Mon tableau de bord', badge: 0 },
-    { path: '/my-credit-requests', icon: 'assignment', label: 'Mes demandes de crédit', badge: 2 },
-    { path: '/new-credit-request', icon: 'add', label: 'Nouvelle demande', badge: 0 },
+    { path: '/my-credits', icon: 'assignment', label: 'Mes demandes de crédit', badge: 2 },
+    { path: '/new-credit-request', icon: 'add', label: 'Nouvelle demande', badge: 0 },    
     { path: '/my-profile', icon: 'person', label: 'Mon profil', badge: 0 },
     { path: '/my-documents', icon: 'folder', label: 'Mes documents', badge: 0 },
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 3 }

@@ -36,34 +36,52 @@
     </button>
     
     <mat-menu #userMenu="matMenu" class="user-menu">
-      <div class="user-info">
-        <div class="user-avatar-large">
-          {{ getInitials() }}
+      <!-- En-tête utilisateur avec animation -->
+      <div class="user-header">
+        <div class="user-avatar-wrapper">
+          <div class="user-avatar-large">
+            {{ getInitials() }}
+          </div>
+          <div class="status-indicator online"></div>
         </div>
-        <div class="user-details">
-          <strong>{{ getFullName() }}</strong>
-          <span>{{ user?.email || '' }}</span>
+        <div class="user-info">
+          <div class="user-name">{{ getFullName() }}</div>
+          <div class="user-email">{{ user?.email || '' }}</div>
           <span class="user-role">{{ user?.role || '' }}</span>
         </div>
       </div>
       
       <mat-divider></mat-divider>
       
-      <button mat-menu-item routerLink="/profile">
-        <mat-icon>person</mat-icon>
+      <!-- Menu items avec animations -->
+      <button mat-menu-item routerLink="/profile" class="menu-item">
+        <mat-icon>person_outline</mat-icon>
         <span>Mon profil</span>
+        <span class="shortcut">⌘P</span>
       </button>
       
-      <button mat-menu-item routerLink="/settings">
-        <mat-icon>settings</mat-icon>
+      <button mat-menu-item routerLink="/settings" class="menu-item">
+        <mat-icon>settings_outline</mat-icon>
         <span>Paramètres</span>
+        <span class="shortcut">⌘S</span>
+      </button>
+      
+      <button mat-menu-item class="menu-item">
+        <mat-icon>help_outline</mat-icon>
+        <span>Aide & support</span>
+      </button>
+      
+      <button mat-menu-item class="menu-item">
+        <mat-icon>feedback_outline</mat-icon>
+        <span>Donner un avis</span>
       </button>
       
       <mat-divider></mat-divider>
       
       <button mat-menu-item (click)="logout()" class="logout-btn">
-        <mat-icon>exit_to_app</mat-icon>
+        <mat-icon>logout</mat-icon>
         <span>Déconnexion</span>
+        <span class="shortcut">⌘L</span>
       </button>
     </mat-menu>
   </div>

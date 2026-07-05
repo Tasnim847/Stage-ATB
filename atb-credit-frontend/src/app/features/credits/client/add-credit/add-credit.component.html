@@ -1,0 +1,743 @@
+<div class="add-credit-container">
+  <mat-card class="form-card">
+    <!-- Header -->
+    <mat-card-header>
+      <mat-card-title>
+        <div class="header">
+          <button mat-icon-button (click)="goBack()" class="back-btn">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="header-content">
+            <h1>Nouvelle demande de crédit</h1>
+            <p>Veuillez remplir toutes les informations nécessaires pour soumettre une demande de crédit.</p>
+          </div>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Stepper -->
+      <mat-stepper #stepper linear>
+        
+        <!-- ✅ Étape 0: Type de crédit -->
+        <mat-step [stepControl]="creditTypeForm">
+          <ng-template matStepLabel>
+            <span class="step-label">
+              <mat-icon>credit_card</mat-icon>
+              Type de crédit
+            </span>
+          </ng-template>
+          <form [formGroup]="creditTypeForm">
+            <div class="form-section">
+              <h3>Choisissez votre type de crédit</h3>
+              
+              <div class="credit-type-grid">
+                <div 
+                  *ngFor="let type of creditTypes"
+                  class="credit-type-card"
+                  [class.selected]="creditType === type.id"
+                  (click)="selectCreditType(type.id)">
+                  <div class="card-icon">
+                    <mat-icon>{{ type.icon }}</mat-icon>
+                  </div>
+                  <h4>{{ type.label }}</h4>
+                  <p>{{ type.description }}</p>
+                  <div class="card-check" *ngIf="creditType === type.id">
+                    <mat-icon>check_circle</mat-icon>
+                  </div>
+                </div>
+              </div>
+              
+              <input type="hidden" formControlName="creditType" />
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperNext class="btn-next">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Étape 1: Informations personnelles -->
+        <mat-step [stepControl]="personalForm">
+          <ng-template matStepLabel>
+            <span class="step-label">
+              <mat-icon>person</mat-icon>
+              Informations personnelles
+            </span>
+          </ng-template>
+          <form [formGroup]="personalForm">
+            <div class="form-section">
+              <h3>Informations personnelles</h3>
+              
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Civilité</mat-label>
+                  <mat-select formControlName="title">
+                    <mat-option value="M">Monsieur</mat-option>
+                    <mat-option value="Mme">Madame</mat-option>
+                    <mat-option value="Mlle">Mademoiselle</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Nom complet</mat-label>
+                  <input matInput formControlName="fullName" placeholder="Saisir le nom complet" />
+                  <mat-error *ngIf="personalForm.get('fullName')?.invalid && personalForm.get('fullName')?.touched">
+                    Le nom complet est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Date de naissance</mat-label>
+                  <input matInput type="date" formControlName="birthDate" />
+                  <mat-icon matSuffix>cake</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Lieu de naissance</mat-label>
+                  <input matInput formControlName="birthPlace" placeholder="Saisir le lieu de naissance" />
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Nationalité</mat-label>
+                  <mat-select formControlName="nationality">
+                    <mat-option *ngFor="let nationality of ['Tunisienne', 'Française', 'Algérienne', 'Marocaine', 'Libyenne', 'Autre']" [value]="nationality">
+                      {{ nationality }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Pièce d'identité</mat-label>
+                  <mat-select formControlName="idType">
+                    <mat-option value="CIN">CIN</mat-option>
+                    <mat-option value="Passeport">Passeport</mat-option>
+                    <mat-option value="Carte de séjour">Carte de séjour</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Numéro de pièce</mat-label>
+                  <input matInput formControlName="idNumber" placeholder="Saisir le numéro" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Date d'expiration</mat-label>
+                  <input matInput type="date" formControlName="idExpiryDate" />
+                  <mat-icon matSuffix>event</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Situation familiale</mat-label>
+                  <mat-select formControlName="maritalStatus">
+                    <mat-option value="Célibataire">Célibataire</mat-option>
+                    <mat-option value="Marié(e)">Marié(e)</mat-option>
+                    <mat-option value="Divorcé(e)">Divorcé(e)</mat-option>
+                    <mat-option value="Veuf/Veuve">Veuf/Veuve</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Nombre d'enfants à charge</mat-label>
+                  <input matInput type="number" formControlName="dependents" placeholder="0" min="0" />
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Téléphone mobile</mat-label>
+                  <input matInput formControlName="phone" placeholder="+216 98 765 432" />
+                  <mat-icon matSuffix>phone</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Email</mat-label>
+                  <input matInput type="email" formControlName="email" placeholder="exemple@email.com" />
+                  <mat-icon matSuffix>email</mat-icon>
+                  <mat-error *ngIf="personalForm.get('email')?.invalid && personalForm.get('email')?.touched">
+                    Email invalide
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- ✅ Informations du conjoint -->
+              <div class="spouse-toggle">
+                <button mat-button type="button" (click)="toggleSpouse()" class="add-spouse" *ngIf="!showSpouse">
+                  <mat-icon>add</mat-icon> Ajouter les informations du conjoint (si applicable)
+                </button>
+              </div>
+
+              <div class="spouse-section" *ngIf="showSpouse">
+                <h4>Informations du conjoint</h4>
+                <div class="row">
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Nom complet du conjoint</mat-label>
+                    <input matInput formControlName="spouseName" placeholder="Saisir le nom complet" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Téléphone du conjoint</mat-label>
+                    <input matInput formControlName="spousePhone" placeholder="+216 98 765 432" />
+                  </mat-form-field>
+                </div>
+                <div class="row">
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Profession du conjoint</mat-label>
+                    <input matInput formControlName="spouseProfession" placeholder="Saisir la profession" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="half-width">
+                    <mat-label>Revenu mensuel du conjoint (TND)</mat-label>
+                    <input matInput type="number" formControlName="spouseIncome" placeholder="Saisir le revenu mensuel" />
+                  </mat-form-field>
+                </div>
+                <button mat-button type="button" (click)="toggleSpouse()" class="remove-spouse">
+                  <mat-icon>remove</mat-icon> Supprimer les informations du conjoint
+                </button>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <mat-icon>arrow_back</mat-icon> Précédent
+              </button>
+              <button mat-button matStepperNext class="btn-next">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Étape 2: Informations professionnelles -->
+        <mat-step [stepControl]="professionalForm">
+          <ng-template matStepLabel>
+            <span class="step-label">
+              <mat-icon>work</mat-icon>
+              Informations professionnelles
+            </span>
+          </ng-template>
+          <form [formGroup]="professionalForm">
+            <div class="form-section">
+              <h3>Informations professionnelles</h3>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Catégorie socioprofessionnelle</mat-label>
+                <mat-select formControlName="professionalCategory">
+                  <mat-option *ngFor="let category of professionalCategories" [value]="category">
+                    {{ category }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>badge</mat-icon>
+                <mat-error *ngIf="professionalForm.get('professionalCategory')?.invalid && professionalForm.get('professionalCategory')?.touched">
+                  La catégorie socioprofessionnelle est requise
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Secteur d'activité</mat-label>
+                <mat-select formControlName="businessSector">
+                  <mat-option *ngFor="let sector of businessSectors" [value]="sector">
+                    {{ sector }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matSuffix>business</mat-icon>
+                <mat-error *ngIf="professionalForm.get('businessSector')?.invalid && professionalForm.get('businessSector')?.touched">
+                  Le secteur d'activité est requis
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Années d'expérience</mat-label>
+                <input matInput type="number" formControlName="yearsOfExperience" placeholder="Ex: 5" min="0" max="50" />
+                <mat-icon matSuffix>timeline</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Type de contrat</mat-label>
+                <mat-select formControlName="employmentContract">
+                  <mat-option value="CDI">CDI</mat-option>
+                  <mat-option value="CDD">CDD</mat-option>
+                  <mat-option value="Intérim">Intérim</mat-option>
+                  <mat-option value="Freelance">Freelance / Indépendant</mat-option>
+                  <mat-option value="Fonctionnaire">Fonctionnaire</mat-option>
+                  <mat-option value="Autre">Autre</mat-option>
+                </mat-select>
+                <mat-icon matSuffix>description</mat-icon>
+              </mat-form-field>
+
+              <mat-divider class="form-divider"></mat-divider>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Adresse</mat-label>
+                <input matInput formControlName="address" placeholder="Votre adresse complète" />
+                <mat-icon matSuffix>home</mat-icon>
+              </mat-form-field>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Ville</mat-label>
+                  <input matInput formControlName="city" placeholder="Ville" />
+                  <mat-icon matSuffix>location_city</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Code postal</mat-label>
+                  <input matInput formControlName="postalCode" placeholder="Saisir le code postal" />
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Pays</mat-label>
+                  <mat-select formControlName="country">
+                    <mat-option value="Tunisie">Tunisie</mat-option>
+                    <mat-option value="France">France</mat-option>
+                    <mat-option value="Algérie">Algérie</mat-option>
+                    <mat-option value="Maroc">Maroc</mat-option>
+                    <mat-option value="Libye">Libye</mat-option>
+                    <mat-option value="Autre">Autre</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Adresse depuis</mat-label>
+                  <input matInput type="date" formControlName="addressSince" />
+                  <mat-icon matSuffix>event</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Profession</mat-label>
+                  <input matInput formControlName="profession" placeholder="Saisir votre profession" />
+                  <mat-icon matSuffix>work_outline</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Employeur</mat-label>
+                  <input matInput formControlName="employer" placeholder="Nom de l'employeur" />
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <mat-icon>arrow_back</mat-icon> Précédent
+              </button>
+              <button mat-button matStepperNext class="btn-next">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Étape 3: Informations financières -->
+        <mat-step [stepControl]="financialForm">
+          <ng-template matStepLabel>
+            <span class="step-label">
+              <mat-icon>account_balance</mat-icon>
+              Informations financières
+            </span>
+          </ng-template>
+          <form [formGroup]="financialForm">
+            <div class="form-section">
+              <h3>Informations financières</h3>
+
+              <!-- ✅ RIB Bancaire -->
+              <div class="rib-info">
+                <mat-icon>info</mat-icon>
+                <span>Veuillez saisir votre RIB bancaire pour le virement du crédit</span>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>RIB (20 chiffres)</mat-label>
+                <input matInput formControlName="rib" placeholder="Ex: 01234567890123456789" maxlength="20" />
+                <mat-icon matSuffix>credit_card</mat-icon>
+                <mat-hint>Le RIB doit contenir exactement 20 chiffres</mat-hint>
+                <mat-error *ngIf="financialForm.get('rib')?.invalid && financialForm.get('rib')?.touched">
+                  <span *ngIf="financialForm.get('rib')?.errors?.['required']">Le RIB est requis</span>
+                  <span *ngIf="financialForm.get('rib')?.errors?.['pattern']">Le RIB doit contenir 20 chiffres</span>
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nom de la banque</mat-label>
+                <input matInput formControlName="bankName" placeholder="Ex: Attijari Bank" />
+                <mat-icon matSuffix>business</mat-icon>
+                <mat-error *ngIf="financialForm.get('bankName')?.invalid && financialForm.get('bankName')?.touched">
+                  Le nom de la banque est requis
+                </mat-error>
+              </mat-form-field>
+
+              <mat-divider class="form-divider"></mat-divider>
+
+              <!-- ✅ Rachat de crédit (si sélectionné) -->
+              <div *ngIf="creditType === 'refinance'" class="refinance-section">
+                <h4>Informations de rachat de crédit</h4>
+                
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Montant à racheter (TND)</mat-label>
+                  <input matInput type="number" formControlName="refinanceAmount" placeholder="Ex: 25000" min="0" />
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                  <mat-error *ngIf="financialForm.get('refinanceAmount')?.invalid && financialForm.get('refinanceAmount')?.touched">
+                    Le montant à racheter est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Banque actuelle</mat-label>
+                  <input matInput formControlName="refinanceBankName" placeholder="Nom de la banque actuelle" />
+                  <mat-icon matSuffix>business</mat-icon>
+                  <mat-error *ngIf="financialForm.get('refinanceBankName')?.invalid && financialForm.get('refinanceBankName')?.touched">
+                    Le nom de la banque est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Numéro de contrat actuel</mat-label>
+                  <input matInput formControlName="refinanceContractNumber" placeholder="Ex: CT-2024-001" />
+                  <mat-icon matSuffix>description</mat-icon>
+                  <mat-error *ngIf="financialForm.get('refinanceContractNumber')?.invalid && financialForm.get('refinanceContractNumber')?.touched">
+                    Le numéro de contrat est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-divider class="form-divider"></mat-divider>
+              </div>
+
+              <!-- ✅ Salaire et revenus -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Salaire mensuel (TND)</mat-label>
+                <input matInput type="number" formControlName="monthlySalary" placeholder="Ex: 2500" min="0" />
+                <mat-icon matSuffix>attach_money</mat-icon>
+                <mat-error *ngIf="financialForm.get('monthlySalary')?.invalid && financialForm.get('monthlySalary')?.touched">
+                  Le salaire mensuel est requis
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Autre(s) revenu(s) mensuel(s) (optionnel)</mat-label>
+                <input matInput type="number" formControlName="otherMonthlyIncome" placeholder="Ex: 500" min="0" />
+                <mat-icon matSuffix>attach_money</mat-icon>
+              </mat-form-field>
+
+              <!-- ✅ Autres crédits -->
+              <div class="credit-toggle">
+                <mat-slide-toggle formControlName="hasOtherCredits" color="primary">
+                  Avez-vous d'autres crédits en cours ?
+                </mat-slide-toggle>
+                <span class="toggle-hint">(crédit consommation, etc.)</span>
+              </div>
+
+              <div *ngIf="financialForm.get('hasOtherCredits')?.value" class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Montant des autres crédits (TND)</mat-label>
+                  <input matInput type="number" formControlName="otherCreditsAmount" placeholder="Ex: 500" min="0" />
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Mensualité des autres crédits (TND)</mat-label>
+                  <input matInput type="number" formControlName="monthlyExpenses" placeholder="Ex: 200" min="0" />
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Loyer mensuel (TND)</mat-label>
+                <input matInput type="number" formControlName="rentAmount" placeholder="Ex: 800" min="0" />
+                <mat-icon matSuffix>home</mat-icon>
+              </mat-form-field>
+
+              <mat-divider class="form-divider"></mat-divider>
+
+              <!-- ✅ Informations du crédit demandé -->
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Montant demandé</mat-label>
+                  <input matInput type="number" formControlName="amount" placeholder="Ex: 50000" />
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                  <mat-error *ngIf="financialForm.get('amount')?.invalid && financialForm.get('amount')?.touched">
+                    Montant requis (minimum 100 TND)
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Devise</mat-label>
+                  <mat-select formControlName="currency">
+                    <mat-option value="TND">TND</mat-option>
+                    <mat-option value="EUR">EUR</mat-option>
+                    <mat-option value="USD">USD</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Durée (mois)</mat-label>
+                  <input matInput type="number" formControlName="durationMonths" placeholder="Ex: 36" />
+                  <mat-icon matSuffix>calendar_today</mat-icon>
+                  <mat-error *ngIf="financialForm.get('durationMonths')?.invalid && financialForm.get('durationMonths')?.touched">
+                    Durée requise (1-120 mois)
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- ✅ Taux d'intérêt calculé automatiquement -->
+                <mat-form-field appearance="outline" class="half-width" [class.highlight]="calculatedInterestRate > 0">
+                  <mat-label>Taux d'intérêt (%)</mat-label>
+                  <input matInput formControlName="interestRate" [value]="calculatedInterestRate" readonly />
+                  <mat-icon matSuffix>percent</mat-icon>
+                  <mat-hint *ngIf="calculatedInterestRate > 0">
+                    Niveau de risque: <strong>{{ riskLevel }}</strong>
+                  </mat-hint>
+                </mat-form-field>
+              </div>
+
+              <!-- ✅ Affichage des ajustements du taux -->
+              <div *ngIf="rateAdjustments.length > 0 && calculatedInterestRate > 0" class="rate-adjustments">
+                <h4>📊 Détail du calcul du taux</h4>
+                <div class="adjustments-grid">
+                  <div class="adjustment-item" *ngFor="let adj of rateAdjustments">
+                    <span>{{ adj }}</span>
+                  </div>
+                </div>
+                <div class="rate-result">
+                  <span class="label">Taux final proposé</span>
+                  <span class="value">{{ calculatedInterestRate }}%</span>
+                </div>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Objectif du crédit</mat-label>
+                <mat-select formControlName="loanPurpose">
+                  <mat-option *ngFor="let purpose of loanPurposes" [value]="purpose">
+                    {{ purpose }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="financialForm.get('loanPurpose')?.invalid && financialForm.get('loanPurpose')?.touched">
+                  L'objectif du crédit est requis
+                </mat-error>
+              </mat-form-field>
+
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Type de garantie</mat-label>
+                  <mat-select formControlName="collateralType">
+                    <mat-option *ngFor="let type of collateralTypes" [value]="type">
+                      {{ type }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Valeur de la garantie</mat-label>
+                  <input matInput type="number" formControlName="collateralValue" placeholder="Ex: 100000" />
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                </mat-form-field>
+              </div>
+
+              <!-- ✅ Indicateurs financiers -->
+              <div class="financial-indicators" *ngIf="financialForm.get('monthlySalary')?.value > 0">
+                <h4>Indicateurs financiers</h4>
+                <div class="indicators-grid">
+                  <div class="indicator-item">
+                    <span class="label">Mensualité estimée</span>
+                    <span class="value">{{ calculateMonthlyPaymentFromForms() | currency:'TND' }}</span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="label">Taux d'endettement</span>
+                    <span class="value" [class.warning]="calculateDebtRatio() > 33">
+                      {{ calculateDebtRatio() }}%
+                    </span>
+                  </div>
+                  <div class="indicator-item">
+                    <span class="label">Capacité d'emprunt</span>
+                    <span class="value">{{ calculateBorrowingCapacity() | currency:'TND' }}</span>
+                  </div>
+                </div>
+                <div *ngIf="calculateDebtRatio() > 33" class="debt-warning">
+                  <mat-icon>warning</mat-icon>
+                  <span>Votre taux d'endettement dépasse 33%. Veuillez réviser votre demande.</span>
+                </div>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Date de décaissement souhaitée</mat-label>
+                <input matInput type="date" formControlName="expectedDisbursementDate" />
+                <mat-icon matSuffix>event</mat-icon>
+              </mat-form-field>
+            </div>
+
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <mat-icon>arrow_back</mat-icon> Précédent
+              </button>
+              <button mat-button matStepperNext class="btn-next">
+                Suivant <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </form>
+        </mat-step>
+
+        <!-- Étape 4: Validation -->
+        <mat-step>
+          <ng-template matStepLabel>
+            <span class="step-label">
+              <mat-icon>check_circle</mat-icon>
+              Validation
+            </span>
+          </ng-template>
+          <div class="form-section">
+            <h3>Résumé de votre demande</h3>
+
+            <!-- Type de crédit -->
+            <div class="summary-section">
+              <h4>Type de crédit</h4>
+              <div class="summary-grid">
+                <div class="summary-item full-width">
+                  <span class="label">Type</span>
+                  <span class="value">{{ getCreditTypeLabel() }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Informations personnelles -->
+            <div class="summary-section">
+              <h4>Informations personnelles</h4>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="label">Nom complet</span>
+                  <span class="value">{{ personalForm.get('fullName')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Email</span>
+                  <span class="value">{{ personalForm.get('email')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Téléphone</span>
+                  <span class="value">{{ personalForm.get('phone')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Situation familiale</span>
+                  <span class="value">{{ personalForm.get('maritalStatus')?.value || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Informations professionnelles -->
+            <div class="summary-section">
+              <h4>Informations professionnelles</h4>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="label">Catégorie</span>
+                  <span class="value">{{ professionalForm.get('professionalCategory')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Secteur</span>
+                  <span class="value">{{ professionalForm.get('businessSector')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Profession</span>
+                  <span class="value">{{ professionalForm.get('profession')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Employeur</span>
+                  <span class="value">{{ professionalForm.get('employer')?.value || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Informations financières -->
+            <div class="summary-section">
+              <h4>Informations financières</h4>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="label">RIB</span>
+                  <span class="value">{{ financialForm.get('rib')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Banque</span>
+                  <span class="value">{{ financialForm.get('bankName')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item highlight">
+                  <span class="label">Montant demandé</span>
+                  <span class="value amount">{{ financialForm.get('amount')?.value | currency:'TND' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Durée</span>
+                  <span class="value">{{ financialForm.get('durationMonths')?.value }} mois</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Taux d'intérêt</span>
+                  <span class="value">{{ financialForm.get('interestRate')?.value }}%</span>
+                </div>
+                <div class="summary-item highlight">
+                  <span class="label">Mensualité estimée</span>
+                  <span class="value amount">{{ calculateMonthlyPaymentFromForms() | currency:'TND' }}</span>
+                </div>
+                <div class="summary-item full-width">
+                  <span class="label">Objectif du crédit</span>
+                  <span class="value">{{ financialForm.get('loanPurpose')?.value || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rachat de crédit -->
+            <div class="summary-section" *ngIf="creditType === 'refinance'">
+              <h4>Rachat de crédit</h4>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="label">Montant à racheter</span>
+                  <span class="value">{{ financialForm.get('refinanceAmount')?.value | currency:'TND' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Banque actuelle</span>
+                  <span class="value">{{ financialForm.get('refinanceBankName')?.value || '-' }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">N° Contrat</span>
+                  <span class="value">{{ financialForm.get('refinanceContractNumber')?.value || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conditions -->
+            <div class="terms-section">
+              <div class="terms-content">
+                <h4>Informations importantes</h4>
+                <ul>
+                  <li>Tous les champs marqués d'un * sont obligatoires.</li>
+                  <li>Les informations fournies doivent être exactes et à jour.</li>
+                  <li>La demande sera analysée par notre système IA et nos experts.</li>
+                </ul>
+                <div class="security-info">
+                  <mat-icon>verified</mat-icon>
+                  <span>Vos données sont sécurisées. Nous garantissons la confidentialité et la sécurité de vos informations.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon> Précédent
+            </button>
+            <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitting || !isFormValid()" class="submit-btn">
+              <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+              <span *ngIf="!isSubmitting">Soumettre la demande</span>
+            </button>
+          </div>
+        </mat-step>
+
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+</div>

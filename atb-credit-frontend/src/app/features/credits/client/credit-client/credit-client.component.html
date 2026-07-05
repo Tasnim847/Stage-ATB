@@ -1,0 +1,139 @@
+<div class="my-credits-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Mes crédits</h1>
+      <p class="subtitle">Gérez vos demandes de crédit en un coup d'œil</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/credit-requests/new" class="btn-primary">
+  <mat-icon>add</mat-icon>
+  Nouvelle demande
+</button>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ totalCredits }}</h3>
+        <p>Total</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card pending">
+      <div class="stat-icon">
+        <mat-icon>pending</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ pendingCount }}</h3>
+        <p>En cours</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card approved">
+      <div class="stat-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ approvedCount }}</h3>
+        <p>Approuvés</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card rejected">
+      <div class="stat-icon">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ rejectedCount }}</h3>
+        <p>Rejetés</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <span class="filter-label">Filtrer par statut :</span>
+    </div>
+    <div class="filter-chips">
+      <button 
+        *ngFor="let status of statuses"
+        class="filter-chip"
+        [class.active]="isStatusSelected(status.value)"
+        (click)="filterByStatus(status.value)">
+        {{ status.label }}
+        <span class="chip-count" *ngIf="getStatusCount(status.value) > 0">
+          {{ getStatusCount(status.value) }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Cartes des crédits -->
+  <div class="credits-grid" *ngIf="!isLoading">
+    <mat-card *ngFor="let credit of filteredCredits" class="credit-card" [class]="'status-' + credit.status.toLowerCase()">
+      <div class="card-header">
+        <div class="card-number">
+          <span class="label">N° Demande</span>
+          <span class="value">{{ credit.requestNumber }}</span>
+        </div>
+        <div class="card-status">
+          <span class="status-badge" [class]="getStatusClass(credit.status)">
+            {{ getStatusLabel(credit.status) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-amount">
+          <span class="label">Montant</span>
+          <span class="value">{{ credit.amount | currency:'TND' }}</span>
+        </div>
+        <div class="card-date">
+          <span class="label">Date de demande</span>
+          <span class="value">{{ credit.createdAt | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="card-duration">
+          <span class="label">Durée</span>
+          <span class="value">{{ credit.durationMonths }} mois</span>
+        </div>
+        <div class="card-rate">
+          <span class="label">Taux d'intérêt</span>
+          <span class="value">{{ credit.interestRate }}%</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button mat-stroked-button color="primary" [routerLink]="['/credit-requests', credit.id]">
+          <mat-icon>visibility</mat-icon>
+          Voir les détails
+        </button>
+        <span class="card-date-small">
+          <mat-icon>calendar_today</mat-icon>
+          {{ credit.createdAt | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+    </mat-card>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="filteredCredits.length === 0">
+      <mat-icon>credit_card</mat-icon>
+      <h3>Aucune demande de crédit</h3>
+      <p>Vous n'avez pas encore de demande de crédit.</p>
+      <button mat-raised-button color="primary" routerLink="/credit-requests/new">
+        <mat-icon>add</mat-icon>
+        Faire une demande
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-spinner" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement de vos crédits...</p>
+  </div>
+</div>
