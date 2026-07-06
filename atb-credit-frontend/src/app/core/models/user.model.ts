@@ -93,3 +93,19 @@ export interface ErrorResponse {
   timestamp: string;
   path?: string;
 }
+
+export interface UserResponseDTO {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: UserRole | string;
+  phoneNumber: string;
+  active: boolean;
+  locked: boolean;
+  lastLoginAt: string;
+  createdAt: string;
+  totalCreditRequests: number;
+  totalNotifications: number;
+}

@@ -118,7 +118,23 @@ export const routes: Routes = [
           .then(m => m.ClientAssignmentComponent),
         canActivate: [authGuard, roleGuard],
         data: { roles: ['ADMIN'] }
-      }
+      },
+      // ✅ Route pour la gestion des rôles
+      {
+        path: 'admin/roles',
+        loadComponent: () => import('./features/Admin/role-management/role-management.component')
+          .then(m => m.RoleManagementComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      // app.routes.ts - AJOUTER LA ROUTE
+{
+  path: 'admin/users',
+  loadComponent: () => import('./features/Admin/user-management/user-management.component')
+    .then(m => m.UserManagementComponent),
+  canActivate: [authGuard, roleGuard],
+  data: { roles: ['ADMIN'] }
+}
     ]
   },
   {

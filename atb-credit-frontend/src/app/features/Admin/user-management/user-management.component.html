@@ -1,0 +1,281 @@
+<!-- features/admin/user-management/user-management.component.html -->
+<div class="user-management-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Gestion des utilisateurs</h1>
+      <p class="subtitle">Gérez les utilisateurs de la plateforme</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="toggleCreateForm()">
+        <mat-icon>person_add</mat-icon>
+        Ajouter
+      </button>
+      <button mat-icon-button (click)="loadData()" matTooltip="Rafraîchir">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Popup de création -->
+  <!-- Popup de création - Version corrigée -->
+<div class="modal-overlay" *ngIf="showCreateForm" (click)="toggleCreateForm()">
+  <mat-card class="modal-card" (click)="$event.stopPropagation()">
+    <!-- En-tête du popup -->
+    <div class="modal-header">
+      <div class="modal-header-content">
+        <div class="modal-icon">
+          <mat-icon>person_add</mat-icon>
+        </div>
+        <div>
+          <h2>Nouvel utilisateur</h2>
+          <p class="modal-subtitle">Créez un compte pour un nouvel utilisateur</p>
+        </div>
+      </div>
+      <button mat-icon-button (click)="toggleCreateForm()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Corps du popup -->
+    <mat-card-content>
+      <form [formGroup]="createForm" (ngSubmit)="createUser()" class="create-form">
+        <!-- Ligne 1: Nom d'utilisateur et Email -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Nom d'utilisateur</mat-label>
+            <input matInput formControlName="username" placeholder="ex: johndoe" required>
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="createForm.get('username')?.hasError('required')">
+              <mat-icon>error</mat-icon> Requis
+            </mat-error>
+            <mat-error *ngIf="createForm.get('username')?.hasError('minlength')">
+              <mat-icon>error</mat-icon> Min 3 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="exemple@atb.com" required>
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="createForm.get('email')?.hasError('required')">
+              <mat-icon>error</mat-icon> Requis
+            </mat-error>
+            <mat-error *ngIf="createForm.get('email')?.hasError('email')">
+              <mat-icon>error</mat-icon> Email invalide
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Ligne 2: Prénom et Nom -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" placeholder="John" required>
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error *ngIf="createForm.get('firstName')?.hasError('required')">
+              <mat-icon>error</mat-icon> Requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName" placeholder="Doe" required>
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error *ngIf="createForm.get('lastName')?.hasError('required')">
+              <mat-icon>error</mat-icon> Requis
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Ligne 3: Mot de passe et Téléphone -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Mot de passe</mat-label>
+            <input matInput type="password" formControlName="password" placeholder="••••••" required>
+            <mat-icon matPrefix>lock</mat-icon>
+            <mat-error *ngIf="createForm.get('password')?.hasError('required')">
+              <mat-icon>error</mat-icon> Requis
+            </mat-error>
+            <mat-error *ngIf="createForm.get('password')?.hasError('minlength')">
+              <mat-icon>error</mat-icon> Min 6 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phoneNumber" placeholder="+216 98 765 432">
+            <mat-icon matPrefix>phone</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <!-- Rôle - Version avec select natif SANS mat-form-field -->
+        <div class="form-field full-width">
+          <label class="custom-label">Rôle <span class="required-star">*</span></label>
+          <select 
+            class="native-select-styled" 
+            formControlName="role"
+            (change)="updateRole($event)">
+            <option value="" disabled selected>Sélectionner un rôle</option>
+            <option *ngFor="let role of roles" [value]="role.value">
+              {{ role.label }}
+            </option>
+          </select>
+          <div *ngIf="createForm.get('role')?.hasError('required') && createForm.get('role')?.touched" class="custom-error">
+            <mat-icon>error</mat-icon> Le rôle est requis
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button mat-button type="button" (click)="toggleCreateForm()" class="cancel-btn">
+            Annuler
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="createForm.invalid || isSubmitting" class="submit-btn">
+            <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+            <span *ngIf="!isSubmitting">
+              <mat-icon>check</mat-icon>
+              Créer
+            </span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+  <!-- Recherche -->
+  <mat-card class="search-card">
+    <mat-card-content>
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="searchQuery" (input)="searchUsers()" placeholder="Nom, email, username...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        <span class="result-count">{{ filteredUsers.length }} utilisateur(s)</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Liste des utilisateurs -->
+  <div class="users-grid" *ngIf="!isLoading && paginatedUsers.length > 0">
+    <mat-card *ngFor="let user of paginatedUsers" class="user-card" [class.inactive]="!user.active">
+      <div class="user-card-header">
+        <div class="user-avatar" [class]="getStatusColor(user)">
+          {{ getInitials(user) }}
+        </div>
+        <div class="user-info">
+          <h4>
+            {{ user.firstName }} {{ user.lastName }}
+            <span *ngIf="user.id === currentUserId" class="current-user-badge">(Vous)</span>
+          </h4>
+          <span class="user-email">{{ user.email }}</span>
+          <span class="user-username">&#64;{{ user.username }}</span>
+        </div>
+        <div class="user-status">
+          <span class="status-badge" [class]="getStatusColor(user)">{{ getStatusLabel(user) }}</span>
+          <span class="role-badge">{{ getRoleLabel(user.role) }}</span>
+        </div>
+      </div>
+      <div class="user-card-actions">
+        <button mat-icon-button color="primary" (click)="openEditDialog(user)" [disabled]="!canModifyUser(user)" matTooltip="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="user.active ? 'warn' : 'primary'" (click)="toggleActive(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.active ? 'Désactiver' : 'Activer' }}">
+          <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="resetPassword(user)" [disabled]="!canModifyUser(user)" matTooltip="Réinitialiser le mot de passe">
+          <mat-icon>lock_reset</mat-icon>
+        </button>
+        <button mat-icon-button [color]="user.locked ? 'primary' : 'warn'" (click)="toggleLocked(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.locked ? 'Déverrouiller' : 'Verrouiller' }}">
+          <mat-icon>{{ user.locked ? 'lock_open' : 'lock' }}</mat-icon>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="!isLoading && filteredUsers.length > 0">
+    <div class="pagination-info">
+      {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} / {{ filteredUsers.length }}
+    </div>
+    <div class="pagination-controls">
+      <button (click)="previousPage()" [disabled]="currentPage === 1">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <div class="page-numbers">
+        <button *ngFor="let page of getPageNumbers()" (click)="goToPage(page)" [class.active]="page === currentPage">{{ page }}</button>
+      </div>
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading && filteredUsers.length === 0">
+    <mat-icon class="empty-icon">people_outline</mat-icon>
+    <h3>Aucun utilisateur</h3>
+    <p>Commencez par ajouter votre premier utilisateur.</p>
+    <button mat-raised-button color="primary" (click)="toggleCreateForm()">
+      <mat-icon>person_add</mat-icon> Ajouter
+    </button>
+  </div>
+</div>
+
+<!-- Modal d'édition -->
+<div class="edit-modal-overlay" *ngIf="editingUser" (click)="closeEditDialog()">
+  <mat-card class="edit-modal" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="modal-header">
+          <h2>Modifier l'utilisateur</h2>
+          <button mat-icon-button (click)="closeEditDialog()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-title>
+      <mat-card-subtitle>{{ editingUser.firstName }} {{ editingUser.lastName }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="editForm" (ngSubmit)="updateUser()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName">
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Téléphone</mat-label>
+          <input matInput formControlName="phoneNumber">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rôle</mat-label>
+          <mat-select formControlName="role">
+            <mat-option *ngFor="let role of roles" [value]="role.value">{{ role.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="form-actions">
+          <button mat-button type="button" (click)="closeEditDialog()">Annuler</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="editForm.invalid || isSubmitting">
+            <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+            <span *ngIf="!isSubmitting">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

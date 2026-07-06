@@ -1,0 +1,365 @@
+<!-- features/admin/role-management/role-management.component.html - COMPLET AVEC PAGINATION -->
+<div class="role-management-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Gestion des rôles</h1>
+      <p class="subtitle">Attribuez et gérez les rôles et permissions des utilisateurs</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="loadData()">
+        <mat-icon>refresh</mat-icon>
+        Rafraîchir
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-content">
+        <mat-icon>people</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ totalUsers }}</span>
+          <span class="stat-label">Total utilisateurs</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card admin" (click)="filterByRole('ADMIN')">
+      <div class="stat-content">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ adminCount }}</span>
+          <span class="stat-label">Administrateurs</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card analyst" (click)="filterByRole('ANALYST')">
+      <div class="stat-content">
+        <mat-icon>analytics</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ analystCount }}</span>
+          <span class="stat-label">Analystes</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card advisor" (click)="filterByRole('ADVISOR')">
+      <div class="stat-content">
+        <mat-icon>person</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ advisorCount }}</span>
+          <span class="stat-label">Conseillers</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card manager" (click)="filterByRole('MANAGER')">
+      <div class="stat-content">
+        <mat-icon>badge</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ managerCount }}</span>
+          <span class="stat-label">Responsables</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card client" (click)="filterByRole('CLIENT')">
+      <div class="stat-content">
+        <mat-icon>person_outline</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ clientCount }}</span>
+          <span class="stat-label">Clients</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <div class="filter-group">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Rechercher un utilisateur</mat-label>
+            <input matInput [(ngModel)]="searchQuery" (input)="searchUsers()" placeholder="Nom, email, username...">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filtrer par rôle</mat-label>
+            <mat-select [(ngModel)]="selectedRole" (selectionChange)="searchUsers()">
+              <mat-option [value]="null">Tous les rôles</mat-option>
+              <mat-option *ngFor="let role of roles" [value]="role.value">
+                {{ role.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-stroked-button (click)="clearFilters()" class="reset-btn">
+            <mat-icon>clear_all</mat-icon>
+            Réinitialiser
+          </button>
+          <span class="result-count">{{ filteredUsers.length }} utilisateur(s)</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des utilisateurs...</p>
+  </div>
+
+  <!-- Liste des utilisateurs -->
+  <div class="users-grid" *ngIf="!isLoading && paginatedUsers.length > 0">
+    <mat-card *ngFor="let user of paginatedUsers" class="user-card" [class.inactive]="!user.active">
+      <div class="user-card-header">
+        <div class="user-avatar" [style.background]="getRoleColor(user.role)">
+          {{ getInitials(user) }}
+        </div>
+        <div class="user-info">
+          <h4>
+            {{ user.firstName }} {{ user.lastName }}
+            <span *ngIf="user.id === currentUserId" class="current-user-badge">(Vous)</span>
+          </h4>
+          <span class="user-email">{{ user.email }}</span>
+          <span class="user-username">&#64;{{ user.username }}</span>
+        </div>
+        <div class="user-status">
+          <span class="status-badge" [class.active]="user.active" [class.inactive]="!user.active">
+            {{ user.active ? 'Actif' : 'Inactif' }}
+          </span>
+          <span class="status-badge locked" *ngIf="user.locked">
+            Verrouillé
+          </span>
+        </div>
+      </div>
+
+      <div class="user-card-body">
+        <div class="role-section">
+          <div class="role-display">
+            <span class="role-label">Rôle actuel</span>
+            <span class="role-value" [style.background]="getRoleColor(user.role)">
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </div>
+          
+          <div class="permissions-preview">
+            <span class="permissions-label">Permissions</span>
+            <div class="permissions-list">
+              <span *ngFor="let perm of user.permissions | slice:0:3" class="permission-chip">
+                {{ perm }}
+              </span>
+              <span *ngIf="user.permissions.length > 3" class="permission-more">
+                +{{ user.permissions.length - 3 }}
+              </span>
+              <span *ngIf="user.permissions.length === 0" class="no-permissions">
+                Aucune permission
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-card-actions">
+        <button mat-raised-button color="primary" 
+                (click)="openEditDialog(user)"
+                [disabled]="!canModifyUser(user)">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+        
+        <button mat-stroked-button color="warn" 
+                (click)="resetUserRole(user)" 
+                *ngIf="canResetRole(user)" 
+                matTooltip="Réinitialiser le rôle à ANALYST"
+                [disabled]="!canModifyUser(user)">
+          <mat-icon>restore</mat-icon>
+          Réinitialiser
+        </button>
+        
+        <button mat-stroked-button 
+                [color]="user.active ? 'warn' : 'primary'" 
+                (click)="toggleActive(user)"
+                [disabled]="!canModifyUser(user)">
+          <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
+          {{ user.active ? 'Désactiver' : 'Activer' }}
+        </button>
+        
+        <button mat-stroked-button 
+                [color]="user.locked ? 'primary' : 'warn'" 
+                (click)="toggleLocked(user)"
+                [disabled]="!canModifyUser(user)">
+          <mat-icon>{{ user.locked ? 'lock_open' : 'lock' }}</mat-icon>
+          {{ user.locked ? 'Déverrouiller' : 'Verrouiller' }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="!isLoading && filteredUsers.length > 0">
+    <div class="pagination-info">
+      Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à 
+      {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} sur 
+      {{ filteredUsers.length }} utilisateurs
+    </div>
+    
+    <div class="pagination-controls">
+      <button (click)="previousPage()" [disabled]="currentPage === 1" matTooltip="Page précédente">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      
+      <div class="page-numbers">
+        <ng-container *ngFor="let page of getPageNumbers()">
+          <button 
+            (click)="goToPage(page)" 
+            [class.active]="page === currentPage">
+            {{ page }}
+          </button>
+        </ng-container>
+      </div>
+      
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages" matTooltip="Page suivante">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading && filteredUsers.length === 0">
+    <mat-icon class="empty-icon">people_outline</mat-icon>
+    <h3>Aucun utilisateur trouvé</h3>
+    <p *ngIf="searchQuery || selectedRole">Aucun utilisateur ne correspond à vos critères de recherche.</p>
+    <p *ngIf="!searchQuery && !selectedRole">Aucun utilisateur n'est encore enregistré.</p>
+    <button mat-raised-button color="primary" (click)="clearFilters()">
+      <mat-icon>clear_all</mat-icon>
+      Réinitialiser les filtres
+    </button>
+  </div>
+</div>
+
+<!-- Modal d'édition avec select natif -->
+<div class="edit-modal-overlay" *ngIf="editMode && editUser" (click)="closeEditDialog()">
+  <mat-card class="edit-modal" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="modal-header">
+          <h2>Modifier les rôles et permissions</h2>
+          <button mat-icon-button (click)="closeEditDialog()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ editUser.firstName }} {{ editUser.lastName }} ({{ editUser.email }})
+        <span *ngIf="editUser.id === currentUserId" class="current-user-badge">(Vous)</span>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="modal-body">
+        <!-- Sélection du rôle avec select natif -->
+        <div class="role-selector">
+          <h3>Rôle</h3>
+          <div class="current-role-display">
+            Rôle actuel: <strong>{{ getRoleLabel(editUser.role) }}</strong>
+          </div>
+          
+          <div class="native-select-wrapper">
+            <label class="native-select-label">Choisir un rôle</label>
+            <select 
+              [(ngModel)]="editUser.role" 
+              [disabled]="!canModifyUser(editUser)"
+              class="native-select"
+              [class.disabled]="!canModifyUser(editUser)">
+              <option *ngFor="let role of roles" [value]="role.value" [style.background]="role.color">
+                {{ role.label }}
+              </option>
+            </select>
+            <small *ngIf="!canModifyUser(editUser)" class="warning-text">
+              Vous ne pouvez pas modifier votre propre rôle
+            </small>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Permissions -->
+        <div class="permissions-section">
+          <h3>Permissions</h3>
+          <p class="permissions-hint">Sélectionnez les permissions que vous souhaitez attribuer</p>
+
+          <div class="permissions-grid">
+            <div *ngFor="let category of permissionCategories" class="permission-category">
+              <div class="category-header">
+                <mat-icon>{{ category.icon }}</mat-icon>
+                <span>{{ category.name }}</span>
+              </div>
+              <div class="permission-items">
+                <div *ngFor="let perm of getPermissionsByCategory(category.id)" 
+                     class="permission-item"
+                     [class.selected]="hasPermission(editUser, perm.id)">
+                  <mat-checkbox 
+                    [checked]="hasPermission(editUser, perm.id)"
+                    (change)="togglePermission(perm.id)"
+                    [disabled]="!canModifyUser(editUser)">
+                    <span class="permission-name">{{ perm.name }}</span>
+                    <span class="permission-desc">{{ perm.description }}</span>
+                  </mat-checkbox>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Statut du compte -->
+        <div class="status-section">
+          <h3>Statut du compte</h3>
+          <div class="status-controls">
+            <mat-slide-toggle [(ngModel)]="editUser.active" 
+                              color="primary"
+                              [disabled]="!canModifyUser(editUser)">
+              {{ editUser.active ? 'Actif' : 'Inactif' }}
+            </mat-slide-toggle>
+            <mat-slide-toggle [(ngModel)]="editUser.locked" 
+                              color="warn"
+                              [disabled]="!canModifyUser(editUser)">
+              {{ editUser.locked ? 'Verrouillé' : 'Déverrouillé' }}
+            </mat-slide-toggle>
+          </div>
+          <mat-hint *ngIf="!canModifyUser(editUser)" class="warning-hint">
+            Vous ne pouvez pas modifier votre propre statut
+          </mat-hint>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeEditDialog()">Annuler</button>
+      
+      <button mat-stroked-button color="warn" 
+              (click)="resetUserRole(editUser)" 
+              *ngIf="editUser && canResetRole(editUser)"
+              [disabled]="!canModifyUser(editUser)">
+        <mat-icon>restore</mat-icon>
+        Réinitialiser
+      </button>
+      
+      <button mat-raised-button color="primary" 
+              (click)="saveUserRole()" 
+              [disabled]="isLoading || !canModifyUser(editUser)">
+        <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+        <span *ngIf="!isLoading">Enregistrer</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

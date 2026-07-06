@@ -109,6 +109,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/credit-requests/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/copilot/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/kyc/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        .requestMatchers("/api/admin/roles/**").hasRole("ADMIN")
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/dashboard/**").authenticated()
                         .anyRequest().authenticated()

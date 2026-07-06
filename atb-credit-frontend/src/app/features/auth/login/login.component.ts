@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '@core/services/auth.service';
@@ -27,7 +28,8 @@ import { Subscription, debounceTime, distinctUntilChanged, filter } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatCheckboxModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -47,7 +49,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   isCheckingAccount = false;
   private subscriptions: Subscription = new Subscription();
 
-  // Options pour les messages
   readonly ERROR_MESSAGES = {
     ACCOUNT_INACTIVE: {
       title: 'Compte désactivé',
@@ -68,7 +69,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
-    // Rediriger vers le dashboard si déjà connecté
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
       return;
@@ -85,13 +85,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   initForm(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      rememberMe: [false]
     });
   }
 
-  /**
-   * Vérifier le statut du compte en temps réel lorsque l'email change
-   */
   setupEmailValidation(): void {
     const emailControl = this.loginForm.get('email');
     if (emailControl) {
@@ -111,9 +109,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Vérifier le statut du compte avant la soumission
-   */
   checkAccountStatus(email: string): void {
     this.isCheckingAccount = true;
     
@@ -129,7 +124,6 @@ export class LoginComponent implements OnInit, OnDestroy {
             'Fermer',
             { duration: 5000, panelClass: ['error-snackbar'] }
           );
-          // Désactiver le champ mot de passe
           this.password?.disable();
         } else if (status.locked) {
           this.errorMessage = this.ERROR_MESSAGES.ACCOUNT_LOCKED.message;
@@ -141,7 +135,6 @@ export class LoginComponent implements OnInit, OnDestroy {
           );
           this.password?.disable();
         } else {
-          // Compte actif, réactiver le champ mot de passe
           this.password?.enable();
           this.errorMessage = '';
           this.errorCode = '';
@@ -154,7 +147,6 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.errorCode = 'USER_NOT_FOUND';
           this.password?.disable();
         } else {
-          // Erreur serveur, on laisse passer pour ne pas bloquer l'utilisateur
           console.error('Erreur lors de la vérification du compte:', error);
           this.password?.enable();
         }
@@ -162,13 +154,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Soumettre le formulaire de connexion
-   */
   onSubmit(): void {
     if (this.loginForm.invalid) {
-        this.loginForm.markAllAsTouched();
-        return;
+      this.loginForm.markAllAsTouched();
+      return;
     }
 
     this.isLoading = true;
@@ -177,41 +166,38 @@ export class LoginComponent implements OnInit, OnDestroy {
     const { email, password } = this.loginForm.value;
 
     this.authService.login({ email, password }).subscribe({
-        next: (response) => {
-            this.isLoading = false;
-            this.toastr.success(
-                `Bienvenue ${response.firstName} ${response.lastName} !`,
-                'Connexion réussie',
-                { timeOut: 3000 }
-            );
-            this.router.navigate(['/dashboard']);
-        },
-        error: (error) => {
-            this.isLoading = false;
-            this.errorMessage = error.message || 'Email ou mot de passe incorrect';
-            this.errorCode = error.errorCode || '';
+      next: (response) => {
+        this.isLoading = false;
+        this.toastr.success(
+          `Bienvenue ${response.firstName} ${response.lastName} !`,
+          'Connexion réussie',
+          { timeOut: 3000 }
+        );
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message || 'Email ou mot de passe incorrect';
+        this.errorCode = error.errorCode || '';
 
-            let title = 'Erreur de connexion';
-            let message = this.errorMessage;
+        let title = 'Erreur de connexion';
+        let message = this.errorMessage;
 
-            if (this.errorCode === 'ACCOUNT_INACTIVE' || this.errorCode === 'CLIENT_INACTIVE') {
-                title = 'Compte désactivé';
-                message = 'Votre compte a été désactivé. Veuillez contacter l\'administrateur.';
-                this.password?.disable();
-            } else if (this.errorCode === 'ACCOUNT_LOCKED') {
-                title = 'Compte verrouillé';
-                message = 'Votre compte est verrouillé. Veuillez contacter l\'administrateur.';
-                this.password?.disable();
-            }
-
-            this.toastr.error(message, title, { timeOut: 5000 });
+        if (this.errorCode === 'ACCOUNT_INACTIVE' || this.errorCode === 'CLIENT_INACTIVE') {
+          title = 'Compte désactivé';
+          message = 'Votre compte a été désactivé. Veuillez contacter l\'administrateur.';
+          this.password?.disable();
+        } else if (this.errorCode === 'ACCOUNT_LOCKED') {
+          title = 'Compte verrouillé';
+          message = 'Votre compte est verrouillé. Veuillez contacter l\'administrateur.';
+          this.password?.disable();
         }
+
+        this.toastr.error(message, title, { timeOut: 5000 });
+      }
     });
   }
 
-  /**
-   * Réinitialiser le formulaire
-   */
   resetForm(): void {
     this.loginForm.reset();
     this.errorMessage = '';
@@ -220,31 +206,19 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.email?.setErrors(null);
   }
 
-  /**
-   * Getters pour les contrôles du formulaire
-   */
   get email() { return this.loginForm.get('email'); }
   get password() { return this.loginForm.get('password'); }
 
-  /**
-   * Vérifier si le champ email a une erreur
-   */
   hasEmailError(): boolean {
     const control = this.email;
     return !!(control?.invalid && (control?.dirty || control?.touched));
   }
 
-  /**
-   * Vérifier si le champ password a une erreur
-   */
   hasPasswordError(): boolean {
     const control = this.password;
     return !!(control?.invalid && (control?.dirty || control?.touched));
   }
 
-  /**
-   * Obtenir le message d'erreur pour l'email
-   */
   getEmailErrorMessage(): string {
     const control = this.email;
     if (control?.hasError('required')) {
@@ -256,9 +230,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  /**
-   * Obtenir le message d'erreur pour le mot de passe
-   */
   getPasswordErrorMessage(): string {
     const control = this.password;
     if (control?.hasError('required')) {

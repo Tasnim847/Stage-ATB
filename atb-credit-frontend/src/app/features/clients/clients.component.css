@@ -24,10 +24,6 @@
   max-width: 1400px;
   margin: 0 auto;
   min-height: calc(100vh - 64px);
-  background: var(--primary-bg);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(231, 76, 60, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(139, 26, 26, 0.02) 0%, transparent 50%);
 }
 
 /* Header */
