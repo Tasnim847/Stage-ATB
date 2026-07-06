@@ -47,6 +47,7 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return employeeMapper.toResponseDTO(savedEmployee);
     }
 
+    // Service/impl/EmployeeServiceImpl.java - MODIFIER createEmployeeFromUser
     @Override
     public EmployeeResponseDTO createEmployeeFromUser(User user, EmployeeRegisterRequest request) {
         log.info("Creating employee from user registration: {}", user.getEmail());
@@ -55,8 +56,13 @@ public class EmployeeServiceImpl implements IEmployeeService {
             throw new RuntimeException("Employee already exists with email: " + user.getEmail());
         }
 
+        // ✅ Vérifier si le numéro d'employé existe déjà
+        if (employeeRepository.findByEmployeeNumber(request.getEmployeeNumber()).isPresent()) {
+            throw new RuntimeException("Employee number already exists: " + request.getEmployeeNumber());
+        }
+
         Employee employee = Employee.builder()
-                .employeeNumber(generateEmployeeNumber())
+                .employeeNumber(request.getEmployeeNumber())  // ✅ Utiliser le numéro saisi
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
@@ -75,11 +81,12 @@ public class EmployeeServiceImpl implements IEmployeeService {
                 .build();
 
         Employee savedEmployee = employeeRepository.save(employee);
-        log.info("Employee created from user registration with id: {}", savedEmployee.getId());
+        log.info("Employee created from user registration with id: {} and employee number: {}",
+                savedEmployee.getId(), savedEmployee.getEmployeeNumber());
 
         return employeeMapper.toResponseDTO(savedEmployee);
     }
-
+    
     @Override
     public EmployeeResponseDTO getEmployeeById(String id) {
         Employee employee = employeeRepository.findById(id)

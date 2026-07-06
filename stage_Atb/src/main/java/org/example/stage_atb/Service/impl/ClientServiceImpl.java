@@ -200,22 +200,62 @@ public class ClientServiceImpl implements IClientService {
         log.info("Client deleted with id: {}", id);
     }
 
+    // Service/impl/ClientServiceImpl.java - MODIFIER ACTIVATE
     @Override
     public void activateClient(String id) {
+        log.info("Activating client with id: {}", id);
+
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Client not found with id: " + id));
+
+        // ✅ Activer le client
         client.setActive(true);
         clientRepository.save(client);
-        log.info("Client activated: {}", id);
+
+        // ✅ Activer également l'utilisateur associé
+        if (client.getEmail() != null) {
+            try {
+                User user = userService.getUserByEmailEntity(client.getEmail());
+                if (user != null) {
+                    user.setActive(true);
+                    userService.createUser(user); // Mettre à jour l'utilisateur
+                    log.info("User {} also activated", user.getEmail());
+                }
+            } catch (Exception e) {
+                log.warn("Could not activate user for client: {}", e.getMessage());
+            }
+        }
+
+        log.info("Client {} activated successfully", id);
     }
 
+    // Service/impl/ClientServiceImpl.java - MODIFIER DEACTIVATE
     @Override
     public void deactivateClient(String id) {
+        log.info("Deactivating client with id: {}", id);
+
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Client not found with id: " + id));
+
+        // ✅ Désactiver le client
         client.setActive(false);
         clientRepository.save(client);
-        log.info("Client deactivated: {}", id);
+
+        // ✅ Désactiver également l'utilisateur associé
+        if (client.getEmail() != null) {
+            try {
+                User user = userService.getUserByEmailEntity(client.getEmail());
+                if (user != null) {
+                    user.setActive(false);
+                    userService.createUser(user); // Mettre à jour l'utilisateur
+                    log.info("User {} also deactivated", user.getEmail());
+                }
+            } catch (Exception e) {
+                log.warn("Could not deactivate user for client: {}", e.getMessage());
+            }
+        }
+
+        log.info("Client {} deactivated successfully", id);
     }
 
     @Override

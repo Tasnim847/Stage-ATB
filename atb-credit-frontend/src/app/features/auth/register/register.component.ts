@@ -1,3 +1,4 @@
+// features/auth/register/register.component.ts
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '@core/services/auth.service';
 
@@ -25,7 +28,9 @@ import { AuthService } from '@core/services/auth.service';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
@@ -42,10 +47,10 @@ export class RegisterComponent implements OnInit {
   hideConfirmPassword = true;
   errorMessage = '';
   
-  // ✅ Mode d'inscription: 'employee' ou 'client'
+  // Mode d'inscription
   registrationMode: 'employee' | 'client' = 'employee';
 
-  // ✅ Rôles disponibles pour les employés
+  // Rôles disponibles pour les employés
   roles = [
     { value: 'ANALYST', label: 'Analyste' },
     { value: 'ADVISOR', label: 'Conseiller' },
@@ -53,11 +58,12 @@ export class RegisterComponent implements OnInit {
     { value: 'ADMIN', label: 'Administrateur' }
   ];
 
-  // ✅ Champs supplémentaires pour les clients
-  clientFields = ['dateOfBirth', 'address', 'city', 'country', 'placeOfBirth', 'nationality', 'profession'];
-  
-  // ✅ Champs supplémentaires pour les employés
-  employeeFields = ['department', 'position', 'address', 'city', 'country'];
+  // Nationalités
+  nationalities = [
+    'Tunisienne', 'Française', 'Algérienne', 'Marocaine', 
+    'Libyenne', 'Egyptienne', 'Sénégalaise', 'Ivoirienne', 
+    'Camerounaise', 'Autre'
+  ];
 
   ngOnInit(): void {
     if (this.authService.isAuthenticated()) {
@@ -78,21 +84,25 @@ export class RegisterComponent implements OnInit {
       phoneNumber: [''],
       
       // Champs employé
-      role: ['', [Validators.required]],
+      employeeNumber: ['', [Validators.minLength(3), Validators.maxLength(20)]],
+      role: [''],
       department: [''],
       position: [''],
-      
-      // Champs client
-      dateOfBirth: [''],
       address: [''],
       city: [''],
       country: [''],
+      
+      // Champs client
+      dateOfBirth: [''],
       placeOfBirth: [''],
       nationality: [''],
       profession: ['']
     }, {
       validators: this.passwordMatchValidator
     });
+
+    // Par défaut, mode employé
+    this.toggleMode('employee');
   }
 
   passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
@@ -101,46 +111,71 @@ export class RegisterComponent implements OnInit {
     return password === confirmPassword ? null : { mismatch: true };
   }
 
-  // ✅ Basculer entre mode client et employé
   toggleMode(mode: 'employee' | 'client'): void {
     this.registrationMode = mode;
     const roleControl = this.registerForm.get('role');
-    const clientFields = ['dateOfBirth', 'address', 'city', 'country', 'placeOfBirth', 'nationality', 'profession'];
-    const employeeFields = ['department', 'position'];
+    const employeeNumberControl = this.registerForm.get('employeeNumber');
+    
+    // Champs client
+    const clientFields = ['dateOfBirth', 'placeOfBirth', 'nationality', 'profession'];
+    // Champs employé
+    const employeeFields = ['role', 'employeeNumber', 'department', 'position', 'address', 'city', 'country'];
 
     if (mode === 'client') {
+      // Mode CLIENT
       roleControl?.clearValidators();
       roleControl?.setValue('CLIENT');
+      employeeNumberControl?.clearValidators();
       
       // Activer les champs client
       clientFields.forEach(field => {
         this.registerForm.get(field)?.enable();
+        this.registerForm.get(field)?.setValidators([Validators.required]);
       });
       
       // Désactiver les champs employé
       employeeFields.forEach(field => {
-        this.registerForm.get(field)?.disable();
+        if (field !== 'address' && field !== 'city' && field !== 'country') {
+          this.registerForm.get(field)?.disable();
+        }
       });
+      
+      // Garder address, city, country actifs pour les clients
+      ['address', 'city', 'country'].forEach(field => {
+        this.registerForm.get(field)?.enable();
+        this.registerForm.get(field)?.setValidators([Validators.required]);
+      });
+      
     } else {
+      // Mode EMPLOYÉ
       roleControl?.setValidators([Validators.required]);
-      roleControl?.setValue('');
+      employeeNumberControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(20)]);
       
       // Désactiver les champs client
       clientFields.forEach(field => {
         this.registerForm.get(field)?.disable();
+        this.registerForm.get(field)?.clearValidators();
       });
       
       // Activer les champs employé
       employeeFields.forEach(field => {
         this.registerForm.get(field)?.enable();
+        if (field === 'role' || field === 'employeeNumber') {
+          this.registerForm.get(field)?.setValidators([Validators.required]);
+        }
       });
     }
-    roleControl?.updateValueAndValidity();
+    
+    // Mettre à jour les validations
+    Object.keys(this.registerForm.controls).forEach(key => {
+      this.registerForm.get(key)?.updateValueAndValidity();
+    });
   }
 
   onSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
+      this.toastr.warning('Veuillez corriger les erreurs dans le formulaire', 'Formulaire invalide');
       return;
     }
 
@@ -148,17 +183,17 @@ export class RegisterComponent implements OnInit {
     this.errorMessage = '';
 
     const formValue = this.registerForm.value;
-    const { username, email, password, firstName, lastName, phoneNumber, role } = formValue;
+    const { username, email, password, firstName, lastName, phoneNumber } = formValue;
 
     if (this.registrationMode === 'client') {
-      // ✅ Inscription client
+      // Inscription client
       const clientData = {
         username,
         email,
         password,
         firstName,
         lastName,
-        phoneNumber,
+        phoneNumber: phoneNumber || '',
         dateOfBirth: formValue.dateOfBirth,
         address: formValue.address,
         city: formValue.city,
@@ -184,27 +219,28 @@ export class RegisterComponent implements OnInit {
         }
       });
     } else {
-      // ✅ Inscription employé
+      // Inscription employé
       const employeeData = {
+        employeeNumber: formValue.employeeNumber,
         username,
         email,
         password,
         firstName,
         lastName,
-        phoneNumber,
-        role,
-        department: formValue.department,
-        position: formValue.position,
-        address: formValue.address,
-        city: formValue.city,
-        country: formValue.country
+        phoneNumber: phoneNumber || '',
+        role: formValue.role,
+        department: formValue.department || '',
+        position: formValue.position || '',
+        address: formValue.address || '',
+        city: formValue.city || '',
+        country: formValue.country || ''
       };
 
       this.authService.registerEmployee(employeeData).subscribe({
         next: (response) => {
           this.isLoading = false;
           this.toastr.success(
-            `Bienvenue ${response.firstName} ${response.lastName} ! Votre compte a été créé avec succès.`,
+            `Bienvenue ${response.firstName} ${response.lastName} ! Votre compte employé a été créé avec succès.`,
             'Inscription réussie'
           );
           this.router.navigate(['/dashboard']);
@@ -218,7 +254,7 @@ export class RegisterComponent implements OnInit {
     }
   }
 
-  // Getters
+  // ✅ Getters pour le template
   get username() { return this.registerForm.get('username'); }
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
@@ -226,13 +262,14 @@ export class RegisterComponent implements OnInit {
   get firstName() { return this.registerForm.get('firstName'); }
   get lastName() { return this.registerForm.get('lastName'); }
   get phoneNumber() { return this.registerForm.get('phoneNumber'); }
+  get employeeNumber() { return this.registerForm.get('employeeNumber'); }
   get role() { return this.registerForm.get('role'); }
   get department() { return this.registerForm.get('department'); }
   get position() { return this.registerForm.get('position'); }
-  get dateOfBirth() { return this.registerForm.get('dateOfBirth'); }
   get address() { return this.registerForm.get('address'); }
   get city() { return this.registerForm.get('city'); }
   get country() { return this.registerForm.get('country'); }
+  get dateOfBirth() { return this.registerForm.get('dateOfBirth'); }
   get placeOfBirth() { return this.registerForm.get('placeOfBirth'); }
   get nationality() { return this.registerForm.get('nationality'); }
   get profession() { return this.registerForm.get('profession'); }

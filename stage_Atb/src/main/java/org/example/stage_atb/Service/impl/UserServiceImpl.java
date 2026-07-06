@@ -7,6 +7,7 @@ import org.example.stage_atb.dto.request.*;
 import org.example.stage_atb.dto.response.AuthResponse;
 import org.example.stage_atb.dto.response.ProfileResponseDTO;
 import org.example.stage_atb.dto.response.UserResponseDTO;
+import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.UserRole;
 import org.example.stage_atb.Mappers.UserMapper;
@@ -19,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -433,4 +435,20 @@ public class UserServiceImpl implements IUserService {
         log.info("Password updated successfully for user: {}", userId);
     }
 
+
+    // Service/impl/UserServiceImpl.java - IMPLÉMENTER
+    @Override
+    public User getUserByEmailEntity(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+    // Service/impl/UserServiceImpl.java - AJOUTER
+    @Override
+    public Client getClientByUserId(String userId) {
+        // Récupérer l'utilisateur
+        User user = getUserEntityById(userId);
+        // Récupérer le client associé
+        return clientRepository.findByEmail(user.getEmail()).orElse(null);
+    }
 }

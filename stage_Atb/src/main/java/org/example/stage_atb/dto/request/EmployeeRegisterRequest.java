@@ -16,6 +16,10 @@ import org.example.stage_atb.enums.UserRole;
 @AllArgsConstructor
 public class EmployeeRegisterRequest {
 
+    @NotBlank(message = "Le numéro d'employé est requis")
+    @Size(min = 3, max = 20, message = "Le numéro d'employé doit contenir entre 3 et 20 caractères")
+    private String employeeNumber;  // ✅ AJOUTÉ
+
     @NotBlank(message = "Le nom d'utilisateur est requis")
     @Size(min = 3, max = 50, message = "Le nom d'utilisateur doit contenir entre 3 et 50 caractères")
     private String username;

@@ -1,3 +1,4 @@
+<!-- features/auth/register/register.component.html -->
 <div class="register-container">
   <mat-card class="register-card">
     <!-- Header -->
@@ -8,7 +9,7 @@
             <mat-icon>person_add</mat-icon>
           </div>
           <h1>Créer un compte</h1>
-          <p>Inscrivez-vous pour accéder à la plateforme</p>
+          <p class="subtitle">Inscrivez-vous pour accéder à la plateforme</p>
         </div>
       </mat-card-title>
     </mat-card-header>
@@ -16,11 +17,11 @@
     <mat-card-content>
       <!-- Message d'erreur global -->
       <div *ngIf="errorMessage" class="error-global">
-        <mat-icon>error</mat-icon>
+        <mat-icon>error_outline</mat-icon>
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- ✅ Mode d'inscription -->
+      <!-- Mode d'inscription -->
       <div class="mode-toggle">
         <button 
           mat-button 
@@ -38,13 +39,13 @@
         </button>
       </div>
 
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
         <!-- Ligne 1: Prénom et Nom -->
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Prénom</mat-label>
             <input matInput formControlName="firstName" placeholder="Votre prénom" />
-            <mat-icon matSuffix>person</mat-icon>
+            <mat-icon matPrefix>person</mat-icon>
             <mat-error *ngIf="firstName?.invalid && firstName?.touched">
               <span *ngIf="firstName?.errors?.['required']">Le prénom est requis</span>
             </mat-error>
@@ -53,7 +54,7 @@
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Nom</mat-label>
             <input matInput formControlName="lastName" placeholder="Votre nom" />
-            <mat-icon matSuffix>person</mat-icon>
+            <mat-icon matPrefix>person</mat-icon>
             <mat-error *ngIf="lastName?.invalid && lastName?.touched">
               <span *ngIf="lastName?.errors?.['required']">Le nom est requis</span>
             </mat-error>
@@ -64,7 +65,7 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Nom d'utilisateur</mat-label>
           <input matInput formControlName="username" placeholder="Choisissez un nom d'utilisateur" />
-          <mat-icon matSuffix>account_circle</mat-icon>
+          <mat-icon matPrefix>account_circle</mat-icon>
           <mat-error *ngIf="username?.invalid && username?.touched">
             <span *ngIf="username?.errors?.['required']">Le nom d'utilisateur est requis</span>
             <span *ngIf="username?.errors?.['minlength']">Minimum 3 caractères</span>
@@ -76,7 +77,7 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
           <input matInput type="email" formControlName="email" placeholder="exemple@atb.com" />
-          <mat-icon matSuffix>email</mat-icon>
+          <mat-icon matPrefix>email</mat-icon>
           <mat-error *ngIf="email?.invalid && email?.touched">
             <span *ngIf="email?.errors?.['required']">L'email est requis</span>
             <span *ngIf="email?.errors?.['email']">Veuillez saisir un email valide</span>
@@ -87,11 +88,22 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Téléphone</mat-label>
           <input matInput formControlName="phoneNumber" placeholder="+216 98 765 432" />
-          <mat-icon matSuffix>phone</mat-icon>
+          <mat-icon matPrefix>phone</mat-icon>
         </mat-form-field>
 
-        <!-- ✅ Champs Employé -->
-        <div *ngIf="registrationMode === 'employee'">
+        <!-- Champs Employé -->
+        <ng-container *ngIf="registrationMode === 'employee'">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Numéro d'employé</mat-label>
+            <input matInput formControlName="employeeNumber" placeholder="EMP-2024-001" />
+            <mat-icon matPrefix>badge</mat-icon>
+            <mat-error *ngIf="employeeNumber?.invalid && employeeNumber?.touched">
+              <span *ngIf="employeeNumber?.errors?.['required']">Le numéro d'employé est requis</span>
+              <span *ngIf="employeeNumber?.errors?.['minlength']">Minimum 3 caractères</span>
+              <span *ngIf="employeeNumber?.errors?.['maxlength']">Maximum 20 caractères</span>
+            </mat-error>
+          </mat-form-field>
+
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Rôle</mat-label>
             <mat-select formControlName="role">
@@ -99,7 +111,7 @@
                 {{ role.label }}
               </mat-option>
             </mat-select>
-            <mat-icon matSuffix>badge</mat-icon>
+            <mat-icon matPrefix>badge</mat-icon>
             <mat-error *ngIf="role?.invalid && role?.touched">
               <span *ngIf="role?.errors?.['required']">Le rôle est requis</span>
             </mat-error>
@@ -108,91 +120,122 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Département</mat-label>
             <input matInput formControlName="department" placeholder="IT, Finance, Commercial..." />
-            <mat-icon matSuffix>business</mat-icon>
+            <mat-icon matPrefix>business</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Poste</mat-label>
             <input matInput formControlName="position" placeholder="Votre poste" />
-            <mat-icon matSuffix>work_outline</mat-icon>
+            <mat-icon matPrefix>work_outline</mat-icon>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Adresse</mat-label>
             <input matInput formControlName="address" placeholder="Votre adresse" />
-            <mat-icon matSuffix>home</mat-icon>
+            <mat-icon matPrefix>home</mat-icon>
           </mat-form-field>
 
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Ville</mat-label>
               <input matInput formControlName="city" placeholder="Votre ville" />
-              <mat-icon matSuffix>location_city</mat-icon>
+              <mat-icon matPrefix>location_city</mat-icon>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Pays</mat-label>
               <input matInput formControlName="country" placeholder="Votre pays" />
-              <mat-icon matSuffix>flag</mat-icon>
+              <mat-icon matPrefix>flag</mat-icon>
             </mat-form-field>
           </div>
-        </div>
+        </ng-container>
 
-        <!-- ✅ Champs Client -->
-        <div *ngIf="registrationMode === 'client'">
+        <!-- Champs Client -->
+        <ng-container *ngIf="registrationMode === 'client'">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Date de naissance</mat-label>
             <input matInput type="date" formControlName="dateOfBirth" />
-            <mat-icon matSuffix>cake</mat-icon>
+            <mat-icon matPrefix>cake</mat-icon>
+            <mat-error *ngIf="dateOfBirth?.invalid && dateOfBirth?.touched">
+              <span *ngIf="dateOfBirth?.errors?.['required']">La date de naissance est requise</span>
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Lieu de naissance</mat-label>
             <input matInput formControlName="placeOfBirth" placeholder="Votre lieu de naissance" />
-            <mat-icon matSuffix>place</mat-icon>
+            <mat-icon matPrefix>place</mat-icon>
+            <mat-error *ngIf="placeOfBirth?.invalid && placeOfBirth?.touched">
+              <span *ngIf="placeOfBirth?.errors?.['required']">Le lieu de naissance est requis</span>
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nationalité</mat-label>
-            <input matInput formControlName="nationality" placeholder="Votre nationalité" />
-            <mat-icon matSuffix>flag</mat-icon>
+            <mat-select formControlName="nationality">
+              <mat-option *ngFor="let nationality of nationalities" [value]="nationality">
+                {{ nationality }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>flag</mat-icon>
+            <mat-error *ngIf="nationality?.invalid && nationality?.touched">
+              <span *ngIf="nationality?.errors?.['required']">La nationalité est requise</span>
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Profession</mat-label>
             <input matInput formControlName="profession" placeholder="Votre profession" />
-            <mat-icon matSuffix>work</mat-icon>
+            <mat-icon matPrefix>work</mat-icon>
+            <mat-error *ngIf="profession?.invalid && profession?.touched">
+              <span *ngIf="profession?.errors?.['required']">La profession est requise</span>
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Adresse</mat-label>
             <input matInput formControlName="address" placeholder="Votre adresse" />
-            <mat-icon matSuffix>home</mat-icon>
+            <mat-icon matPrefix>home</mat-icon>
+            <mat-error *ngIf="address?.invalid && address?.touched">
+              <span *ngIf="address?.errors?.['required']">L'adresse est requise</span>
+            </mat-error>
           </mat-form-field>
 
           <div class="row">
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Ville</mat-label>
               <input matInput formControlName="city" placeholder="Votre ville" />
-              <mat-icon matSuffix>location_city</mat-icon>
+              <mat-icon matPrefix>location_city</mat-icon>
+              <mat-error *ngIf="city?.invalid && city?.touched">
+                <span *ngIf="city?.errors?.['required']">La ville est requise</span>
+              </mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="half-width">
               <mat-label>Pays</mat-label>
               <input matInput formControlName="country" placeholder="Votre pays" />
-              <mat-icon matSuffix>flag</mat-icon>
+              <mat-icon matPrefix>flag</mat-icon>
+              <mat-error *ngIf="country?.invalid && country?.touched">
+                <span *ngIf="country?.errors?.['required']">Le pays est requis</span>
+              </mat-error>
             </mat-form-field>
           </div>
-        </div>
+        </ng-container>
 
-        <!-- Ligne 2: Mot de passe -->
+        <!-- Mot de passe -->
         <div class="row">
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Mot de passe</mat-label>
-            <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Minimum 6 caractères" />
+            <input 
+              matInput 
+              [type]="hidePassword ? 'password' : 'text'" 
+              formControlName="password" 
+              placeholder="Minimum 6 caractères" 
+            />
             <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
               <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
+            <mat-icon matPrefix>lock</mat-icon>
             <mat-error *ngIf="password?.invalid && password?.touched">
               <span *ngIf="password?.errors?.['required']">Le mot de passe est requis</span>
               <span *ngIf="password?.errors?.['minlength']">Minimum 6 caractères</span>
@@ -201,26 +244,35 @@
 
           <mat-form-field appearance="outline" class="half-width">
             <mat-label>Confirmer le mot de passe</mat-label>
-            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword" placeholder="Confirmez votre mot de passe" />
+            <input 
+              matInput 
+              [type]="hideConfirmPassword ? 'password' : 'text'" 
+              formControlName="confirmPassword" 
+              placeholder="Confirmez votre mot de passe" 
+            />
             <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
               <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
             </button>
+            <mat-icon matPrefix>lock_outline</mat-icon>
             <mat-error *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
               <span *ngIf="confirmPassword?.errors?.['required']">La confirmation est requise</span>
-              <span *ngIf="registerForm?.errors?.['mismatch'] && confirmPassword?.touched">
+              <span *ngIf="registerForm?.errors?.['mismatch']">
                 Les mots de passe ne correspondent pas
               </span>
             </mat-error>
           </mat-form-field>
         </div>
 
-        <!-- Register Button -->
+        <!-- Bouton d'inscription -->
         <button mat-raised-button color="primary" type="submit" class="register-btn" [disabled]="registerForm.invalid || isLoading">
           <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
-          <span *ngIf="!isLoading">S'inscrire</span>
+          <span *ngIf="!isLoading">
+            <mat-icon>person_add</mat-icon>
+            S'inscrire
+          </span>
         </button>
 
-        <!-- Login Link -->
+        <!-- Lien de connexion -->
         <div class="login-link">
           <span>Vous avez déjà un compte ?</span>
           <a routerLink="/login">Se connecter</a>

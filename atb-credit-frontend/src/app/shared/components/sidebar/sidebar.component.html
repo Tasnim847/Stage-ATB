@@ -1,3 +1,4 @@
+<!-- sidebar.component.html -->
 <aside class="sidebar" [class.collapsed]="collapsed" [class.mobile]="isMobile">
   <!-- Overlay pour mobile -->
   <div class="sidebar-overlay" *ngIf="isMobile && !collapsed" (click)="toggleSidebar()"></div>
@@ -12,38 +13,63 @@
     </div>
   </div>
 
-  <!-- Séparateur de rôle -->
-  <div class="role-badge" *ngIf="!collapsed">
-    <span class="role-label">{{ getUserRole() || 'Utilisateur' }}</span>
+  <!-- Profil utilisateur -->
+  <div class="user-profile" *ngIf="!collapsed">
+    <div class="user-avatar">
+      {{ getInitials() }}
+    </div>
+    <div class="user-info">
+      <span class="user-name">{{ getUserInfo()?.firstName }} {{ getUserInfo()?.lastName }}</span>
+      <span class="user-role">{{ getRoleLabel(getUserRole() || '') }}</span>
+    </div>
+  </div>
+
+  <!-- Version compacte pour mode collapsed -->
+  <div class="user-profile-collapsed" *ngIf="collapsed">
+    <div class="user-avatar-small">
+      {{ getInitials() }}
+    </div>
   </div>
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
     <ul class="nav-list">
-      <li *ngFor="let item of filteredMenuItems" class="nav-item">
-        <a 
-          [routerLink]="item.path" 
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="nav-link"
-          (click)="isMobile && toggleSidebar()">
-          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-          <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
-          <span class="badge" *ngIf="item.badge > 0 && !collapsed">{{ item.badge }}</span>
-        </a>
-      </li>
+      <ng-container *ngFor="let item of filteredMenuItems">
+        <li *ngIf="!item.divider" class="nav-item">
+          <a 
+            [routerLink]="item.path" 
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link"
+            [matTooltip]="collapsed ? item.label : ''"
+            matTooltipPosition="right"
+            (click)="isMobile && toggleSidebar()">
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
+            <span class="badge" *ngIf="item.badge && item.badge > 0 && !collapsed">{{ item.badge }}</span>
+          </a>
+        </li>
+        <li *ngIf="item.divider" class="nav-divider"></li>
+      </ng-container>
     </ul>
   </nav>
 
   <!-- Footer -->
   <div class="sidebar-footer" *ngIf="!collapsed">
-    <div class="version">
+    <div class="footer-item">
       <mat-icon>info</mat-icon>
       <span>Version 1.0.0</span>
     </div>
-    <div class="user-role-footer">
-      <mat-icon>account_circle</mat-icon>
-      <span>{{ getUserInfo()?.firstName }} {{ getUserInfo()?.lastName }}</span>
-    </div>
+    <button class="logout-btn" (click)="authService.logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Déconnexion</span>
+    </button>
+  </div>
+
+  <!-- Footer compact -->
+  <div class="sidebar-footer-collapsed" *ngIf="collapsed">
+    <button class="logout-btn-icon" (click)="authService.logout()" matTooltip="Déconnexion" matTooltipPosition="right">
+      <mat-icon>logout</mat-icon>
+    </button>
   </div>
 </aside>

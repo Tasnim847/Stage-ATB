@@ -38,6 +38,7 @@ export interface ClientRegisterRequest {
 }
 
 export interface EmployeeRegisterRequest {
+  employeeNumber: string;  // ✅ AJOUTÉ
   username: string;
   email: string;
   password: string;

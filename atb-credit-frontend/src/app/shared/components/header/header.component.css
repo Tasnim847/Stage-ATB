@@ -1,29 +1,44 @@
-/* ============================================
-   HEADER - ATB LIGHT THEME
-   ============================================ */
+/* header.component.css - Version harmonisée avec la sidebar */
 
+:host {
+  --sidebar-bg-start: #f8f5f5;
+  --sidebar-bg-end: #e8e3e3;
+  --header-bg: #f8f5f5;
+  --header-border: rgba(139, 26, 26, 0.08);
+  --primary-color: #8B1A1A;
+  --primary-light: #C0392B;
+  --primary-lighter: #E74C3C;
+  --primary-lightest: #FADBD8;
+  --text-primary: #2c2c2c;
+  --text-secondary: #4a5568;
+  --text-muted: #6b6b6b;
+  --shadow-color: rgba(0, 0, 0, 0.06);
+  --radius: 10px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --header-height: 72px;
+}
+
+/* ============================================
+   HEADER PRINCIPAL - Harmonisé avec la sidebar
+   ============================================ */
 .header {
   position: fixed;
   top: 0;
   right: 0;
   left: 280px;
-  height: 72px;
-  background: #ffffff;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  height: var(--header-height);
+  background: var(--header-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
   z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: 1px solid rgba(190, 85, 67, 0.08);
+  transition: var(--transition);
+  border-bottom: 1px solid var(--header-border);
+  box-shadow: 0 2px 12px var(--shadow-color);
 }
 
-.header.collapsed {
-  left: 80px;
-}
-
+/* ✅ Bandeau décoratif en harmonie avec la sidebar */
 .header::after {
   content: '';
   position: absolute;
@@ -31,9 +46,15 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #be5543, #c9614c, #d47a66, #c9614c, #be5543);
+  background: linear-gradient(90deg, 
+    var(--primary-color) 0%,
+    var(--primary-light) 25%,
+    var(--primary-lighter) 50%,
+    var(--primary-light) 75%,
+    var(--primary-color) 100%
+  );
   background-size: 300% 100%;
-  animation: gradientMove 4s ease infinite;
+  animation: gradientMove 6s ease-in-out infinite;
 }
 
 @keyframes gradientMove {
@@ -41,110 +62,132 @@
   50% { background-position: 100% 50%; }
 }
 
-@media (max-width: 992px) {
-  .header { left: 80px; }
-  .header.collapsed { left: 0; }
-}
-
-@media (max-width: 768px) {
-  .header {
-    left: 0;
-    padding: 0 16px;
-    height: 64px;
-  }
-  .header::after { height: 2px; }
+.header.collapsed {
+  left: 80px;
 }
 
 /* ============================================
    HEADER LEFT
    ============================================ */
-
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
+/* Bouton menu toggle - harmonisé */
 .header-left .menu-toggle {
-  color: #be5543;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--text-secondary);
+  transition: var(--transition);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
 }
 
 .header-left .menu-toggle:hover {
-  transform: scale(1.1) rotate(90deg);
-  background: rgba(190, 85, 67, 0.08);
+  color: var(--primary-color);
+  background: var(--primary-lightest);
+  transform: rotate(90deg) scale(1.05);
 }
 
+.header-left .menu-toggle mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+}
+
+/* Logo - harmonisé avec la sidebar */
 .header-left .logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 20px;
-  font-weight: 700;
-  color: #be5543;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.header-left .logo:hover {
+  background: var(--primary-lightest);
 }
 
 .header-left .logo mat-icon {
   font-size: 32px;
   width: 32px;
   height: 32px;
-  color: #be5543;
+  color: var(--primary-color);
+  filter: drop-shadow(0 2px 8px rgba(139, 26, 26, 0.12));
+  transition: var(--transition);
+}
+
+.header-left .logo:hover mat-icon {
+  transform: scale(1.05) rotate(-5deg);
 }
 
 .header-left .logo span {
-  background: linear-gradient(135deg, #be5543, #c9614c, #d47a66);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
 
-@media (max-width: 480px) {
-  .header-left .logo { font-size: 16px; }
-  .header-left .logo mat-icon {
-    font-size: 24px;
-    width: 24px;
-    height: 24px;
-  }
-  .header-left .logo span { display: none; }
+.header-left .logo span .highlight {
+  color: var(--primary-color);
 }
 
 /* ============================================
    HEADER RIGHT
    ============================================ */
-
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.header-right .notification-btn {
+/* ============================================
+   BOUTON NOTIFICATIONS
+   ============================================ */
+.notification-btn {
   position: relative;
-  color: #757575;
-  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
 }
 
-.header-right .notification-btn:hover {
-  color: #be5543;
-  transform: scale(1.1) rotate(15deg);
+.notification-btn:hover {
+  color: var(--primary-color);
+  background: var(--primary-lightest);
+  transform: translateY(-2px);
 }
 
-.header-right .notification-btn .badge {
+.notification-btn mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.notification-btn .badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 4px;
+  right: 4px;
   background: #c62828;
   color: white;
   font-size: 10px;
   font-weight: 700;
-  width: 20px;
-  height: 20px;
+  min-width: 18px;
+  height: 18px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid white;
-  animation: pulse 2s infinite;
+  border: 2px solid var(--header-bg);
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.3);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -152,49 +195,56 @@
   50% { transform: scale(1.1); }
 }
 
-.header-right .user-btn .user-avatar {
+/* ============================================
+   BOUTON UTILISATEUR
+   ============================================ */
+.user-btn {
+  padding: 0;
+  margin-left: 4px;
+  transition: var(--transition);
+  border-radius: 50%;
+  background: transparent;
+}
+
+.user-btn:hover {
+  transform: scale(1.05);
+}
+
+.user-btn .user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #be5543, #c9614c, #d47a66);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   cursor: pointer;
   border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(190, 85, 67, 0.2);
+  box-shadow: 0 2px 8px rgba(139, 26, 26, 0.15);
+  user-select: none;
 }
 
-.header-right .user-btn .user-avatar:hover {
-  transform: scale(1.1);
-  border-color: #d47a66;
-  box-shadow: 0 4px 20px rgba(190, 85, 67, 0.3);
-}
-
-@media (max-width: 480px) {
-  .header-right .user-btn .user-avatar {
-    width: 34px;
-    height: 34px;
-    font-size: 13px;
-  }
+.user-btn .user-avatar:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 4px 20px rgba(139, 26, 26, 0.25);
+  transform: scale(1.05);
 }
 
 /* ============================================
-   USER MENU - AVEC ANIMATIONS
+   MENU UTILISATEUR
    ============================================ */
-
-.user-menu {
-  min-width: 300px;
+::ng-deep .user-menu {
+  min-width: 320px;
   padding: 8px;
-  border-radius: 16px;
+  border-radius: var(--radius);
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
   margin-top: 8px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: var(--header-bg);
+  border: 1px solid var(--header-border);
   animation: menuSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -210,70 +260,70 @@
 }
 
 /* ===== EN-TÊTE UTILISATEUR ===== */
-.user-menu .user-header {
+::ng-deep .user-menu .user-header {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 16px 16px 20px;
   position: relative;
   overflow: hidden;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(139, 26, 26, 0.04), rgba(192, 57, 43, 0.02));
 }
 
-.user-menu .user-header::after {
+::ng-deep .user-menu .user-header::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 16px;
   right: 16px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(190, 85, 67, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, var(--header-border), transparent);
 }
 
-.user-menu .user-header .user-avatar-wrapper {
+::ng-deep .user-menu .user-header .user-avatar-wrapper {
   position: relative;
   flex-shrink: 0;
 }
 
-.user-menu .user-header .user-avatar-large {
+::ng-deep .user-menu .user-header .user-avatar-large {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #be5543, #c9614c);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 22px;
-  box-shadow: 0 4px 16px rgba(190, 85, 67, 0.25);
-  transition: transform 0.3s ease;
+  box-shadow: 0 4px 16px rgba(139, 26, 26, 0.2);
+  transition: var(--transition);
 }
 
-.user-menu .user-header .user-avatar-large:hover {
+::ng-deep .user-menu .user-header .user-avatar-large:hover {
   transform: scale(1.05);
 }
 
-.user-menu .user-header .status-indicator {
+::ng-deep .user-menu .user-header .status-indicator {
   position: absolute;
   bottom: 2px;
   right: 2px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2.5px solid white;
+  border: 2.5px solid var(--header-bg);
   background: #4caf50;
   animation: statusPulse 2s ease-in-out infinite;
 }
 
-.user-menu .user-header .status-indicator.online {
+::ng-deep .user-menu .user-header .status-indicator.online {
   background: #4caf50;
 }
-
-.user-menu .user-header .status-indicator.away {
+::ng-deep .user-menu .user-header .status-indicator.away {
   background: #ff9800;
 }
-
-.user-menu .user-header .status-indicator.offline {
+::ng-deep .user-menu .user-header .status-indicator.offline {
   background: #9e9e9e;
   animation: none;
 }
@@ -283,123 +333,105 @@
   50% { box-shadow: 0 0 0 6px rgba(76, 175, 80, 0); }
 }
 
-.user-menu .user-header .user-info {
+::ng-deep .user-menu .user-header .user-info {
   flex: 1;
   min-width: 0;
 }
 
-.user-menu .user-header .user-info .user-name {
+::ng-deep .user-menu .user-header .user-info .user-name {
   font-size: 16px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.user-menu .user-header .user-info .user-email {
+::ng-deep .user-menu .user-header .user-info .user-email {
   font-size: 13px;
-  color: #9e9e9e;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.user-menu .user-header .user-info .user-role {
+::ng-deep .user-menu .user-header .user-info .user-role {
   display: inline-block;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #be5543;
-  background: rgba(190, 85, 67, 0.08);
-  padding: 3px 12px;
+  color: var(--primary-color);
+  background: var(--primary-lightest);
+  padding: 3px 14px;
   border-radius: 12px;
   margin-top: 4px;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
-.user-menu .user-header .user-info .user-role:hover {
-  background: rgba(190, 85, 67, 0.15);
+::ng-deep .user-menu .user-header .user-info .user-role:hover {
+  background: rgba(139, 26, 26, 0.12);
   transform: scale(1.02);
 }
 
 /* ===== DIVIDER ===== */
-.user-menu mat-divider {
+::ng-deep .user-menu mat-divider {
   margin: 4px 12px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--header-border);
 }
 
 /* ===== MENU ITEMS ===== */
-.user-menu .menu-item {
+::ng-deep .user-menu .menu-item {
   height: 44px;
   font-size: 14px;
-  color: #2c2c2c;
+  color: var(--text-secondary);
   padding: 0 16px;
   margin: 2px 4px;
   border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   display: flex;
   align-items: center;
   position: relative;
-  overflow: hidden;
 }
 
-.user-menu .menu-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(190, 85, 67, 0.08), rgba(190, 85, 67, 0.02));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+::ng-deep .user-menu .menu-item:hover {
+  background: var(--primary-lightest);
+  color: var(--text-primary);
 }
 
-.user-menu .menu-item:hover::before {
-  opacity: 1;
-}
-
-.user-menu .menu-item mat-icon {
-  color: #757575;
+::ng-deep .user-menu .menu-item mat-icon {
+  color: var(--text-muted);
   margin-right: 14px;
   font-size: 20px;
   width: 20px;
   height: 20px;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
+  transition: var(--transition);
 }
 
-.user-menu .menu-item:hover mat-icon {
-  color: #be5543;
+::ng-deep .user-menu .menu-item:hover mat-icon {
+  color: var(--primary-color);
   transform: scale(1.1) rotate(-5deg);
 }
 
-.user-menu .menu-item span {
-  position: relative;
-  z-index: 1;
-}
-
-.user-menu .menu-item .shortcut {
+::ng-deep .user-menu .menu-item .shortcut {
   margin-left: auto;
   font-size: 11px;
-  color: #bdbdbd;
+  color: var(--text-muted);
   font-weight: 400;
   padding-left: 12px;
   font-family: 'Courier New', monospace;
-  opacity: 0;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
+  opacity: 0.5;
+  transition: var(--transition);
 }
 
-.user-menu .menu-item:hover .shortcut {
+::ng-deep .user-menu .menu-item:hover .shortcut {
   opacity: 1;
-  color: #be5543;
+  color: var(--primary-color);
 }
 
 /* ===== BOUTON DÉCONNEXION ===== */
-.user-menu .logout-btn {
+::ng-deep .user-menu .logout-btn {
   height: 44px;
   font-size: 14px;
   color: #c62828 !important;
@@ -407,95 +439,184 @@
   padding: 0 16px;
   margin: 2px 4px;
   border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
   display: flex;
   align-items: center;
-  position: relative;
-  overflow: hidden;
 }
 
-.user-menu .logout-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(198, 40, 40, 0.08), rgba(198, 40, 40, 0.02));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+::ng-deep .user-menu .logout-btn:hover {
+  background: #fce8e8;
 }
 
-.user-menu .logout-btn:hover::before {
-  opacity: 1;
-}
-
-.user-menu .logout-btn mat-icon {
+::ng-deep .user-menu .logout-btn mat-icon {
   color: #c62828 !important;
   margin-right: 14px;
   font-size: 20px;
   width: 20px;
   height: 20px;
-  transition: transform 0.3s ease;
-  position: relative;
-  z-index: 1;
+  transition: var(--transition);
 }
 
-.user-menu .logout-btn:hover mat-icon {
+::ng-deep .user-menu .logout-btn:hover mat-icon {
   transform: translateX(4px);
 }
 
-.user-menu .logout-btn span {
-  position: relative;
-  z-index: 1;
-}
-
-.user-menu .logout-btn .shortcut {
+::ng-deep .user-menu .logout-btn .shortcut {
   margin-left: auto;
   font-size: 11px;
   color: rgba(198, 40, 40, 0.4);
   font-weight: 400;
   padding-left: 12px;
   font-family: 'Courier New', monospace;
-  opacity: 0;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
+  opacity: 0.5;
+  transition: var(--transition);
 }
 
-.user-menu .logout-btn:hover .shortcut {
+::ng-deep .user-menu .logout-btn:hover .shortcut {
   opacity: 1;
   color: #c62828;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 480px) {
-  .user-menu {
-    min-width: 260px;
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 992px) {
+  .header {
+    left: 80px;
+    padding: 0 24px;
+  }
+  .header.collapsed {
+    left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    left: 0;
+    padding: 0 16px;
+    height: 64px;
+  }
+  .header::after {
+    height: 2px;
+  }
+  .header-left .logo span {
+    font-size: 17px;
+  }
+  .header-left .logo mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  .notification-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .notification-btn mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  .user-btn .user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  ::ng-deep .user-menu {
+    min-width: 280px;
     padding: 6px;
   }
-  
-  .user-menu .user-header {
+  ::ng-deep .user-menu .user-header {
     padding: 12px 12px 16px;
     gap: 12px;
   }
-  
-  .user-menu .user-header .user-avatar-large {
+  ::ng-deep .user-menu .user-header .user-avatar-large {
     width: 44px;
     height: 44px;
     font-size: 18px;
   }
-  
-  .user-menu .user-header .user-info .user-name {
+  ::ng-deep .user-menu .user-header .user-info .user-name {
     font-size: 14px;
   }
-  
-  .user-menu .menu-item,
-  .user-menu .logout-btn {
+  ::ng-deep .user-menu .menu-item,
+  ::ng-deep .user-menu .logout-btn {
     height: 38px;
     font-size: 13px;
     padding: 0 12px;
   }
-  
-  .user-menu .menu-item .shortcut,
-  .user-menu .logout-btn .shortcut {
+  ::ng-deep .user-menu .menu-item .shortcut,
+  ::ng-deep .user-menu .logout-btn .shortcut {
     display: none;
   }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 12px;
+    height: 60px;
+  }
+  .header-left {
+    gap: 8px;
+  }
+  .header-left .logo span {
+    display: none;
+  }
+  .header-left .logo mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+  .header-left .menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+  .header-left .menu-toggle mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+  .header-right {
+    gap: 4px;
+  }
+  .notification-btn {
+    width: 32px;
+    height: 32px;
+  }
+  .notification-btn mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+  .notification-btn .badge {
+    font-size: 8px;
+    min-width: 16px;
+    height: 16px;
+    top: 2px;
+    right: 2px;
+  }
+  .user-btn .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  ::ng-deep .user-menu {
+    min-width: 250px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  animation: fadeInDown 0.4s ease-out;
 }

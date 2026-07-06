@@ -27,8 +27,12 @@ public class EmployeeAuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerEmployee(@Valid @RequestBody EmployeeRegisterRequest request) {
-        log.info("Tentative d'inscription employé: {}", request.getEmail());
+        log.info("Tentative d'inscription employé: {} - Numéro: {}",
+                request.getEmail(), request.getEmployeeNumber());
         try {
+            // ✅ Vérifier que le numéro d'employé n'existe pas déjà
+            // Cette vérification est faite dans createEmployeeFromUser
+
             // 1. Créer l'utilisateur avec le rôle correspondant
             AuthResponse authResponse = userService.registerEmployee(request);
 
@@ -38,7 +42,8 @@ public class EmployeeAuthController {
             // 3. Créer l'employé lié à l'utilisateur
             employeeService.createEmployeeFromUser(user, request);
 
-            log.info("Inscription employé réussie: {}", request.getEmail());
+            log.info("Inscription employé réussie: {} - Numéro: {}",
+                    request.getEmail(), request.getEmployeeNumber());
             return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
         } catch (RuntimeException e) {
             log.error("Erreur lors de l'inscription employé: {}", e.getMessage());

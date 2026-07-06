@@ -178,34 +178,47 @@ export class AuthService {
     let errorMessage = 'Une erreur est survenue';
 
     if (error.status === 0) {
-      errorMessage = 'Impossible de contacter le serveur. Vérifiez que le backend est démarré.';
+        errorMessage = 'Impossible de contacter le serveur. Vérifiez que le backend est démarré.';
     } else if (error.status === 401) {
-      errorMessage = 'Email ou mot de passe incorrect';
+        errorMessage = 'Email ou mot de passe incorrect';
     } else if (error.status === 403) {
-      errorMessage = 'Compte désactivé ou verrouillé';
+        if (error.error?.errorCode === 'ACCOUNT_INACTIVE') {
+            errorMessage = 'Votre compte a été désactivé. Veuillez contacter l\'administrateur.';
+        } else if (error.error?.errorCode === 'ACCOUNT_LOCKED') {
+            errorMessage = 'Votre compte est verrouillé. Veuillez contacter l\'administrateur.';
+        } else if (error.error?.errorCode === 'CLIENT_INACTIVE') {
+            errorMessage = 'Votre compte client a été désactivé. Veuillez contacter l\'administrateur.';
+        } else {
+            errorMessage = 'Compte désactivé ou verrouillé';
+        }
     } else if (error.status === 404) {
-      errorMessage = 'Service non trouvé';
+        errorMessage = 'Service non trouvé';
     } else if (error.status === 409) {
-      errorMessage = 'Email ou nom d\'utilisateur déjà existant';
+        errorMessage = 'Email ou nom d\'utilisateur déjà existant';
     } else if (error.status === 500) {
-      errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
+        errorMessage = 'Erreur serveur. Veuillez réessayer plus tard.';
     } else if (error.error?.message) {
-      errorMessage = error.error.message;
+        errorMessage = error.error.message;
     }
 
     return throwError(() => ({
-      ...error,
-      message: errorMessage
+        ...error,
+        message: errorMessage,
+        errorCode: error.error?.errorCode
     }));
   }
 
-  // core/services/auth.service.ts - AJOUTER CETTE MÉTHODE
 
-updateUserInfo(userData: any): void {
-  const currentUser = this.getUserInfo();
-  if (currentUser) {
-    const updatedUser = { ...currentUser, ...userData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+  updateUserInfo(userData: any): void {
+    const currentUser = this.getUserInfo();
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...userData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   }
-}
+
+  // core/services/auth.service.ts - AJOUTER
+  checkAccountStatus(email: string): Observable<any> {
+    return this.http.get<any>(`${environment.authUrl}/check-status/${email}`);
+  }
 }
