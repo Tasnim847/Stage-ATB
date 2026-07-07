@@ -1,0 +1,441 @@
+<!-- features/documents/document-management/document-management.component.html -->
+<div class="documents-container">
+  
+  <!-- ============================================ -->
+  <!-- HEADER                                       -->
+  <!-- ============================================ -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Gestion des documents</h1>
+      <p class="subtitle">Gérez et suivez tous les documents de vos clients</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openUploadModal()">
+        <mat-icon>upload</mat-icon>
+        Télécharger
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- BANNIÈRE ADMIN                               -->
+  <!-- ============================================ -->
+  <div *ngIf="isAdmin()" class="admin-banner">
+    <mat-card class="admin-card">
+      <mat-card-content class="admin-content">
+        <div class="admin-icon">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <div class="admin-text">
+          <h4>Mode Administration</h4>
+          <p>Vous avez accès à tous les documents et pouvez gérer les documents obligatoires.</p>
+        </div>
+        <span class="admin-badge">Admin</span>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- STATISTIQUES                                 -->
+  <!-- ============================================ -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-content">
+        <mat-icon>folder_open</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ totalDocuments }}</span>
+          <span class="stat-label">Total documents</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card verified">
+      <div class="stat-content">
+        <mat-icon>check_circle</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ verifiedDocuments }}</span>
+          <span class="stat-label">Vérifiés</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card pending">
+      <div class="stat-content">
+        <mat-icon>pending</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ unverifiedDocuments }}</span>
+          <span class="stat-label">En attente</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card complete">
+      <div class="stat-content">
+        <mat-icon>check_circle_outline</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ completeDocuments }}</span>
+          <span class="stat-label">Complets</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card incomplete">
+      <div class="stat-content">
+        <mat-icon>warning</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ incompleteDocuments }}</span>
+          <span class="stat-label">Incomplets</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card clients">
+      <div class="stat-content">
+        <mat-icon>people</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ clientCount }}</span>
+          <span class="stat-label">Clients</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SECTION ADMIN - DOCUMENTS OBLIGATOIRES      -->
+  <!-- ============================================ -->
+  <div *ngIf="isAdmin()" class="admin-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Administration - Documents obligatoires
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="admin-desc">
+          <mat-icon>info</mat-icon>
+          Configurez les types de documents obligatoires pour tous les clients.
+        </p>
+        <div class="mandatory-grid">
+          <div *ngFor="let type of documentTypes" class="mandatory-item">
+            <mat-slide-toggle
+              [checked]="mandatoryDocumentsConfig[type]"
+              (change)="mandatoryDocumentsConfig[type] = $event.checked"
+              [disabled]="!isAdmin()"
+              color="primary">
+              <i class="fas {{ getDocumentTypeIcon(type) }}"></i>
+              {{ getDocumentTypeLabel(type) }}
+            </mat-slide-toggle>
+          </div>
+        </div>
+        <div class="admin-actions">
+          <button mat-raised-button color="primary" (click)="saveMandatoryDocumentsConfig()">
+            <mat-icon>save</mat-icon>
+            Sauvegarder
+          </button>
+          <button mat-stroked-button (click)="resetMandatoryDocumentsConfig()">
+            <mat-icon>undo</mat-icon>
+            Réinitialiser
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- RECHERCHE ET FILTRES                        -->
+  <!-- ============================================ -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Rechercher un document</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="searchQuery"
+            (input)="filterForm.patchValue({ search: searchQuery })"
+            placeholder="Nom, client, description..."
+          />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Type de document</mat-label>
+          <mat-select [(ngModel)]="selectedType" (selectionChange)="filterForm.patchValue({ documentType: selectedType })">
+            <mat-option value="">Tous les types</mat-option>
+            <mat-option *ngFor="let type of documentTypes" [value]="type">
+              <i class="fas {{ getDocumentTypeIcon(type) }}"></i>
+              {{ getDocumentTypeLabel(type) }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="filterForm.patchValue({ status: selectedStatus })">
+            <mat-option value="">Tous les statuts</mat-option>
+            <mat-option value="verified">Vérifiés</mat-option>
+            <mat-option value="unverified">En attente</mat-option>
+            <mat-option value="complete">Complets</mat-option>
+            <mat-option value="incomplete">Incomplets</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>Date début</mat-label>
+          <input matInput type="date" [(ngModel)]="dateFrom" (change)="filterForm.patchValue({ dateFrom: dateFrom })">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>Date fin</mat-label>
+          <input matInput type="date" [(ngModel)]="dateTo" (change)="filterForm.patchValue({ dateTo: dateTo })">
+        </mat-form-field>
+
+        <button mat-icon-button (click)="resetFilters()" matTooltip="Réinitialiser">
+          <mat-icon>undo</mat-icon>
+        </button>
+      </div>
+      <div class="filter-results">
+        <span>
+          <mat-icon>description</mat-icon>
+          <strong>{{ filteredDocuments.length }}</strong> document(s) trouvé(s)
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ============================================ -->
+  <!-- TYPES DE DOCUMENTS (CHIPS)                  -->
+  <!-- ============================================ -->
+  <div class="types-section">
+    <mat-chip-listbox>
+      <mat-chip-option 
+        *ngFor="let type of documentTypes"
+        [selected]="selectedType === type"
+        (selectionChange)="selectedType = type; filterForm.patchValue({ documentType: type })"
+        [color]="getDocumentTypeColor(type)">
+        <i class="fas {{ getDocumentTypeIcon(type) }}"></i>
+        {{ getDocumentTypeLabel(type) }}
+        <span class="chip-count">{{ getDocumentCountByType(type) }}</span>
+      </mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CONTROLES DE VUE                            -->
+  <!-- ============================================ -->
+  <div class="view-controls">
+    <div class="view-buttons">
+      <button mat-icon-button 
+              [class.active]="viewMode === 'grid'"
+              (click)="viewMode = 'grid'"
+              matTooltip="Vue grille">
+        <mat-icon>grid_view</mat-icon>
+      </button>
+      <button mat-icon-button 
+              [class.active]="viewMode === 'list'"
+              (click)="viewMode = 'list'"
+              matTooltip="Vue liste">
+        <mat-icon>list</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- LOADING                                     -->
+  <!-- ============================================ -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des documents...</p>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- EMPTY STATE                                 -->
+  <!-- ============================================ -->
+  <div class="empty-state" *ngIf="!loading && filteredDocuments.length === 0">
+    <mat-icon class="empty-icon">description</mat-icon>
+    <h3>Aucun document trouvé</h3>
+    <p *ngIf="searchQuery">Aucun document ne correspond à votre recherche "{{ searchQuery }}".</p>
+    <p *ngIf="!searchQuery">Commencez par télécharger votre premier document.</p>
+    <button mat-raised-button color="primary" (click)="openUploadModal()">
+      <mat-icon>upload</mat-icon>
+      Télécharger un document
+    </button>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VUE GRILLE                                  -->
+  <!-- ============================================ -->
+  <div *ngIf="!loading && filteredDocuments.length > 0 && viewMode === 'grid'" class="cards-grid">
+    <mat-card *ngFor="let doc of getPaginatedDocuments()" class="document-card" (click)="openDocumentDetail(doc)">
+      <!-- En-tête -->
+      <div class="card-header">
+        <div class="card-type-icon" [style.color]="'var(--bs-' + getDocumentTypeColor(doc.documentType) + ')'">
+          <i class="fas {{ getDocumentTypeIcon(doc.documentType) }}"></i>
+        </div>
+        <div class="card-status">
+          <span class="status-badge" [class.verified]="doc.verified" [class.pending]="!doc.verified">
+            <mat-icon>{{ doc.verified ? 'check' : 'pending' }}</mat-icon>
+            {{ doc.verified ? 'Vérifié' : 'En attente' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Corps -->
+      <div class="card-body">
+        <h4 class="document-title">{{ doc.fileName }}</h4>
+        <div class="document-meta">
+          <div class="meta-item">
+            <mat-icon>person</mat-icon>
+            <span>{{ doc.clientName }}</span>
+          </div>
+          <div class="meta-item">
+            <mat-icon>calendar_today</mat-icon>
+            <span>{{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="meta-item">
+            <mat-icon>storage</mat-icon>
+            <span>{{ getFileSize(doc.fileSize) }}</span>
+          </div>
+        </div>
+        <div *ngIf="isDocumentMandatory(doc.documentType)" class="mandatory-badge">
+          <mat-icon>star</mat-icon>
+          Document obligatoire
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card-actions" (click)="$event.stopPropagation()">
+        <button mat-icon-button color="primary" (click)="downloadDocument(doc)" matTooltip="Télécharger">
+          <mat-icon>download</mat-icon>
+        </button>
+        <button *ngIf="canVerifyDocument()" 
+                mat-icon-button 
+                [color]="doc.verified ? 'warn' : 'primary'"
+                (click)="verifyDocument(doc)"
+                matTooltip="{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}">
+          <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
+        </button>
+        <button *ngIf="canDeleteDocument(doc)" 
+                mat-icon-button 
+                color="warn"
+                (click)="deleteDocument(doc)"
+                matTooltip="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="downloadDocument(doc)">
+            <mat-icon>download</mat-icon>
+            <span>Télécharger</span>
+          </button>
+          <button *ngIf="canVerifyDocument()" mat-menu-item (click)="verifyDocument(doc)">
+            <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
+            <span>{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button *ngIf="canDeleteDocument(doc)" mat-menu-item (click)="deleteDocument(doc)" class="danger-item">
+            <mat-icon color="warn">delete</mat-icon>
+            <span>Supprimer</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- VUE LISTE                                   -->
+  <!-- ============================================ -->
+  <div *ngIf="!loading && filteredDocuments.length > 0 && viewMode === 'list'" class="list-view">
+    <mat-card>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="getPaginatedDocuments()" class="mat-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Client</th>
+              <th>Type</th>
+              <th>Taille</th>
+              <th>Date</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let doc of getPaginatedDocuments()" (click)="openDocumentDetail(doc)">
+              <td>
+                <i class="fas {{ getDocumentTypeIcon(doc.documentType) }}" 
+                   [style.color]="'var(--bs-' + getDocumentTypeColor(doc.documentType) + ')'"></i>
+                {{ doc.fileName }}
+                <span *ngIf="isDocumentMandatory(doc.documentType)" class="mandatory-chip">
+                  <mat-icon>star</mat-icon>
+                </span>
+              </td>
+              <td>{{ doc.clientName }}</td>
+              <td>{{ getDocumentTypeLabel(doc.documentType) }}</td>
+              <td>{{ getFileSize(doc.fileSize) }}</td>
+              <td>{{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <span class="status-badge" [class.verified]="doc.verified" [class.pending]="!doc.verified">
+                  {{ doc.verified ? 'Vérifié' : 'En attente' }}
+                </span>
+              </td>
+              <td (click)="$event.stopPropagation()">
+                <button mat-icon-button color="primary" (click)="downloadDocument(doc)" matTooltip="Télécharger">
+                  <mat-icon>download</mat-icon>
+                </button>
+                <button *ngIf="canVerifyDocument()" 
+                        mat-icon-button 
+                        [color]="doc.verified ? 'warn' : 'primary'"
+                        (click)="verifyDocument(doc)"
+                        matTooltip="{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}">
+                  <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
+                </button>
+                <button *ngIf="canDeleteDocument(doc)" 
+                        mat-icon-button 
+                        color="warn"
+                        (click)="deleteDocument(doc)"
+                        matTooltip="Supprimer">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PAGINATION                                  -->
+  <!-- ============================================ -->
+  <div *ngIf="filteredDocuments.length > 0" class="pagination-container">
+    <span class="pagination-info">
+      <mat-icon>description</mat-icon>
+      Affichage de <strong>{{ (currentPage - 1) * itemsPerPage + 1 }}</strong> 
+      à <strong>{{ Math.min(currentPage * itemsPerPage, filteredDocuments.length) }}</strong> 
+      sur <strong>{{ filteredDocuments.length }}</strong> documents
+    </span>
+    <div class="pagination-controls">
+      <button mat-icon-button 
+              [disabled]="currentPage === 1"
+              (click)="changePage(currentPage - 1)">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button *ngFor="let page of getPages()" 
+              mat-button 
+              [class.active]="page === currentPage"
+              (click)="changePage(page)">
+        {{ page }}
+      </button>
+      <button mat-icon-button 
+              [disabled]="currentPage === totalPages"
+              (click)="changePage(currentPage + 1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

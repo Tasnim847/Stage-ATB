@@ -9,6 +9,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+// org.example.stage_atb.Mappers.DocumentMapper.java
+
 @Mapper(componentModel = "spring")
 public interface DocumentMapper {
 
@@ -17,8 +19,9 @@ public interface DocumentMapper {
     @Mapping(target = "filePath", ignore = true)
     @Mapping(target = "fileType", expression = "java(documentUploadRequestDTO.getFile().getContentType())")
     @Mapping(target = "fileSize", expression = "java(documentUploadRequestDTO.getFile().getSize())")
-    @Mapping(target = "client", expression = "java(buildClient(documentUploadRequestDTO.getClientId()))")
-    @Mapping(target = "creditRequest", expression = "java(buildCreditRequest(documentUploadRequestDTO.getCreditRequestId()))")
+    // ✅ NE PAS mapper le client ici - il sera défini dans le service
+    @Mapping(target = "client", ignore = true)
+    @Mapping(target = "creditRequest", ignore = true)
     @Mapping(target = "uploadedBy", ignore = true)
     @Mapping(target = "ocrResult", ignore = true)
     @Mapping(target = "extractedData", ignore = true)
@@ -39,17 +42,7 @@ public interface DocumentMapper {
 
     void updateEntity(@MappingTarget Document document, DocumentUploadRequestDTO documentUploadRequestDTO);
 
-    default Client buildClient(String clientId) {
-        if (clientId == null) return null;
-        Client client = new Client();
-        client.setId(clientId);
-        return client;
-    }
-
-    default CreditRequest buildCreditRequest(String creditRequestId) {
-        if (creditRequestId == null) return null;
-        CreditRequest creditRequest = new CreditRequest();
-        creditRequest.setId(creditRequestId);
-        return creditRequest;
-    }
+    // ✅ Supprimer ces méthodes default qui créent des entités incomplètes
+    // default Client buildClient(String clientId) { ... }
+    // default CreditRequest buildCreditRequest(String creditRequestId) { ... }
 }

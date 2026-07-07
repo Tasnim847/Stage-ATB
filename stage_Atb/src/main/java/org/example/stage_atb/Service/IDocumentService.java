@@ -1,11 +1,11 @@
 package org.example.stage_atb.Service;
 
-
 import org.example.stage_atb.dto.request.DocumentUploadRequestDTO;
 import org.example.stage_atb.dto.response.DocumentResponseDTO;
 import org.example.stage_atb.enums.DocumentType;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IDocumentService {
 
@@ -36,4 +36,13 @@ public interface IDocumentService {
     List<DocumentResponseDTO> getIncompleteDocuments();
 
     byte[] downloadDocument(String id);
+
+    // Méthodes supplémentaires pour la gestion des types de documents
+    List<DocumentType> getMandatoryDocumentTypes();
+
+    Map<DocumentType, Boolean> getMandatoryDocumentStatusForClient(String clientId);
+
+    List<DocumentType> getMissingMandatoryDocuments(String clientId);
+
+    boolean isMandatoryDocument(DocumentType documentType);
 }

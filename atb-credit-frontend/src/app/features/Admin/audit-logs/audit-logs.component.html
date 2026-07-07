@@ -1,0 +1,299 @@
+<!-- features/admin/audit-logs/audit-logs.component.html -->
+<div class="audit-logs-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Journal d'audit</h1>
+      <p class="subtitle">Consultez toutes les actions et connexions des utilisateurs</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="toggleFilters()">
+        <mat-icon>filter_list</mat-icon>
+        {{ showFilters ? 'Masquer les filtres' : 'Afficher les filtres' }}
+      </button>
+      <button mat-icon-button (click)="loadData()" matTooltip="Rafraîchir">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-content">
+        <mat-icon>list</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.totalLogs }}</span>
+          <span class="stat-label">Total logs</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card today">
+      <div class="stat-content">
+        <mat-icon>today</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.today }}</span>
+          <span class="stat-label">Aujourd'hui</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card week">
+      <div class="stat-content">
+        <mat-icon>date_range</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.thisWeek }}</span>
+          <span class="stat-label">Cette semaine</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card month">
+      <div class="stat-content">
+        <mat-icon>calendar_month</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.thisMonth }}</span>
+          <span class="stat-label">Ce mois</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card login-success">
+      <div class="stat-content">
+        <mat-icon>login</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.successfulLogins }}</span>
+          <span class="stat-label">Connexions réussies</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card login-failed">
+      <div class="stat-content">
+        <mat-icon>warning</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ statistics.failedLogins }}</span>
+          <span class="stat-label">Connexions échouées</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-section" *ngIf="showFilters">
+    <mat-card class="filters-card">
+      <mat-card-content>
+        <div class="filters-grid">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Utilisateur</mat-label>
+            <input matInput [(ngModel)]="filters.username" placeholder="Nom d'utilisateur...">
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Module</mat-label>
+            <mat-select [(ngModel)]="filters.module">
+              <mat-option [value]="null">Tous</mat-option>
+              <mat-option *ngFor="let module of modules" [value]="module">{{ module }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Type d'action</mat-label>
+            <mat-select [(ngModel)]="filters.actionType">
+              <mat-option [value]="null">Tous</mat-option>
+              <mat-option *ngFor="let type of actionTypes" [value]="type">
+                {{ getActionTypeLabel(type) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Statut</mat-label>
+            <mat-select [(ngModel)]="filters.status">
+              <mat-option [value]="null">Tous</mat-option>
+              <mat-option *ngFor="let status of statusOptions" [value]="status">
+                {{ getStatusLabel(status) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date de début</mat-label>
+            <input matInput type="date" [(ngModel)]="filters.startDate">
+            <mat-icon matPrefix>calendar_today</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Date de fin</mat-label>
+            <input matInput type="date" [(ngModel)]="filters.endDate">
+            <mat-icon matPrefix>calendar_today</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field full-width">
+            <mat-label>Recherche</mat-label>
+            <input matInput [(ngModel)]="filters.searchTerm" placeholder="Action, détails, email...">
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-button (click)="resetFilters()">
+            <mat-icon>clear_all</mat-icon>
+            Réinitialiser
+          </button>
+          <button mat-raised-button color="primary" (click)="applyFilters()">
+            <mat-icon>search</mat-icon>
+            Appliquer
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des logs...</p>
+  </div>
+
+  <!-- Liste des logs -->
+  <mat-card class="logs-card" *ngIf="!isLoading && logs.length > 0">
+    <mat-card-content>
+      <div class="table-container">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Date & Heure</th>
+              <th>Utilisateur</th>
+              <th>Action</th>
+              <th>Module</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of logs">
+              <td class="timestamp">{{ formatDate(log.timestamp) }}</td>
+              <td>
+                <div class="user-info">
+                  <span class="username">{{ log.username || log.email }}</span>
+                  <span class="user-email">{{ log.email }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="action-badge" [style.background]="getActionTypeColor(log.actionType)">
+                  {{ getActionTypeLabel(log.actionType) }}
+                </span>
+                <span class="action-detail">{{ log.action }}</span>
+              </td>
+              <td>
+                <span class="module-badge">{{ log.module || '-' }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [style.background]="getStatusColor(log.status)">
+                  {{ getStatusLabel(log.status) }}
+                </span>
+              </td>
+              <td>
+                <button mat-icon-button color="primary" (click)="viewDetails(log)" matTooltip="Voir les détails">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[10, 20, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!isLoading && logs.length === 0">
+    <mat-icon class="empty-icon">history</mat-icon>
+    <h3>Aucun log trouvé</h3>
+    <p>Aucune entrée de journal ne correspond à vos critères.</p>
+    <button mat-raised-button color="primary" (click)="resetFilters()">
+      <mat-icon>clear_all</mat-icon>
+      Réinitialiser les filtres
+    </button>
+  </div>
+</div>
+
+<!-- Modal de détails -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetails()">
+  <mat-card class="details-modal" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="modal-header">
+          <h2>Détails du log</h2>
+          <button mat-icon-button (click)="closeDetails()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="details-grid" *ngIf="selectedLog">
+        <div class="detail-item">
+          <span class="detail-label">Date & Heure</span>
+          <span class="detail-value">{{ formatDate(selectedLog.timestamp) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Utilisateur</span>
+          <span class="detail-value">{{ selectedLog.username || selectedLog.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ selectedLog.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Action</span>
+          <span class="detail-value">
+            <span class="action-badge" [style.background]="getActionTypeColor(selectedLog.actionType)">
+              {{ getActionTypeLabel(selectedLog.actionType) }}
+            </span>
+            {{ selectedLog.action }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Module</span>
+          <span class="detail-value">{{ selectedLog.module || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Statut</span>
+          <span class="detail-value">
+            <span class="status-badge" [style.background]="getStatusColor(selectedLog.status)">
+              {{ getStatusLabel(selectedLog.status) }}
+            </span>
+          </span>
+        </div>
+        <div class="detail-item" *ngIf="selectedLog.details">
+          <span class="detail-label">Détails</span>
+          <span class="detail-value">{{ selectedLog.details }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedLog.ipAddress">
+          <span class="detail-label">Adresse IP</span>
+          <span class="detail-value">{{ selectedLog.ipAddress }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedLog.userAgent">
+          <span class="detail-label">User Agent</span>
+          <span class="detail-value">{{ selectedLog.userAgent }}</span>
+        </div>
+        <div class="detail-item" *ngIf="selectedLog.errorMessage">
+          <span class="detail-label">Message d'erreur</span>
+          <span class="detail-value error">{{ selectedLog.errorMessage }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

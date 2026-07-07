@@ -1,0 +1,160 @@
+<!-- features/documents/document-upload/document-upload.component.html -->
+<div class="upload-page-container">
+  <div class="header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>upload</mat-icon>
+        Télécharger un document
+      </h1>
+      <p class="subtitle">Ajoutez un nouveau document à la plateforme</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="cancel()">
+        <mat-icon>arrow_back</mat-icon>
+        Retour
+      </button>
+    </div>
+  </div>
+
+  <mat-card class="upload-card">
+    <mat-card-content>
+      <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <!-- Client - Sélection avec recherche -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Sélectionner un client <span class="required">*</span></mat-label>
+            <mat-select formControlName="clientId" 
+                        [disabled]="loadingClients"
+                        placeholder="Rechercher un client...">
+              <mat-option>
+                <ngx-mat-select-search 
+                  (searchChange)="onClientSearchChange($event)"
+                  placeholderLabel="Rechercher un client..."
+                  noEntriesFoundLabel="Aucun client trouvé">
+                </ngx-mat-select-search>
+              </mat-option>
+              <mat-option *ngFor="let client of filteredClients" [value]="client.id">
+                <div class="client-option">
+                  <div class="client-avatar">
+                    {{ client.firstName.charAt(0) }}{{ client.lastName.charAt(0) }}
+                  </div>
+                  <div class="client-info">
+                    <span class="client-name">{{ client.firstName }} {{ client.lastName }}</span>
+                    <span class="client-details">{{ client.clientNumber }} • {{ client.email }}</span>
+                  </div>
+                  <span class="client-status" [class.active]="client.active">
+                    {{ client.active ? 'Actif' : 'Inactif' }}
+                  </span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>person</mat-icon>
+            <mat-error *ngIf="uploadForm.get('clientId')?.hasError('required')">
+              Veuillez sélectionner un client
+            </mat-error>
+          </mat-form-field>
+
+          <!-- ✅ Credit Request - Liste des crédits du client sélectionné -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Demande de crédit</mat-label>
+            <mat-select formControlName="creditRequestId" 
+                        [disabled]="!selectedClientId || loadingCredits">
+              <mat-option value="">Aucune demande de crédit</mat-option>
+              <mat-option *ngFor="let credit of clientCreditRequests" [value]="credit.id">
+                <div class="credit-option">
+                  <mat-icon>credit_card</mat-icon>
+                  <div class="credit-info">
+                    <span class="credit-number">#{{ credit.requestNumber || credit.id.substring(0, 8) }}</span>
+                    <span class="credit-amount">{{ credit.amount }} €</span>
+                  </div>
+                  <span class="credit-status" [class]="credit.status.toLowerCase()">
+                    {{ credit.status }}
+                  </span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>assignment</mat-icon>
+            <mat-hint *ngIf="selectedClientId && !loadingCredits && clientCreditRequests.length === 0">
+              <mat-icon>info</mat-icon>
+              Aucune demande de crédit pour ce client
+            </mat-hint>
+            <mat-hint *ngIf="loadingCredits">
+              <mat-icon class="spinner-small">refresh</mat-icon>
+              Chargement des crédits...
+            </mat-hint>
+          </mat-form-field>
+
+          <!-- Type de document -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Type de document <span class="required">*</span></mat-label>
+            <mat-select formControlName="documentType">
+              <mat-option value="">Sélectionnez un type</mat-option>
+              <mat-option *ngFor="let type of documentTypes" [value]="type">
+                <i class="fas {{ getDocumentTypeIcon(type) }}"></i>
+                {{ getDocumentTypeLabel(type) }}
+                <span *ngIf="isMandatory(type)" class="mandatory-tag">Obligatoire</span>
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="uploadForm.get('documentType')?.hasError('required')">
+              Le type de document est requis
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3" 
+                      placeholder="Description du document..."></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+
+          <!-- Fichier -->
+          <div class="file-upload-section full-width">
+            <label class="file-label">Fichier <span class="required">*</span></label>
+            
+            <div *ngIf="!selectedFile" class="drop-zone" 
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onFileSelected($event)">
+              <input type="file" id="fileInput" (change)="onFileSelected($event)" 
+                     class="file-input" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt">
+              <label for="fileInput" class="drop-zone-label">
+                <mat-icon>cloud_upload</mat-icon>
+                <h4>Déposez votre fichier ici</h4>
+                <p>ou cliquez pour sélectionner</p>
+                <span class="file-types">PDF, JPG, PNG, DOC, XLS, TXT (Max 50MB)</span>
+              </label>
+            </div>
+
+            <div *ngIf="selectedFile" class="file-preview">
+              <div class="file-info">
+                <mat-icon class="file-icon">insert_drive_file</mat-icon>
+                <div class="file-details">
+                  <strong>{{ selectedFile.name }}</strong>
+                  <span>{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</span>
+                </div>
+                <button type="button" mat-icon-button color="warn" (click)="removeFile()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <div *ngIf="filePreview" class="image-preview">
+                <img [src]="filePreview" alt="Preview">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" mat-stroked-button (click)="cancel()">
+            Annuler
+          </button>
+          <button type="submit" mat-raised-button color="primary" 
+                  [disabled]="uploading || !selectedFile">
+            <mat-icon *ngIf="uploading" class="spinner">refresh</mat-icon>
+            <mat-icon *ngIf="!uploading">upload</mat-icon>
+            {{ uploading ? 'Téléchargement...' : 'Télécharger' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

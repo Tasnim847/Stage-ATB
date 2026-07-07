@@ -1,0 +1,164 @@
+<!-- features/documents/document-detail/document-detail.component.html -->
+<div class="modal-header">
+  <h4 class="modal-title">
+    <mat-icon>description</mat-icon>
+    Détail du document
+  </h4>
+  <button type="button" class="btn-close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+  <div class="row">
+    <!-- Colonne gauche : Informations -->
+    <div class="col-md-6">
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>info</mat-icon>
+            Informations générales
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>description</mat-icon>
+              Nom du fichier
+            </span>
+            <span class="info-value">{{ document.fileName }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>label</mat-icon>
+              Type
+            </span>
+            <span class="info-value">
+              <mat-chip>
+                <i class="fas {{ getDocumentTypeIcon(document.documentType) }}"></i>
+                {{ getDocumentTypeLabel(document.documentType) }}
+              </mat-chip>
+            </span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>storage</mat-icon>
+              Taille
+            </span>
+            <span class="info-value">{{ getFileSize(document.fileSize) }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>person</mat-icon>
+              Client
+            </span>
+            <span class="info-value">{{ document.clientName }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>person_outline</mat-icon>
+              Téléchargé par
+            </span>
+            <span class="info-value">{{ document.uploadedByName }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>calendar_today</mat-icon>
+              Date
+            </span>
+            <span class="info-value">{{ document.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          
+          <div class="info-item">
+            <span class="info-label">
+              <mat-icon>verified</mat-icon>
+              Statut
+            </span>
+            <span class="info-value">
+              <span class="status-badge" [class.verified]="document.verified" [class.pending]="!document.verified">
+                <mat-icon>{{ document.verified ? 'check_circle' : 'pending' }}</mat-icon>
+                {{ getStatusLabel() }}
+              </span>
+            </span>
+          </div>
+          <mat-divider *ngIf="document.description"></mat-divider>
+          
+          <div class="info-item" *ngIf="document.description">
+            <span class="info-label">
+              <mat-icon>comment</mat-icon>
+              Description
+            </span>
+            <span class="info-value">{{ document.description }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Colonne droite : Actions et données -->
+    <div class="col-md-6">
+      <!-- Actions -->
+      <mat-card class="actions-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>settings</mat-icon>
+            Actions
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <button mat-raised-button color="primary" class="action-btn" 
+                  (click)="download()" [disabled]="downloading">
+            <mat-icon *ngIf="!downloading">download</mat-icon>
+            <mat-icon *ngIf="downloading" class="spinner">refresh</mat-icon>
+            {{ downloading ? 'Téléchargement...' : 'Télécharger' }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Résultat OCR -->
+      <mat-card *ngIf="ocrData" class="data-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>text_snippet</mat-icon>
+            Résultat OCR
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <pre class="data-content">{{ ocrData.text || ocrData | json }}</pre>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Données extraites -->
+      <mat-card *ngIf="extractedData" class="data-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>data_usage</mat-icon>
+            Données extraites
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <pre class="data-content">{{ extractedData.data || extractedData | json }}</pre>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button mat-stroked-button (click)="close()">
+    <mat-icon>close</mat-icon>
+    Fermer
+  </button>
+</div>

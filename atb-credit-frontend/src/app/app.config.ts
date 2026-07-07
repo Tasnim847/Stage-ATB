@@ -1,3 +1,4 @@
+// app.config.ts
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -6,6 +7,8 @@ import { provideToastr } from 'ngx-toastr';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { importProvidersFrom } from '@angular/core';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -13,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([
-        authInterceptor,   // ✅ Vérifier que c'est bien présent
+        authInterceptor,
         errorInterceptor
       ])
     ),
@@ -24,6 +27,8 @@ export const appConfig: ApplicationConfig = {
       preventDuplicates: true,
       closeButton: true,
       progressBar: true,
-    })
+    }),
+    // ✅ Important: Ajouter NgbModule pour les services
+    importProvidersFrom(NgbModule)
   ]
 };

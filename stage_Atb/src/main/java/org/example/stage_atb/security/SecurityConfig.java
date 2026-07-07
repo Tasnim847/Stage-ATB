@@ -112,6 +112,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/roles/**").hasRole("ADMIN")
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/dashboard/**").authenticated()
+                        // ✅ Vérifier que l'endpoint est bien accessible par ADMIN
+                        .requestMatchers("/api/admin/audit-logs/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/audit-logs").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/audit-logs/recent").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/audit-logs/statistics").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

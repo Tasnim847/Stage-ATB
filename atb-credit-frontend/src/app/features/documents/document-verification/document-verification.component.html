@@ -1,0 +1,199 @@
+<!-- features/documents/document-verification/document-verification-page.component.html -->
+<div class="verification-page-container">
+  
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>verified</mat-icon>
+        Vérifier un document
+      </h1>
+      <p class="subtitle">Validez ou rejetez le document soumis par le client</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="cancel()">
+        <mat-icon>arrow_back</mat-icon>
+        Retour
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement du document...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="error" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h3>Document non trouvé</h3>
+    <p>{{ errorMessage || 'Le document que vous cherchez n\'existe pas ou a été supprimé.' }}</p>
+    <button mat-raised-button color="primary" (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Retour à la liste
+    </button>
+  </div>
+
+  <!-- CONTENU -->
+  <div *ngIf="!loading && !error && document" class="content">
+    
+    <!-- Informations du document -->
+    <mat-card class="doc-info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>description</mat-icon>
+          Informations du document
+        </mat-card-title>
+      </mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <div class="doc-info-grid">
+          <!-- Nom du fichier -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>description</mat-icon>
+              Nom du fichier
+            </span>
+            <span class="doc-info-value">{{ document.fileName || 'Non renseigné' }}</span>
+          </div>
+
+          <!-- Type -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>label</mat-icon>
+              Type
+            </span>
+            <span class="doc-info-value">
+              <mat-chip>
+                <i class="fas {{ getDocumentTypeIcon(document.documentType) }}"></i>
+                {{ getDocumentTypeLabel(document.documentType) }}
+              </mat-chip>
+            </span>
+          </div>
+
+          <!-- Taille -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>storage</mat-icon>
+              Taille
+            </span>
+            <span class="doc-info-value">{{ getFileSize(document.fileSize) }}</span>
+          </div>
+
+          <!-- Client -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>person</mat-icon>
+              Client
+            </span>
+            <span class="doc-info-value">{{ document.clientName || 'Non renseigné' }}</span>
+          </div>
+
+          <!-- Téléchargé par -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>person_outline</mat-icon>
+              Téléchargé par
+            </span>
+            <span class="doc-info-value">{{ document.uploadedByName || 'Non renseigné' }}</span>
+          </div>
+
+          <!-- ✅ CORRECTION : Date de téléchargement -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>calendar_today</mat-icon>
+              Date de téléchargement
+            </span>
+            <span class="doc-info-value">
+              <ng-container *ngIf="document.uploadedAt; else noDate">
+                {{ document.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+              </ng-container>
+              <ng-template #noDate>Non renseigné</ng-template>
+            </span>
+          </div>
+
+          <!-- Description -->
+          <div class="doc-info-item" *ngIf="document.description">
+            <span class="doc-info-label">
+              <mat-icon>comment</mat-icon>
+              Description
+            </span>
+            <span class="doc-info-value">{{ document.description }}</span>
+          </div>
+
+          <!-- Statut actuel -->
+          <div class="doc-info-item">
+            <span class="doc-info-label">
+              <mat-icon>verified</mat-icon>
+              Statut actuel
+            </span>
+            <span class="doc-info-value">
+              <span class="status-badge" [class.verified]="document.verified" [class.pending]="!document.verified">
+                <mat-icon>{{ document.verified ? 'check_circle' : 'pending' }}</mat-icon>
+                {{ getStatusLabel() }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Formulaire de vérification -->
+    <mat-card class="verification-form-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>gavel</mat-icon>
+          Décision de vérification
+        </mat-card-title>
+      </mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <form [formGroup]="verificationForm" (ngSubmit)="onSubmit()">
+          
+          <div class="verification-options">
+            <label class="form-label">Choisissez le statut <span class="required">*</span></label>
+            <div class="radio-group">
+              <mat-radio-group formControlName="verified" color="primary" class="radio-group-inline">
+                <mat-radio-button [value]="true" class="radio-option approve">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Approuver</span>
+                  <span class="radio-desc">Le document est conforme et valide</span>
+                </mat-radio-button>
+                <mat-radio-button [value]="false" class="radio-option reject">
+                  <mat-icon>cancel</mat-icon>
+                  <span>Rejeter</span>
+                  <span class="radio-desc">Le document n'est pas conforme</span>
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes de vérification</mat-label>
+            <textarea matInput formControlName="verificationNotes" rows="4"
+                      placeholder="Ajoutez des notes détaillées sur votre décision..."></textarea>
+            <mat-icon matSuffix>comment</mat-icon>
+            <mat-hint>Ces notes seront visibles par l'équipe</mat-hint>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button type="button" mat-stroked-button (click)="cancel()">
+              <mat-icon>close</mat-icon>
+              Annuler
+            </button>
+            <button type="button" mat-stroked-button color="primary" (click)="download()">
+              <mat-icon>download</mat-icon>
+              Télécharger
+            </button>
+            <button type="submit" mat-raised-button color="primary" [disabled]="verifying">
+              <mat-icon *ngIf="!verifying">verified</mat-icon>
+              <mat-icon *ngIf="verifying" class="spinner">refresh</mat-icon>
+              {{ verifying ? 'Vérification en cours...' : 'Valider la vérification' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

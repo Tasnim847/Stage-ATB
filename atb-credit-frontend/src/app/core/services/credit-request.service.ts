@@ -1,3 +1,4 @@
+// core/services/credit-request.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -11,7 +12,6 @@ export class CreditRequestService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
-  
   /**
    * Récupérer les crédits du client connecté
    */
@@ -48,9 +48,23 @@ export class CreditRequestService {
   }
 
   /**
-   * Récupérer les demandes de crédit d'un client
+   * ✅ Récupérer les demandes de crédit d'un client
    */
   getCreditRequestsByClient(clientId: string): Observable<CreditResponseDTO[]> {
     return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/client/${clientId}`);
+  }
+
+  /**
+   * Récupérer les demandes de crédit par statut
+   */
+  getCreditRequestsByStatus(status: CreditStatus): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/status/${status}`);
+  }
+
+  /**
+   * Récupérer toutes les demandes de crédit
+   */
+  getAllCreditRequests(): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests`);
   }
 }

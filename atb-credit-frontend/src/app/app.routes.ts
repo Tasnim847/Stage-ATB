@@ -128,13 +128,56 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
       // app.routes.ts - AJOUTER LA ROUTE
-{
-  path: 'admin/users',
-  loadComponent: () => import('./features/Admin/user-management/user-management.component')
-    .then(m => m.UserManagementComponent),
-  canActivate: [authGuard, roleGuard],
-  data: { roles: ['ADMIN'] }
-}
+      {
+        path: 'admin/users',
+        loadComponent: () => import('./features/Admin/user-management/user-management.component')
+          .then(m => m.UserManagementComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      // app.routes.ts - AJOUTER
+      {
+        path: 'admin/audit-logs',
+        loadComponent: () => import('./features/Admin/audit-logs/audit-logs.component')
+          .then(m => m.AuditLogsComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/documents',
+        loadComponent: () => import('./features/documents/document-management/document-management.component')
+          .then(m => m.DocumentManagementComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      // Ajouter dans app.routes.ts
+      {
+        path: 'documents',
+        loadComponent: () => import('./features/documents/document-management/document-management.component')
+          .then(m => m.DocumentManagementComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN', 'ANALYST'] }
+      },
+      {
+        path: 'documents/upload',
+        loadComponent: () => import('./features/documents/document-upload/document-upload.component')
+          .then(m => m.DocumentUploadComponent),
+        canActivate: [authGuard],
+        data: { roles: ['ADMIN', 'ANALYST', 'ADVISOR'] }
+      },
+      {
+        path: 'documents/verify/:id',
+        loadComponent: () => import('./features/documents/document-verification/document-verification.component')
+          .then(m => m.DocumentVerificationComponent),
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['ADMIN', 'ANALYST'] }
+      },
+      {
+        path: 'clients/:id/documents',
+        loadComponent: () => import('./features/documents/document-list/document-list.component')
+          .then(m => m.DocumentListComponent),
+        canActivate: [authGuard]
+      }
     ]
   },
   {

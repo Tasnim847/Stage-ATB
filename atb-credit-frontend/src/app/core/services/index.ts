@@ -4,3 +4,4 @@ export * from './client.service';
 export * from './client-assignment.service';
 export * from './user.service';
 export * from './profile.service';
+export * from './document.service';

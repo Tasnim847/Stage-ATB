@@ -1,0 +1,124 @@
+<!-- features/documents/document-list/document-list.component.html -->
+<div class="document-list-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-1">
+        <i class="fas fa-folder-open me-2"></i>Documents
+      </h3>
+      <p class="text-muted mb-0">
+        {{ documents.length }} document(s) trouvé(s)
+        <span *ngIf="missingMandatory.length > 0" class="text-warning ms-2">
+          <i class="fas fa-exclamation-triangle"></i>
+          {{ missingMandatory.length }} document(s) obligatoire(s) manquant(s)
+        </span>
+      </p>
+    </div>
+    <button class="btn btn-primary" (click)="uploadDocument()">
+      <i class="fas fa-upload me-2"></i>Télécharger
+    </button>
+  </div>
+
+  <div *ngIf="mandatoryStatus.size > 0" class="mandatory-status mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">
+          <i class="fas fa-check-circle me-2"></i>Documents obligatoires
+        </h5>
+        <div class="row">
+          <div *ngFor="let item of mandatoryStatus | keyvalue" class="col-md-4">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas" 
+                 [class.fa-check-circle]="item.value" 
+                 [class.fa-times-circle]="!item.value"
+                 [class.text-success]="item.value"
+                 [class.text-danger]="!item.value">
+              </i>
+              <span class="ms-2">{{ getDocumentTypeLabel(item.key) }}</span>
+              <span class="badge ms-2" 
+                    [class.bg-success]="item.value" 
+                    [class.bg-danger]="!item.value">
+                {{ item.value ? 'Présent' : 'Manquant' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+    <p class="mt-2 text-muted">Chargement des documents...</p>
+  </div>
+
+  <div *ngIf="!loading && documents.length === 0" class="text-center py-5">
+    <i class="fas fa-file-upload fa-4x text-muted mb-3"></i>
+    <h5>Aucun document</h5>
+    <p class="text-muted">Aucun document trouvé pour ce client</p>
+    <button class="btn btn-primary" (click)="uploadDocument()">
+      <i class="fas fa-plus me-2"></i>Ajouter un document
+    </button>
+  </div>
+
+  <div *ngIf="!loading && documents.length > 0">
+    <div class="row">
+      <div *ngFor="let doc of documents" class="col-md-6 col-lg-4">
+        <div class="card document-card" [class.verified]="doc.verified">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="document-icon me-3"
+                     [class.text-primary]="!doc.verified"
+                     [class.text-success]="doc.verified">
+                  <i class="fas fa-file-pdf fa-2x"></i>
+                </div>
+                <div>
+                  <h6 class="card-title mb-1">{{ doc.fileName }}</h6>
+                  <small class="text-muted">
+                    {{ getFileSize(doc.fileSize) }} • 
+                    {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
+                </div>
+              </div>
+              <div class="document-status">
+                <span class="badge" 
+                      [class.bg-success]="doc.verified"
+                      [class.bg-warning]="!doc.verified">
+                  {{ doc.verified ? 'Vérifié' : 'En attente' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="document-actions mt-3">
+              <div class="btn-group w-100" role="group">
+                <button class="btn btn-sm btn-outline-primary" (click)="downloadDocument(doc)">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-info" (click)="processOCR(doc)" [disabled]="!!doc.ocrResult">
+                  <i class="fas fa-eye"></i> OCR
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="extractData(doc)" [disabled]="!!doc.extractedData">
+                  <i class="fas fa-database"></i> Extraire
+                </button>
+                <button *ngIf="canVerifyDocument()" 
+                        class="btn btn-sm" 
+                        [class.btn-outline-success]="!doc.verified"
+                        [class.btn-outline-warning]="doc.verified"
+                        (click)="verifyDocument(doc)">
+                  <i class="fas" [class.fa-check]="!doc.verified" [class.fa-times]="doc.verified"></i>
+                </button>
+                <button *ngIf="canDeleteDocument(doc)" 
+                        class="btn btn-sm btn-outline-danger" 
+                        (click)="deleteDocument(doc)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
