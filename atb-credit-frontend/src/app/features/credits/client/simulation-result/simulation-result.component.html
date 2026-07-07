@@ -162,18 +162,92 @@
               <span class="label">Capacité d'emprunt</span>
               <span class="value">{{ simulation.borrowingCapacity | number }} TND</span>
             </div>
+            <!-- ✅ Nouveaux champs si disponibles -->
+            <div class="detail-item" *ngIf="simulation.debtRatio">
+              <span class="label">Taux d'endettement</span>
+              <span class="value">{{ simulation.debtRatio }}%</span>
+            </div>
+            <div class="detail-item" *ngIf="simulation.solvencyScore">
+              <span class="label">Score de solvabilité</span>
+              <span class="value">{{ simulation.solvencyScore }}/100</span>
+            </div>
           </div>
         </div>
 
-        <!-- Actions -->
+        <!-- ✅ ACTIONS AVEC UPDATE ET DELETE -->
         <div class="actions">
-          <button mat-stroked-button (click)="goBack()" class="back-btn-action">
-            <mat-icon>arrow_back</mat-icon> Retour
-          </button>
-          <button mat-raised-button color="primary" routerLink="/credit-requests/new" class="submit-btn">
-            <mat-icon>add</mat-icon> Faire une nouvelle demande
+          <div class="actions-left">
+            <button mat-stroked-button (click)="goBack()" class="back-btn-action">
+              <mat-icon>arrow_back</mat-icon> Retour
+            </button>
+          </div>
+          <div class="actions-right">
+            <!-- ✅ Bouton Modifier -->
+            <button mat-stroked-button color="accent" (click)="editSimulation()" class="edit-btn">
+              <mat-icon>edit</mat-icon> Modifier
+            </button>
+            <!-- ✅ Bouton Supprimer -->
+            <button mat-stroked-button color="warn" (click)="deleteSimulation()" class="delete-btn">
+              <mat-icon>delete</mat-icon> Supprimer
+            </button>
+            <!-- ✅ Bouton Nouvelle demande -->
+            <button mat-raised-button color="primary" routerLink="/credit-requests/new" class="submit-btn">
+              <mat-icon>add</mat-icon> Faire une nouvelle demande
+            </button>
+          </div>
+        </div>
+
+        <!-- ✅ Section de modification rapide (optionnelle) -->
+        <div *ngIf="showEditForm" class="edit-form-section">
+          <mat-divider></mat-divider>
+          <h3>✏️ Modifier la simulation</h3>
+          <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="edit-form">
+            <div class="edit-form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Montant (TND)</mat-label>
+                <input matInput type="number" formControlName="amount" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Durée (mois)</mat-label>
+                <input matInput type="number" formControlName="durationMonths" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Taux d'intérêt (%)</mat-label>
+                <input matInput type="number" formControlName="interestRate" step="0.1" />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nom de la simulation</mat-label>
+                <input matInput formControlName="simulationName" />
+              </mat-form-field>
+            </div>
+
+            <div class="edit-form-actions">
+              <button mat-stroked-button type="button" (click)="cancelEdit()">
+                <mat-icon>cancel</mat-icon> Annuler
+              </button>
+              <button mat-raised-button color="primary" type="submit" [disabled]="editSubmitting">
+                <mat-spinner diameter="20" *ngIf="editSubmitting"></mat-spinner>
+                <span *ngIf="!editSubmitting">
+                  <mat-icon>save</mat-icon> Enregistrer
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ✅ Comparaison -->
+        <div *ngIf="showComparison" class="comparison-section">
+          <mat-divider></mat-divider>
+          <h3>📊 Comparaison des simulations</h3>
+          <div class="comparison-result" [innerHTML]="comparisonResult"></div>
+          <button mat-stroked-button (click)="closeComparison()" class="close-compare-btn">
+            <mat-icon>close</mat-icon> Fermer
           </button>
         </div>
+
       </div>
 
       <!-- Pas de résultats -->

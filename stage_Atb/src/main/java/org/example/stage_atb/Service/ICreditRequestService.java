@@ -63,4 +63,8 @@ public interface ICreditRequestService {
      * ✅ Récupérer une demande de crédit par ID (entité)
      */
     CreditRequest getCreditRequestEntityById(String id);
+
+    CreditResponseDTO cancelCreditRequest(String id);
+
+
 }

@@ -213,7 +213,7 @@ public class DocumentService implements IDocumentService {
 
         return documentMapper.toResponseDTO(savedDocument);
     }
-    
+
     @Override
     public DocumentResponseDTO getDocumentById(String id) {
         Document document = getDocumentEntity(id);

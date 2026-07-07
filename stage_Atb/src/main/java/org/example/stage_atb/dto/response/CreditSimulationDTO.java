@@ -24,6 +24,8 @@ public class CreditSimulationDTO {
     private BigDecimal totalInterest;
     private BigDecimal totalPayment;
     private BigDecimal borrowingCapacity;
+    private BigDecimal debtRatio;
+    private Integer solvencyScore;
     private String simulationResults;
     private String comparisonResults;
     private String simulationName;

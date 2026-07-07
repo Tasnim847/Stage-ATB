@@ -237,4 +237,30 @@ public class CreditRequestController {
         }
     }
 
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<CreditResponseDTO> cancelCreditRequest(@PathVariable String id) {
+        // Vérifier que l'utilisateur est le propriétaire
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        CreditRequest creditRequest = creditRequestService.getCreditRequestEntityById(id);
+        if (creditRequest == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Vérifier que le client est le propriétaire
+        if (!creditRequest.getClient().getEmail().equals(userEmail)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Vérifier que la demande est en attente (PENDING_ANALYSIS ou UNDER_REVIEW)
+        if (creditRequest.getStatus() != CreditStatus.PENDING_ANALYSIS &&
+                creditRequest.getStatus() != CreditStatus.UNDER_REVIEW) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        CreditResponseDTO response = creditRequestService.cancelCreditRequest(id);
+        return ResponseEntity.ok(response);
+    }
+
 }

@@ -223,34 +223,31 @@ export class SidebarComponent {
   // ============================================
   // 5. MENU CLIENT
   // ============================================
+
   clientMenuItems: MenuItem[] = [
-    // Tableau de bord
+     // Tableau de bord
     { path: '/dashboard', icon: 'dashboard', label: 'Mon tableau de bord', badge: 0 },
-    
+  
     // Gestion du profil
     { path: '/profile', icon: 'person', label: 'Mon profil', badge: 0 },
     { path: '/profile/edit', icon: 'edit', label: 'Modifier mon profil', badge: 0 },
     { path: '/profile/password', icon: 'lock', label: 'Changer mot de passe', badge: 0 },
-    
+  
+    // ✅ SIMULATIONS - AJOUTER CETTE SECTION
+    { path: '/simulations', icon: 'calculate', label: 'Mes simulations', badge: 0 },
+    { path: '/simulation-new', icon: 'add', label: 'Nouvelle simulation', badge: 0 },
+  
     // Demandes de crédit
     { path: '/my-credits', icon: 'assignment', label: 'Mes demandes', badge: 2 },
-    { path: '/new-credit-request', icon: 'add', label: 'Nouvelle demande', badge: 0 },
-    { path: '/simulation', icon: 'calculate', label: 'Simuler un crédit', badge: 0 },
-    
+    { path: '/credit-requests/new', icon: 'add', label: 'Nouvelle demande', badge: 0 },
+  
     // Gestion documentaire
     { path: '/my-documents', icon: 'folder', label: 'Mes documents', badge: 0 },
     { path: '/my-documents/upload', icon: 'upload_file', label: 'Déposer un document', badge: 0 },
-    { path: '/my-documents/contracts', icon: 'description', label: 'Mes contrats', badge: 0 },
-    
-    // Suivi
-    { path: '/my-applications/status', icon: 'track_changes', label: 'Suivi des demandes', badge: 0 },
-    { path: '/my-applications/decisions', icon: 'gavel', label: 'Mes décisions', badge: 1 },
-    { path: '/my-applications/sign', icon: 'edit_note', label: 'Signature électronique', badge: 0 },
-    
+  
     // Notifications
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 3 }
   ];
-
   // ============================================
   // 6. MENU PAR DÉFAUT
   // ============================================

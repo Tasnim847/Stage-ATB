@@ -53,11 +53,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/clients/client-detail/client-detail.component')
           .then(m => m.ClientDetailComponent)
       },
-      {
-        path: 'credit-requests',
-        loadComponent: () => import('./features/credit-requests/credit-requests.component')
-          .then(m => m.CreditRequestsComponent)
-      },
       // ✅ Route pour les crédits du client (my-credits)
       {
         path: 'my-credits',
@@ -71,6 +66,26 @@ export const routes: Routes = [
           .then(m => m.AddCreditComponent)
       },
       // ✅ Route pour le résultat de la simulation - CORRIGÉ
+      {
+        path: 'simulation-result/:id',
+        loadComponent: () => import('./features/credits/client/simulation-result/simulation-result.component')
+          .then(m => m.SimulationResultComponent)
+      },
+      {
+        path: 'simulations',
+        loadComponent: () => import('./features/credits/client/simulation-list/simulation-list.component')
+          .then(m => m.SimulationListComponent)
+      },
+      {
+        path: 'simulation-edit/:id',
+        loadComponent: () => import('./features/credits/client/simulation-edit/simulation-edit.component')
+          .then(m => m.SimulationEditComponent)
+      },
+      {
+        path: 'simulation-new',
+        loadComponent: () => import('./features/credits/client/simulation-new/simulation-new.component')
+          .then(m => m.SimulationNewComponent)
+      },
       {
         path: 'simulation-result/:id',
         loadComponent: () => import('./features/credits/client/simulation-result/simulation-result.component')

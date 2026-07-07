@@ -23,7 +23,6 @@ public class CreditSimulation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    // ✅ Ajouter la relation avec CreditRequest
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credit_request_id")
     private CreditRequest creditRequest;
@@ -53,6 +52,10 @@ public class CreditSimulation {
     private BigDecimal totalPayment;
 
     private BigDecimal borrowingCapacity;
+
+    private BigDecimal debtRatio;
+
+    private Integer solvencyScore;
 
     @Column(columnDefinition = "TEXT")
     private String simulationResults;

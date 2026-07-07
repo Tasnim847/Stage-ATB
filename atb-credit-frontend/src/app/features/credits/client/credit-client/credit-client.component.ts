@@ -122,4 +122,29 @@ export class CreditClientComponent implements OnInit {
   isStatusSelected(status: CreditStatus | 'ALL'): boolean {
     return this.selectedStatus === status;
   }
+
+  // Vérifier si la demande peut être annulée
+canCancel(credit: CreditResponseDTO): boolean {
+  return credit.status === CreditStatus.PENDING_ANALYSIS || 
+         credit.status === CreditStatus.UNDER_REVIEW;
+}
+
+// Annuler une demande
+  cancelCredit(id: string): void {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette demande de crédit ?')) {
+      return;
+    }
+  
+    this.isLoading = true;
+    this.creditService.cancelCreditRequest(id).subscribe({
+      next: () => {
+        this.toastr.success('Demande annulée avec succès', 'Succès');
+        this.loadCredits(); // Recharger la liste
+      },
+      error: (error) => {
+        this.toastr.error(error.error?.message || 'Erreur lors de l\'annulation', 'Erreur');
+        this.isLoading = false;
+      }
+    });
+  }
 }

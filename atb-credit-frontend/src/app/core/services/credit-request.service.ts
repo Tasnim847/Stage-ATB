@@ -67,4 +67,11 @@ export class CreditRequestService {
   getAllCreditRequests(): Observable<CreditResponseDTO[]> {
     return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests`);
   }
+
+  /**
+    * Annuler une demande de crédit (si elle est en attente)
+  */
+  cancelCreditRequest(id: string): Observable<CreditResponseDTO> {
+    return this.http.patch<CreditResponseDTO>(`${this.apiUrl}/credit-requests/${id}/cancel`, {});
+  }
 }

@@ -35,6 +35,7 @@ public interface CreditRequestMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
     @Mapping(target = "approvalDate", ignore = true)
+    @Mapping(target = "creditSimulation", ignore = true)  // ✅ AJOUTER CETTE LIGNE
     CreditRequest toEntity(CreditRequestDTO creditRequestDTO,
                            @Context ClientRepository clientRepository,
                            @Context UserRepository userRepository);

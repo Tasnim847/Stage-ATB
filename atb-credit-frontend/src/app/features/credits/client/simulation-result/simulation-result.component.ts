@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // ✅ AJOUTER
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ToastrService } from 'ngx-toastr';
 import { CreditSimulationService } from '@core/services/credit-simulation.service';
 import { CreditSimulation } from '@app/core/models/credit-simulation.model';
@@ -17,6 +20,7 @@ import { CreditSimulation } from '@app/core/models/credit-simulation.model';
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     RouterModule,
     MatCardModule,
     MatButtonModule,
@@ -24,7 +28,9 @@ import { CreditSimulation } from '@app/core/models/credit-simulation.model';
     MatProgressBarModule,
     MatDividerModule,
     MatChipsModule,
-    MatProgressSpinnerModule // ✅ AJOUTER
+    MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './simulation-result.component.html',
   styleUrls: ['./simulation-result.component.css']
@@ -32,6 +38,7 @@ import { CreditSimulation } from '@app/core/models/credit-simulation.model';
 export class SimulationResultComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
   private simulationService = inject(CreditSimulationService);
   private toastr = inject(ToastrService);
 
@@ -52,14 +59,40 @@ export class SimulationResultComponent implements OnInit {
   recommandation: string = '';
   motifs: string[] = [];
 
+  // ✅ Gestion de l'édition
+  showEditForm: boolean = false;
+  editSubmitting: boolean = false;
+  editForm!: FormGroup;
+
+  // ✅ Gestion de la comparaison
+  showComparison: boolean = false;
+  comparisonResult: string = '';
+  selectedForComparison: string[] = [];
+
   ngOnInit(): void {
     this.creditRequestId = this.route.snapshot.paramMap.get('id');
     if (this.creditRequestId) {
       this.loadSimulation();
     } else {
-      this.toastr.error('ID de demande de crédit manquant', 'Erreur');
-      this.router.navigate(['/my-credits']);
+      // Si l'ID est un ID de simulation directe
+      const simulationId = this.route.snapshot.paramMap.get('id');
+      if (simulationId) {
+        this.loadSimulationById(simulationId);
+      } else {
+        this.toastr.error('ID de simulation manquant', 'Erreur');
+        this.router.navigate(['/my-credits']);
+      }
     }
+    this.initEditForm();
+  }
+
+  initEditForm(): void {
+    this.editForm = this.fb.group({
+      amount: ['', [Validators.required, Validators.min(100)]],
+      durationMonths: ['', [Validators.required, Validators.min(1), Validators.max(120)]],
+      interestRate: ['', [Validators.required, Validators.min(0.1), Validators.max(20)]],
+      simulationName: ['']
+    });
   }
 
   loadSimulation(): void {
@@ -68,6 +101,7 @@ export class SimulationResultComponent implements OnInit {
       next: (simulation) => {
         this.simulation = simulation;
         this.calculateResults();
+        this.populateEditForm();
         this.isLoading = false;
       },
       error: (error) => {
@@ -79,73 +113,73 @@ export class SimulationResultComponent implements OnInit {
     });
   }
 
+  loadSimulationById(id: string): void {
+    this.isLoading = true;
+    this.simulationService.getSimulationById(id).subscribe({
+      next: (simulation) => {
+        this.simulation = simulation;
+        this.calculateResults();
+        this.populateEditForm();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur chargement simulation:', error);
+        this.toastr.error('Erreur lors du chargement de la simulation', 'Erreur');
+        this.isLoading = false;
+        this.router.navigate(['/my-credits']);
+      }
+    });
+  }
+
+  populateEditForm(): void {
+    if (this.simulation) {
+      this.editForm.patchValue({
+        amount: this.simulation.amount,
+        durationMonths: this.simulation.durationMonths,
+        interestRate: this.simulation.interestRate,
+        simulationName: this.simulation.simulationName || ''
+      });
+    }
+  }
+
   calculateResults(): void {
     if (!this.simulation) return;
 
-    // Revenus mensuels (estimation basée sur le salaire)
-    this.revenusMensuels = 3700;
+    // Utiliser les données de la simulation si disponibles
+    this.revenusMensuels = 3700; // À remplacer par les vraies données
+    this.chargesMensuelles = 1200; // À remplacer par les vraies données
 
-    // Charges mensuelles
-    this.chargesMensuelles = 1200;
-
-    // Taux d'endettement actuel
     this.tauxEndettement = Math.round((this.chargesMensuelles / this.revenusMensuels) * 100);
-
-    // Reste à vivre
     this.resteAVivre = this.revenusMensuels - this.chargesMensuelles;
-
-    // Mensualité
     this.mensualite = this.simulation.monthlyPayment;
 
-    // Nouveau taux d'endettement
     const nouvellesCharges = this.chargesMensuelles + this.mensualite;
     this.nouveauTauxEndettement = Math.round((nouvellesCharges / this.revenusMensuels) * 100);
 
-    // Score de solvabilité
     this.scoreSolvabilite = this.calculateScoreSolvabilite();
-
-    // Risque IA
     this.risqueIA = this.calculateRisqueIA();
-
-    // Décision et recommandation
     this.generateDecision();
   }
 
   calculateScoreSolvabilite(): number {
     let score = 0;
-
-    if (this.revenusMensuels >= 3000) {
-      score += 20;
-    } else if (this.revenusMensuels >= 2000) {
-      score += 15;
-    } else if (this.revenusMensuels >= 1000) {
-      score += 10;
-    } else {
-      score += 5;
-    }
+    if (this.revenusMensuels >= 3000) score += 20;
+    else if (this.revenusMensuels >= 2000) score += 15;
+    else if (this.revenusMensuels >= 1000) score += 10;
+    else score += 5;
 
     score += 15; // CDI
     score += 10; // Ancienneté > 2 ans
 
-    if (this.tauxEndettement < 35) {
-      score += 25;
-    } else if (this.tauxEndettement < 45) {
-      score += 15;
-    } else {
-      score += 5;
-    }
+    if (this.tauxEndettement < 35) score += 25;
+    else if (this.tauxEndettement < 45) score += 15;
+    else score += 5;
 
-    if (this.nouveauTauxEndettement < 35) {
-      score += 5;
-    } else if (this.nouveauTauxEndettement < 45) {
-      score += 3;
-    }
+    if (this.nouveauTauxEndettement < 35) score += 5;
+    else if (this.nouveauTauxEndettement < 45) score += 3;
 
-    if (this.resteAVivre > 2000) {
-      score += 10;
-    } else if (this.resteAVivre > 1000) {
-      score += 5;
-    }
+    if (this.resteAVivre > 2000) score += 10;
+    else if (this.resteAVivre > 1000) score += 5;
 
     return Math.min(score, 100);
   }
@@ -153,29 +187,17 @@ export class SimulationResultComponent implements OnInit {
   calculateRisqueIA(): number {
     let risque = 0;
 
-    if (this.tauxEndettement < 35) {
-      risque += 10;
-    } else if (this.tauxEndettement < 45) {
-      risque += 30;
-    } else {
-      risque += 50;
-    }
+    if (this.tauxEndettement < 35) risque += 10;
+    else if (this.tauxEndettement < 45) risque += 30;
+    else risque += 50;
 
-    if (this.scoreSolvabilite >= 80) {
-      risque += 5;
-    } else if (this.scoreSolvabilite >= 60) {
-      risque += 20;
-    } else {
-      risque += 35;
-    }
+    if (this.scoreSolvabilite >= 80) risque += 5;
+    else if (this.scoreSolvabilite >= 60) risque += 20;
+    else risque += 35;
 
-    if (this.resteAVivre > 2000) {
-      risque += 5;
-    } else if (this.resteAVivre > 1000) {
-      risque += 15;
-    } else {
-      risque += 25;
-    }
+    if (this.resteAVivre > 2000) risque += 5;
+    else if (this.resteAVivre > 1000) risque += 15;
+    else risque += 25;
 
     return Math.min(Math.round(risque), 100);
   }
@@ -215,6 +237,148 @@ export class SimulationResultComponent implements OnInit {
       if (!risqueOk) this.motifs.push('❌ Risque élevé');
     }
   }
+
+  // ============================================================
+  // ✅ MÉTHODES UPDATE
+  // ============================================================
+
+  editSimulation(): void {
+    this.showEditForm = !this.showEditForm;
+    if (this.showEditForm) {
+      this.populateEditForm();
+    }
+  }
+
+  saveEdit(): void {
+    if (!this.editForm.valid || !this.simulation) {
+      this.toastr.error('Veuillez corriger les erreurs du formulaire', 'Erreur');
+      return;
+    }
+
+    this.editSubmitting = true;
+    const data = this.editForm.value;
+
+    this.simulationService.updateSimulation(this.simulation.id, {
+      amount: data.amount,
+      durationMonths: data.durationMonths,
+      interestRate: data.interestRate
+    }).subscribe({
+      next: (updated) => {
+        // Mettre à jour le nom si changé
+        if (data.simulationName && data.simulationName !== this.simulation?.simulationName) {
+          this.simulationService.updateSimulationName(this.simulation!.id, data.simulationName)
+            .subscribe({
+              next: () => {
+                this.toastr.success('Simulation mise à jour avec succès', 'Succès');
+                this.showEditForm = false;
+                this.editSubmitting = false;
+                this.reloadSimulation();
+              },
+              error: () => {
+                this.toastr.success('Simulation mise à jour (nom inchangé)', 'Succès');
+                this.showEditForm = false;
+                this.editSubmitting = false;
+                this.reloadSimulation();
+              }
+            });
+        } else {
+          this.toastr.success('Simulation mise à jour avec succès', 'Succès');
+          this.showEditForm = false;
+          this.editSubmitting = false;
+          this.reloadSimulation();
+        }
+      },
+      error: (error) => {
+        this.toastr.error('Erreur lors de la mise à jour', 'Erreur');
+        this.editSubmitting = false;
+      }
+    });
+  }
+
+  cancelEdit(): void {
+    this.showEditForm = false;
+    this.populateEditForm();
+  }
+
+  reloadSimulation(): void {
+    if (this.simulation) {
+      this.simulationService.getSimulationById(this.simulation.id).subscribe({
+        next: (simulation) => {
+          this.simulation = simulation;
+          this.calculateResults();
+          this.populateEditForm();
+        },
+        error: (error) => {
+          this.toastr.error('Erreur lors du rechargement', 'Erreur');
+        }
+      });
+    }
+  }
+
+  // ============================================================
+  // 🗑️ MÉTHODES DELETE
+  // ============================================================
+
+  deleteSimulation(): void {
+    if (!this.simulation) return;
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette simulation ? Cette action est irréversible.')) {
+      return;
+    }
+    
+    this.isLoading = true;
+    this.simulationService.deleteSimulation(this.simulation.id).subscribe({
+      next: () => {
+        this.toastr.success('Simulation supprimée avec succès', 'Succès');
+        this.isLoading = false;
+        this.router.navigate(['/simulations']);
+      },
+      error: (error) => {
+        this.toastr.error('Erreur lors de la suppression', 'Erreur');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  // ============================================================
+  // 📊 MÉTHODES COMPARAISON
+  // ============================================================
+
+  compareWith(compareId: string): void {
+    if (!this.simulation) return;
+    
+    const index = this.selectedForComparison.indexOf(compareId);
+    if (index === -1) {
+      this.selectedForComparison.push(compareId);
+      this.toastr.info('Simulation ajoutée à la comparaison');
+    } else {
+      this.selectedForComparison.splice(index, 1);
+      this.toastr.info('Simulation retirée de la comparaison');
+    }
+
+    if (this.selectedForComparison.length >= 2) {
+      this.simulationService.compareSimulations(this.selectedForComparison).subscribe({
+        next: (result) => {
+          this.comparisonResult = result;
+          this.showComparison = true;
+          this.selectedForComparison = [];
+          this.toastr.success('Comparaison terminée', 'Succès');
+        },
+        error: (error) => {
+          this.toastr.error('Erreur lors de la comparaison', 'Erreur');
+        }
+      });
+    }
+  }
+
+  closeComparison(): void {
+    this.showComparison = false;
+    this.comparisonResult = '';
+  }
+
+  // ============================================================
+  // 🎨 MÉTHODES D'AFFICHAGE
+  // ============================================================
 
   getDecisionClass(): string {
     if (this.decision === 'approuve') return 'approved';
@@ -263,6 +427,7 @@ export class SimulationResultComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/my-credits']);
+    // Retourner à la page précédente ou à la liste des simulations
+    this.router.navigate(['/simulations']);
   }
 }

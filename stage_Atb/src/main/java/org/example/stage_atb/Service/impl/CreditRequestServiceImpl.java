@@ -241,4 +241,32 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         return creditRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
     }
+
+
+    @Override
+    public CreditResponseDTO cancelCreditRequest(String id) {
+        CreditRequest creditRequest = creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Demande non trouvée"));
+
+        // Vérifier que la demande est en attente
+        if (creditRequest.getStatus() != CreditStatus.PENDING_ANALYSIS &&
+                creditRequest.getStatus() != CreditStatus.UNDER_REVIEW) {
+            throw new IllegalStateException("Seules les demandes en attente peuvent être annulées");
+        }
+
+        creditRequest.setStatus(CreditStatus.CANCELLED);
+        creditRequest.setRejectionReason("Annulé par le client");
+        creditRequest.setUpdatedAt(LocalDateTime.now());
+
+        CreditRequest saved = creditRequestRepository.save(creditRequest);
+
+        // ✅ UTILISER LE MAPPER AU LIEU DE convertToDTO
+        return creditRequestMapper.toResponseDTO(saved);
+    }
+
+    // ✅ AJOUTER CETTE MÉTHODE SI ELLE MANQUE
+    private CreditResponseDTO convertToDTO(CreditRequest creditRequest) {
+        return creditRequestMapper.toResponseDTO(creditRequest);
+    }
+
 }
