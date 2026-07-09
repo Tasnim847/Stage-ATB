@@ -1,4 +1,4 @@
-// core/models/user-management.model.ts
+// core/models/user-management.model.ts - MODIFIÉ
 import { UserRole } from './user.model';
 
 export interface UserCreateRequest {
@@ -9,6 +9,12 @@ export interface UserCreateRequest {
   lastName: string;
   phoneNumber?: string;
   role: UserRole | string;
+  // ✅ AJOUTER CES CHAMPS
+  department?: string;
+  position?: string;
+  address?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface UserUpdateRequest {
@@ -35,4 +41,10 @@ export interface UserResponseDTO {
   createdAt: string;
   totalCreditRequests: number;
   totalNotifications: number;
+  // ✅ AJOUTER CES CHAMPS OPTIONNELS
+  department?: string;
+  position?: string;
+  address?: string;
+  city?: string;
+  country?: string;
 }

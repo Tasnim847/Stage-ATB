@@ -6,7 +6,13 @@
         <mat-icon>upload</mat-icon>
         Télécharger un document
       </h1>
-      <p class="subtitle">Ajoutez un nouveau document à la plateforme</p>
+      <p class="subtitle" *ngIf="!isPreFilled()">Ajoutez un nouveau document à la plateforme</p>
+      <p class="subtitle" *ngIf="isPreFilled()">
+        <span class="prefilled-badge">
+          <mat-icon>info</mat-icon>
+          Document pour la demande de crédit sélectionnée
+        </span>
+      </p>
     </div>
     <div class="header-actions">
       <button mat-stroked-button (click)="cancel()">
@@ -18,13 +24,22 @@
 
   <mat-card class="upload-card">
     <mat-card-content>
+      <!-- ✅ Message d'information pour pré-remplissage -->
+      <div class="prefill-info" *ngIf="isPreFilled()">
+        <mat-icon>check_circle</mat-icon>
+        <div>
+          <strong>Formulaire pré-rempli</strong>
+          <p>Les informations du client et de la demande de crédit ont été automatiquement sélectionnées.</p>
+        </div>
+      </div>
+
       <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
         <div class="form-grid">
           <!-- Client - Sélection avec recherche -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Sélectionner un client <span class="required">*</span></mat-label>
             <mat-select formControlName="clientId" 
-                        [disabled]="loadingClients"
+                        [disabled]="loadingClients || !!preSelectedClientId"
                         placeholder="Rechercher un client...">
               <mat-option>
                 <ngx-mat-select-search 
@@ -58,17 +73,17 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Demande de crédit</mat-label>
             <mat-select formControlName="creditRequestId" 
-                        [disabled]="!selectedClientId || loadingCredits">
+                        [disabled]="!selectedClientId || loadingCredits || !!preSelectedCreditRequestId">
               <mat-option value="">Aucune demande de crédit</mat-option>
               <mat-option *ngFor="let credit of clientCreditRequests" [value]="credit.id">
                 <div class="credit-option">
                   <mat-icon>credit_card</mat-icon>
                   <div class="credit-info">
                     <span class="credit-number">#{{ credit.requestNumber || credit.id.substring(0, 8) }}</span>
-                    <span class="credit-amount">{{ credit.amount }} €</span>
+                    <span class="credit-amount">{{ credit.amount }} {{ credit.currency || 'XOF' }}</span>
                   </div>
-                  <span class="credit-status" [class]="credit.status.toLowerCase()">
-                    {{ credit.status }}
+                  <span class="credit-status" [class]="credit.status.toLowerCase().replace('_', '-')">
+                    {{ getCreditDisplayName(credit) }}
                   </span>
                 </div>
               </mat-option>
@@ -148,7 +163,7 @@
             Annuler
           </button>
           <button type="submit" mat-raised-button color="primary" 
-                  [disabled]="uploading || !selectedFile">
+                  [disabled]="uploading || !selectedFile || uploadForm.invalid">
             <mat-icon *ngIf="uploading" class="spinner">refresh</mat-icon>
             <mat-icon *ngIf="!uploading">upload</mat-icon>
             {{ uploading ? 'Téléchargement...' : 'Télécharger' }}

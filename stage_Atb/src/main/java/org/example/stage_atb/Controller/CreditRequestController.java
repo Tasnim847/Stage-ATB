@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/credit-requests")
@@ -263,4 +265,122 @@ public class CreditRequestController {
         return ResponseEntity.ok(response);
     }
 
+
+    // CreditRequestController.java - Ajouter/Modifier ces méthodes
+
+    /**
+     * ✅ Récupérer les demandes de crédit d'un conseiller (ses clients)
+     */
+    @GetMapping("/advisor/my-clients")
+    public ResponseEntity<List<CreditResponseDTO>> getCreditRequestsForAdvisor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Getting credit requests for advisor: {}", email);
+
+        List<CreditResponseDTO> requests = creditRequestService.getCreditRequestsByAdvisorEmail(email);
+        return ResponseEntity.ok(requests);
+    }
+
+    /**
+     * ✅ Récupérer les demandes de crédit d'un conseiller par statut
+     */
+    @GetMapping("/advisor/my-clients/status/{status}")
+    public ResponseEntity<List<CreditResponseDTO>> getCreditRequestsForAdvisorByStatus(
+            @PathVariable CreditStatus status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Getting credit requests for advisor: {} with status: {}", email, status);
+
+        List<CreditResponseDTO> requests = creditRequestService.getCreditRequestsByAdvisorAndStatus(email, status);
+        return ResponseEntity.ok(requests);
+    }
+
+    /**
+     * ✅ Compter les demandes de crédit d'un conseiller
+     */
+    @GetMapping("/advisor/my-clients/count")
+    public ResponseEntity<Long> countCreditRequestsForAdvisor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        long count = creditRequestService.countCreditRequestsByAdvisor(email);
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * ✅ Transmettre une demande à l'analyste (conseiller)
+     */
+    @PatchMapping("/{id}/transmit-to-analyst")
+    public ResponseEntity<CreditResponseDTO> transmitToAnalyst(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, String> payload) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Transmitting credit request {} to analyst by advisor: {}", id, email);
+
+        // Vérifier que le conseiller est le propriétaire
+        if (!creditRequestService.isAdvisorOwnerOfCreditRequest(email, id)) {
+            log.warn("Advisor {} is not owner of credit request {}", email, id);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String notes = payload != null ? payload.get("notes") : null;
+        boolean force = payload != null && "true".equals(payload.get("force"));
+
+        try {
+            CreditResponseDTO response = creditRequestService.transmitToAnalyst(id, notes, force);
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            log.error("Error transmitting credit request: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    /**
+     * ✅ Vérifier si une demande peut être transmise
+     */
+    @GetMapping("/{id}/can-transmit")
+    public ResponseEntity<Map<String, Object>> canTransmitToAnalyst(@PathVariable String id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // Vérifier que le conseiller est le propriétaire
+        if (!creditRequestService.isAdvisorOwnerOfCreditRequest(email, id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        boolean canTransmit = creditRequestService.canTransmitToAnalyst(id);
+        List<String> missingDocuments = creditRequestService.getMissingDocumentsForTransmission(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("canTransmit", canTransmit);
+        response.put("missingDocuments", missingDocuments);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * ✅ Annuler une demande par le conseiller
+     */
+    @PatchMapping("/{id}/cancel-by-advisor")
+    public ResponseEntity<CreditResponseDTO> cancelCreditRequestByAdvisor(
+            @PathVariable String id,
+            @RequestBody(required = false) Map<String, String> payload) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // Vérifier que le conseiller est le propriétaire
+        if (!creditRequestService.isAdvisorOwnerOfCreditRequest(email, id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String reason = payload != null ? payload.get("reason") : null;
+        CreditResponseDTO response = creditRequestService.cancelCreditRequestByAdvisor(id, reason);
+        return ResponseEntity.ok(response);
+    }
 }

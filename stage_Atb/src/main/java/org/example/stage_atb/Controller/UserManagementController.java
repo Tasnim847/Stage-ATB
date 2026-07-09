@@ -1,4 +1,5 @@
-// Controller/UserManagementController.java
+// Controller/UserManagementController.java - VERSION COMPLÈTE CORRIGÉE
+
 package org.example.stage_atb.Controller;
 
 import jakarta.validation.Valid;
@@ -11,8 +12,6 @@ import org.example.stage_atb.dto.request.ClientRegisterRequest;
 import org.example.stage_atb.dto.request.EmployeeRegisterRequest;
 import org.example.stage_atb.dto.request.UserCreateRequest;
 import org.example.stage_atb.dto.request.UserUpdateRequest;
-import org.example.stage_atb.dto.response.ClientResponseDTO;
-import org.example.stage_atb.dto.response.EmployeeResponseDTO;
 import org.example.stage_atb.dto.response.UserResponseDTO;
 import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.Employee;
@@ -27,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -40,6 +38,46 @@ public class UserManagementController {
     private final IClientService clientService;
     private final IEmployeeService employeeService;
     private final PasswordEncoder passwordEncoder;
+
+    // ============================================
+    // CRÉATION DES ENTITÉS ASSOCIÉES
+    // ============================================
+
+    /**
+     * Créer un employé à partir d'un utilisateur
+     */
+    private void createEmployeeFromUser(User user, UserCreateRequest request) {
+        // ✅ Générer le numéro d'employé
+        String employeeNumber = generateEmployeeNumber();
+        log.info("📝 Création d'un employé avec le numéro: {}", employeeNumber);
+
+        // ✅ Créer le DTO avec le numéro d'employé
+        EmployeeRegisterRequest employeeRequest = convertToEmployeeRegisterRequest(request, employeeNumber);
+
+        // ✅ Appeler le service
+        employeeService.createEmployeeFromUser(user, employeeRequest);
+        log.info("✅ Employé créé pour l'utilisateur: {}", user.getEmail());
+    }
+
+    /**
+     * Créer un client à partir d'un utilisateur
+     */
+    private void createClientFromUser(User user, UserCreateRequest request) {
+        // ✅ Générer le numéro de client
+        String clientNumber = generateClientNumber();
+        log.info("📝 Création d'un client avec le numéro: {}", clientNumber);
+
+        // ✅ Créer le DTO
+        ClientRegisterRequest clientRequest = convertToClientRegisterRequest(request);
+
+        // ✅ Appeler le service
+        clientService.createClientFromUser(user, clientRequest);
+        log.info("✅ Client créé pour l'utilisateur: {}", user.getEmail());
+    }
+
+    // ============================================
+    // ENDPOINTS
+    // ============================================
 
     /**
      * Récupérer tous les utilisateurs
@@ -99,13 +137,9 @@ public class UserManagementController {
 
             // 2. Créer l'entité associée selon le rôle
             if (request.getRole() == UserRole.CLIENT) {
-                // ✅ CRÉER UN CLIENT
                 createClientFromUser(savedUser, request);
-                log.info("✅ Client créé pour l'utilisateur: {}", savedUser.getEmail());
             } else {
-                // ✅ CRÉER UN EMPLOYÉ
                 createEmployeeFromUser(savedUser, request);
-                log.info("✅ Employé créé pour l'utilisateur: {}", savedUser.getEmail());
             }
 
             UserResponseDTO response = userService.getUserById(savedUser.getId());
@@ -119,45 +153,6 @@ public class UserManagementController {
     }
 
     /**
-     * Créer un client à partir d'un utilisateur
-     */
-    private void createClientFromUser(User user, UserCreateRequest request) {
-        Client client = Client.builder()
-                .clientNumber(generateClientNumber())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .active(true)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        clientService.createClientFromUser(user, convertToClientRegisterRequest(request));
-    }
-
-    /**
-     * Créer un employé à partir d'un utilisateur
-     */
-    private void createEmployeeFromUser(User user, UserCreateRequest request) {
-        Employee employee = Employee.builder()
-                .employeeNumber(generateEmployeeNumber())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .role(user.getRole())
-                .department("Non défini")
-                .position("Non défini")
-                .hireDate(LocalDate.now())
-                .user(user)
-                .active(true)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        employeeService.createEmployeeFromUser(user, convertToEmployeeRegisterRequest(request));
-    }
-
-    /**
      * Modifier un utilisateur
      */
     @PutMapping("/{id}")
@@ -168,7 +163,6 @@ public class UserManagementController {
         try {
             User user = userService.getUserEntityById(id);
 
-            // Mettre à jour les informations
             if (request.getUsername() != null) user.setUsername(request.getUsername());
             if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
             if (request.getLastName() != null) user.setLastName(request.getLastName());
@@ -233,7 +227,6 @@ public class UserManagementController {
         log.info("🔑 Réinitialisation du mot de passe pour: {}", id);
         try {
             User user = userService.getUserEntityById(id);
-            // Mot de passe par défaut: "ATB2024!"
             user.setPassword(passwordEncoder.encode("ATB2024!"));
             userService.createUser(user);
             log.info("✅ Mot de passe réinitialisé pour: {}", id);
@@ -280,38 +273,55 @@ public class UserManagementController {
         }
     }
 
-    // ========== MÉTHODES UTILITAIRES ==========
-
-    private String generateClientNumber() {
-        return "CLT-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
-    }
+    // ============================================
+    // MÉTHODES UTILITAIRES
+    // ============================================
 
     private String generateEmployeeNumber() {
-        return "EMP-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
+        return "EMP-" + System.currentTimeMillis() + "-" + String.format("%04d", (int)(Math.random() * 10000));
     }
 
+    private String generateClientNumber() {
+        return "CLT-" + System.currentTimeMillis() + "-" + String.format("%04d", (int)(Math.random() * 10000));
+    }
+
+    /**
+     * ✅ Convertir UserCreateRequest en ClientRegisterRequest
+     */
     private ClientRegisterRequest convertToClientRegisterRequest(UserCreateRequest request) {
-        ClientRegisterRequest clientRequest = new ClientRegisterRequest();
-        clientRequest.setUsername(request.getUsername());
-        clientRequest.setEmail(request.getEmail());
-        clientRequest.setPassword(request.getPassword());
-        clientRequest.setFirstName(request.getFirstName());
-        clientRequest.setLastName(request.getLastName());
-        clientRequest.setPhoneNumber(request.getPhoneNumber());
-        return clientRequest;
+        return ClientRegisterRequest.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phoneNumber(request.getPhoneNumber())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .build();
     }
 
-    private EmployeeRegisterRequest convertToEmployeeRegisterRequest(UserCreateRequest request) {
-        EmployeeRegisterRequest employeeRequest = new EmployeeRegisterRequest();
-        employeeRequest.setUsername(request.getUsername());
-        employeeRequest.setEmail(request.getEmail());
-        employeeRequest.setPassword(request.getPassword());
-        employeeRequest.setFirstName(request.getFirstName());
-        employeeRequest.setLastName(request.getLastName());
-        employeeRequest.setPhoneNumber(request.getPhoneNumber());
-        employeeRequest.setRole(request.getRole());
-        employeeRequest.setDepartment("Non défini");
-        employeeRequest.setPosition("Non défini");
-        return employeeRequest;
+    /**
+     * ✅ Convertir UserCreateRequest en EmployeeRegisterRequest avec numéro d'employé
+     */
+    private EmployeeRegisterRequest convertToEmployeeRegisterRequest(UserCreateRequest request, String employeeNumber) {
+        log.info("📝 Conversion en EmployeeRegisterRequest avec numéro: {}", employeeNumber);
+
+        return EmployeeRegisterRequest.builder()
+                .employeeNumber(employeeNumber) // ✅ NUMÉRO D'EMPLOYÉ GÉNÉRÉ
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phoneNumber(request.getPhoneNumber())
+                .role(request.getRole())
+                .department(request.getDepartment() != null ? request.getDepartment() : "Non défini")
+                .position(request.getPosition() != null ? request.getPosition() : "Non défini")
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .build();
     }
 }

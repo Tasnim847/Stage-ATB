@@ -1,0 +1,333 @@
+<div class="credit-request-detail-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <button mat-icon-button class="back-btn" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>Détail de la demande</h1>
+        <p class="subtitle">{{ creditRequest?.requestNumber }}</p>
+      </div>
+    </div>
+    <div class="header-right" *ngIf="creditRequest">
+      <button mat-stroked-button class="btn-edit" (click)="editRequest()" *ngIf="canEdit()">
+        <mat-icon>edit</mat-icon>
+        Modifier
+      </button>
+      <button mat-stroked-button class="btn-cancel" (click)="cancelRequest()" *ngIf="canCancel()" [disabled]="isProcessing">
+        <mat-icon>{{ isProcessing ? 'hourglass_empty' : 'cancel' }}</mat-icon>
+        {{ isProcessing ? 'Annulation...' : 'Annuler' }}
+      </button>
+      <button mat-stroked-button class="btn-delete" (click)="deleteRequest()">
+        <mat-icon>delete</mat-icon>
+        Supprimer
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des informations...</span>
+  </div>
+
+  <!-- Contenu -->
+  <div *ngIf="!isLoading && creditRequest">
+    <!-- En-tête avec statut -->
+    <mat-card class="status-header-card">
+      <mat-card-content>
+        <div class="status-header">
+          <div class="status-info">
+            <div class="status-icon-wrapper" [style.background]="getStatusColor(creditRequest.status) + '20'">
+              <mat-icon [style.color]="getStatusColor(creditRequest.status)">{{ getStatusIcon(creditRequest.status) }}</mat-icon>
+            </div>
+            <span class="status-label">Statut:</span>
+            <mat-chip [class]="getStatusChipClass(creditRequest.status)" selected>
+              <mat-icon class="chip-icon">{{ getStatusIcon(creditRequest.status) }}</mat-icon>
+              {{ getStatusLabel(creditRequest.status) }}
+            </mat-chip>
+          </div>
+          <div class="date-info">
+            <mat-icon>calendar_today</mat-icon>
+            <span>Créée le <strong>{{ formatDate(creditRequest.createdAt) }}</strong></span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Onglets -->
+    <mat-tab-group class="detail-tabs" animationDuration="200ms">
+      
+      <!-- Onglet: Informations générales -->
+      <mat-tab label="📋 Informations">
+        <div class="tab-content">
+          <!-- Section Client -->
+          <div class="info-section client-section">
+            <div class="section-header">
+              <mat-icon>person</mat-icon>
+              <h3>Informations client</h3>
+            </div>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Nom complet</span>
+                <span class="value">{{ creditRequest.clientName }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Email</span>
+                <span class="value">{{ creditRequest.clientEmail }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">ID Client</span>
+                <span class="value">{{ creditRequest.clientId }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Analyste</span>
+                <span class="value analyst-name">{{ creditRequest.analystName || 'Non assigné' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section Crédit -->
+          <div class="info-section credit-section">
+            <div class="section-header">
+              <mat-icon>credit_card</mat-icon>
+              <h3>Détails du crédit</h3>
+            </div>
+            <div class="info-grid">
+              <div class="info-item highlight-item">
+                <span class="label">Montant</span>
+                <span class="value highlight">{{ formatCurrency(creditRequest.amount) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Devise</span>
+                <span class="value">{{ creditRequest.currency }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Durée</span>
+                <span class="value">{{ creditRequest.durationMonths }} mois</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Taux d'intérêt</span>
+                <span class="value">{{ creditRequest.interestRate }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Mensualité</span>
+                <span class="value monthly-payment">{{ formatCurrency(creditRequest.monthlyPayment) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Objet du crédit -->
+          <div class="info-section purpose-section">
+            <div class="section-header">
+              <mat-icon>description</mat-icon>
+              <h3>Objet du crédit</h3>
+            </div>
+            <div class="purpose-content">
+              <p>{{ creditRequest.loanPurpose || 'Non spécifié' }}</p>
+            </div>
+          </div>
+
+          <!-- Date de décaissement -->
+          <div class="info-section disbursement-section" *ngIf="creditRequest.expectedDisbursementDate">
+            <div class="section-header">
+              <mat-icon>event</mat-icon>
+              <h3>Date de décaissement prévue</h3>
+            </div>
+            <div class="purpose-content">
+              <p>{{ formatDate(creditRequest.expectedDisbursementDate) }}</p>
+            </div>
+          </div>
+
+          <!-- Décision -->
+          <div class="info-section decision-section" *ngIf="creditRequest.status === 'APPROVED' || creditRequest.status === 'REJECTED'">
+            <div class="section-header" [class.approved]="creditRequest.status === 'APPROVED'" [class.rejected]="creditRequest.status === 'REJECTED'">
+              <mat-icon>{{ creditRequest.status === 'APPROVED' ? 'check_circle' : 'cancel' }}</mat-icon>
+              <h3>Décision</h3>
+            </div>
+            <div class="info-grid small-grid">
+              <div class="info-item">
+                <span class="label">Recommandation</span>
+                <span class="value">{{ creditRequest.decisionRecommendation || 'Non spécifiée' }}</span>
+              </div>
+              <div class="info-item" *ngIf="creditRequest.approvalDate">
+                <span class="label">Date d'approbation</span>
+                <span class="value">{{ formatDate(creditRequest.approvalDate) }}</span>
+              </div>
+              <div class="info-item" *ngIf="creditRequest.rejectionReason">
+                <span class="label">Motif du refus</span>
+                <span class="value rejection-reason">{{ creditRequest.rejectionReason }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analyse des risques -->
+          <div class="info-section risk-section" *ngIf="creditRequest.riskScore || creditRequest.riskLevel">
+            <div class="section-header">
+              <mat-icon>warning</mat-icon>
+              <h3>Analyse des risques</h3>
+            </div>
+            <div class="info-grid small-grid">
+              <div class="info-item risk-level-item">
+                <span class="label">Niveau de risque</span>
+                <span class="value risk-level" [style.color]="getRiskLevelColor(creditRequest.riskLevel)">
+                  <span class="risk-dot" [style.background]="getRiskLevelColor(creditRequest.riskLevel)"></span>
+                  {{ getRiskLevelLabel(creditRequest.riskLevel) }}
+                </span>
+              </div>
+              <div class="info-item" *ngIf="creditRequest.riskScore">
+                <span class="label">Score de risque</span>
+                <span class="value">{{ creditRequest.riskScore }}</span>
+              </div>
+              <div class="info-item" *ngIf="creditRequest.financialHealthScore">
+                <span class="label">Score de santé financière</span>
+                <span class="value">{{ creditRequest.financialHealthScore }}</span>
+              </div>
+              <div class="info-item" *ngIf="creditRequest.debtRatio">
+                <span class="label">Taux d'endettement</span>
+                <span class="value">{{ (creditRequest.debtRatio * 100).toFixed(1) + '%' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet: Documents -->
+      <mat-tab label="📄 Documents">
+        <div class="tab-content documents-tab">
+          <div class="documents-header">
+            <div class="documents-header-left">
+              <mat-icon>folder</mat-icon>
+              <h3>Documents associés</h3>
+              <span class="doc-count" *ngIf="documents.length > 0">{{ documents.length }} document(s)</span>
+            </div>
+            <button mat-raised-button class="btn-upload" 
+        [routerLink]="['/documents/upload']" 
+        [queryParams]="{creditRequestId: creditRequest.id, clientId: creditRequest.clientId}">
+  <mat-icon>upload</mat-icon>
+  Ajouter un document
+</button>
+          </div>
+
+          <div *ngIf="documents.length === 0" class="no-documents">
+            <div class="no-docs-icon">
+              <mat-icon>folder_open</mat-icon>
+            </div>
+            <p>Aucun document associé à cette demande</p>
+            <button mat-stroked-button class="btn-upload-first" [routerLink]="['/documents/upload']" [queryParams]="{creditRequestId: creditRequest.id}">
+              <mat-icon>upload</mat-icon>
+              Ajouter le premier document
+            </button>
+          </div>
+
+          <div class="document-list" *ngIf="documents.length > 0">
+            <div class="document-item" *ngFor="let doc of documents">
+              <div class="doc-icon" [style.background]="getDocumentStatusColor(doc.verified) + '20'">
+                <mat-icon [style.color]="getDocumentStatusColor(doc.verified)">description</mat-icon>
+              </div>
+              <div class="doc-info">
+                <div class="doc-name">{{ doc.fileName }}</div>
+                <div class="doc-meta">
+                  <span class="doc-type">
+                    <mat-icon>label</mat-icon>
+                    {{ doc.documentType }}
+                  </span>
+                  <span class="doc-date">
+                    <mat-icon>schedule</mat-icon>
+                    {{ formatDate(doc.uploadedAt) }}
+                  </span>
+                  <span class="doc-status" [style.color]="getDocumentStatusColor(doc.verified)">
+                    <mat-icon>{{ doc.verified ? 'check_circle' : 'pending' }}</mat-icon>
+                    {{ getDocumentStatusLabel(doc.verified) }}
+                  </span>
+                </div>
+              </div>
+              <div class="doc-actions">
+                <button mat-icon-button class="doc-action-btn" matTooltip="Télécharger">
+                  <mat-icon>download</mat-icon>
+                </button>
+                <button mat-icon-button class="doc-action-btn" matTooltip="Voir le détail" [routerLink]="['/documents/verify', doc.id]">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet: Historique -->
+      <mat-tab label="📜 Historique">
+        <div class="tab-content timeline-tab">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-icon">
+                <mat-icon>create</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>Création de la demande</h4>
+                <p>Demande créée le {{ formatDate(creditRequest.createdAt) }}</p>
+                <span class="timeline-status">Statut initial: {{ getStatusLabel(creditRequest.status) }}</span>
+              </div>
+            </div>
+
+            <div class="timeline-item" *ngIf="creditRequest.status !== 'DRAFT'">
+              <div class="timeline-icon">
+                <mat-icon>send</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>Transmission à l'analyste</h4>
+                <p>Demande transmise pour analyse</p>
+                <span class="timeline-status">Statut: En attente d'analyse</span>
+              </div>
+            </div>
+
+            <div class="timeline-item" *ngIf="creditRequest.status === 'UNDER_REVIEW'">
+              <div class="timeline-icon review">
+                <mat-icon>search</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>En cours d'analyse</h4>
+                <p>L'analyste examine actuellement le dossier</p>
+                <span class="timeline-status">Statut: En révision</span>
+              </div>
+            </div>
+
+            <div class="timeline-item" *ngIf="creditRequest.status === 'APPROVED'">
+              <div class="timeline-icon approved">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>Demande approuvée ✅</h4>
+                <p>Approuvée le {{ formatDate(creditRequest.approvalDate) }}</p>
+                <span class="timeline-status success">Décision: Approuvée</span>
+              </div>
+            </div>
+
+            <div class="timeline-item" *ngIf="creditRequest.status === 'REJECTED'">
+              <div class="timeline-icon rejected">
+                <mat-icon>cancel</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>Demande refusée ❌</h4>
+                <p>Motif: {{ creditRequest.rejectionReason || 'Non spécifié' }}</p>
+                <span class="timeline-status error">Décision: Refusée</span>
+              </div>
+            </div>
+
+            <div class="timeline-item" *ngIf="creditRequest.status === 'CANCELLED'">
+              <div class="timeline-icon cancelled">
+                <mat-icon>block</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <h4>Demande annulée</h4>
+                <p>Demande annulée</p>
+                <span class="timeline-status cancelled">Statut: Annulée</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</div>

@@ -74,4 +74,24 @@ export class CreditRequestService {
   cancelCreditRequest(id: string): Observable<CreditResponseDTO> {
     return this.http.patch<CreditResponseDTO>(`${this.apiUrl}/credit-requests/${id}/cancel`, {});
   }
+
+
+  /**
+    * Transmettre une demande de crédit à l'analyste
+  */
+  transmitToAnalyst(id: string, notes?: string): Observable<CreditResponseDTO> {
+    return this.http.patch<CreditResponseDTO>(
+      `${this.apiUrl}/credit-requests/${id}/transmit-to-analyst`,
+      { notes }
+    );
+  }
+
+  /**
+    * Vérifier si une demande peut être transmise
+  */
+  canTransmitToAnalyst(id: string): Observable<{ canTransmit: boolean; missingDocuments: string[] }> {
+    return this.http.get<{ canTransmit: boolean; missingDocuments: string[] }>(
+      `${this.apiUrl}/credit-requests/${id}/can-transmit`
+    );
+  }
 }

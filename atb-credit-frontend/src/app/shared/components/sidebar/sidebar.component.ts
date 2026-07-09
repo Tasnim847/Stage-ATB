@@ -150,28 +150,26 @@ export class SidebarComponent {
   advisorMenuItems: MenuItem[] = [
     // Tableau de bord
     { path: '/dashboard', icon: 'dashboard', label: 'Tableau de bord', badge: 0 },
-    
+  
     // Gestion des clients
     { path: '/clients', icon: 'people', label: 'Mes clients', badge: 0 },
     { path: '/clients/new', icon: 'person_add', label: 'Nouveau client', badge: 0 },
-    { path: '/clients/search', icon: 'search', label: 'Rechercher un client', badge: 0 },
-    
-    // Gestion des demandes
+  
+    // ✅ Gestion des demandes de crédit - CORRIGÉ
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     { path: '/credit-requests/new', icon: 'add', label: 'Nouvelle demande', badge: 0 },
-    
-    // Simulation
+  
+    // ✅ Simulation (accessible aussi pour le conseiller)
     { path: '/simulation', icon: 'calculate', label: 'Simulation de crédit', badge: 0 },
-    { path: '/simulation/compare', icon: 'compare_arrows', label: 'Comparer les offres', badge: 0 },
-    { path: '/simulation/print', icon: 'print', label: 'Imprimer la simulation', badge: 0 },
-    
-    // Communication
-    { path: '/communication/messages', icon: 'message', label: 'Messages', badge: 3 },
-    { path: '/communication/emails', icon: 'email', label: 'E-mails', badge: 0 },
-    { path: '/communication/notifications', icon: 'notifications', label: 'Notifications', badge: 4 },
-    
+  
     // KYC
-    { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 3 }
+    { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 3 },
+  
+    // Notifications
+    { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 4 },
+  
+    // Profil
+    { path: '/profile', icon: 'person', label: 'Mon profil', badge: 0 }
   ];
 
   // ============================================

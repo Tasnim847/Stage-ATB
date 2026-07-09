@@ -249,20 +249,39 @@ public class DocumentService implements IDocumentService {
                 .collect(Collectors.toList());
     }
 
+    // org.example.stage_atb.Service.impl.DocumentService.java
+
     @Override
     public List<DocumentResponseDTO> getAllDocuments() {
-        // Seuls les administrateurs et les analystes peuvent voir tous les documents
-        User currentUser = getCurrentUser();
-        if (!hasAdminOrAnalystRole(currentUser)) {
-            throw new UnauthorizedAccessException("Only administrators and analysts can view all documents");
+        log.info("Fetching all documents");
+        try {
+            // ✅ Récupérer l'utilisateur courant
+            User currentUser = getCurrentUser();
+            log.info("Current user role: {}", currentUser.getRole());
+
+            // ✅ Vérifier les permissions
+            if (!hasAdminOrAnalystRole(currentUser)) {
+                log.warn("User {} with role {} tried to access all documents",
+                        currentUser.getEmail(), currentUser.getRole());
+                throw new UnauthorizedAccessException("Only administrators and analysts can view all documents");
+            }
+
+            List<Document> documents = documentRepository.findAll();
+            log.info("Found {} documents", documents.size());
+
+            return documents.stream()
+                    .map(documentMapper::toResponseDTO)
+                    .collect(Collectors.toList());
+
+        } catch (ResourceNotFoundException | UnauthorizedAccessException e) {
+            log.error("Error fetching all documents: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error fetching all documents: {}", e.getMessage(), e);
+            throw new BusinessException("Error fetching documents: " + e.getMessage());
         }
-
-        List<Document> documents = documentRepository.findAll();
-        return documents.stream()
-                .map(documentMapper::toResponseDTO)
-                .collect(Collectors.toList());
     }
-
+    
     @Override
     public DocumentResponseDTO updateDocument(String id, DocumentUploadRequestDTO requestDTO) {
         log.info("Updating document with id: {}", id);
@@ -441,14 +460,30 @@ public class DocumentService implements IDocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
     }
 
+    // org.example.stage_atb.Service.impl.DocumentService.java
+
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedAccessException("User not authenticated");
         }
-        String username = authentication.getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+
+        String identifier = authentication.getName();
+        log.info("Current user identifier: {}", identifier);
+
+        // ✅ Essayer de trouver par email d'abord, puis par username
+        Optional<User> userOpt = userRepository.findByEmail(identifier);
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByUsername(identifier);
+        }
+
+        if (userOpt.isEmpty()) {
+            log.error("User not found with identifier: {}", identifier);
+            throw new ResourceNotFoundException("User not found: " + identifier);
+        }
+
+        log.info("User found: {} ({})", userOpt.get().getEmail(), userOpt.get().getRole());
+        return userOpt.get();
     }
 
     private void validateUploadPermissions(Client client) {

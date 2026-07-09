@@ -1,6 +1,7 @@
 package org.example.stage_atb.Service.impl;
 
 import org.example.stage_atb.Repositories.ClientRepository;
+import org.example.stage_atb.Repositories.CreditRequestRepository;
 import org.example.stage_atb.Repositories.UserRepository;
 import org.example.stage_atb.Service.ICreditRequestService;
 import org.example.stage_atb.Service.ICreditSimulationService;
@@ -12,8 +13,8 @@ import org.example.stage_atb.entity.CreditRequest;
 import org.example.stage_atb.entity.CreditSimulation;
 import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.CreditStatus;
+import org.example.stage_atb.enums.UserRole;
 import org.example.stage_atb.Mappers.CreditRequestMapper;
-import org.example.stage_atb.Repositories.CreditRequestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,10 +36,13 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
     private final CreditRequestRepository creditRequestRepository;
     private final CreditRequestMapper creditRequestMapper;
     private final IUserService userService;
-    private final ClientRepository clientRepository; // ✅ AJOUTER
-    private final UserRepository userRepository; // ✅ AJOUTER CETTE LIGNE
+    private final ClientRepository clientRepository;
+    private final UserRepository userRepository;
+    private final ICreditSimulationService creditSimulationService;
 
-    private final ICreditSimulationService creditSimulationService; // ✅ AJOUTER
+    // ============================================
+    // CRUD DE BASE
+    // ============================================
 
     @Override
     public CreditResponseDTO createCreditRequest(CreditRequestDTO creditRequestDTO) {
@@ -48,7 +53,7 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         CreditRequest creditRequest = creditRequestMapper.toEntity(
                 creditRequestDTO,
                 clientRepository,
-                userRepository // ✅ Assurez-vous d'avoir UserRepository injecté
+                userRepository
         );
         creditRequest.setUser(currentUser);
 
@@ -159,6 +164,10 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         log.info("Credit request deleted with id: {}", id);
     }
 
+    // ============================================
+    // STATISTIQUES
+    // ============================================
+
     @Override
     public BigDecimal getTotalAmountByStatus(CreditStatus status) {
         BigDecimal total = creditRequestRepository.sumAmountByStatus(status);
@@ -177,27 +186,23 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
     @Override
     public List<CreditResponseDTO> getHighRiskCreditRequests() {
-        // Récupérer les demandes avec risque élevé
-        // Cette méthode sera implémentée avec la logique de risque
         return creditRequestRepository.findByStatus(CreditStatus.PENDING_ANALYSIS)
                 .stream()
                 .map(creditRequestMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    // ============================================
+    // MÉTHODES POUR CLIENT (par email)
+    // ============================================
 
-    /**
-     * ✅ Récupérer les crédits d'un client par email
-     */
     @Override
     public List<CreditResponseDTO> getCreditRequestsByClientEmail(String email) {
         log.info("Getting credit requests for client email: {}", email);
 
-        // Récupérer le client par email
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Client not found with email: " + email));
 
-        // Récupérer les crédits du client
         List<CreditRequest> creditRequests = creditRequestRepository.findByClientId(client.getId());
 
         return creditRequests.stream()
@@ -205,9 +210,6 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * ✅ Récupérer les crédits d'un client par email et statut
-     */
     @Override
     public List<CreditResponseDTO> getCreditRequestsByClientEmailAndStatus(String email, CreditStatus status) {
         log.info("Getting credit requests for client email: {} and status: {}", email, status);
@@ -215,7 +217,6 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         Client client = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Client not found with email: " + email));
 
-        // Récupérer les crédits du client avec un statut spécifique
         return creditRequestRepository.findByClientId(client.getId())
                 .stream()
                 .filter(cr -> cr.getStatus() == status)
@@ -223,9 +224,6 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * ✅ Compter les crédits d'un client par email
-     */
     @Override
     public long countCreditRequestsByClientEmail(String email) {
         log.info("Counting credit requests for client email: {}", email);
@@ -236,22 +234,178 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         return creditRequestRepository.countByClientId(client.getId());
     }
 
+    // ============================================
+    // MÉTHODES POUR CONSEILLER (ADVISOR)
+    // ============================================
+
     @Override
-    public CreditRequest getCreditRequestEntityById(String id) {
-        return creditRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
+    public List<CreditResponseDTO> getCreditRequestsByAdvisorEmail(String advisorEmail) {
+        log.info("Getting credit requests for advisor email: {}", advisorEmail);
+
+        // Récupérer le conseiller (User) par email
+        User advisor = userRepository.findByEmail(advisorEmail)
+                .orElseThrow(() -> new RuntimeException("Advisor not found with email: " + advisorEmail));
+
+        return getCreditRequestsByAdvisorId(advisor.getId());
     }
 
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByAdvisorId(String advisorId) {
+        log.info("Getting credit requests for advisor id: {}", advisorId);
+
+        // Récupérer tous les clients de ce conseiller
+        List<Client> clients = clientRepository.findByAdvisorId(advisorId);
+
+        // Récupérer toutes les demandes de crédit des clients du conseiller
+        List<CreditRequest> creditRequests = new ArrayList<>();
+        for (Client client : clients) {
+            creditRequests.addAll(creditRequestRepository.findByClientId(client.getId()));
+        }
+
+        // Trier par date de création (plus récent en premier)
+        creditRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        return creditRequests.stream()
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByAdvisorAndStatus(String advisorEmail, CreditStatus status) {
+        log.info("Getting credit requests for advisor email: {} and status: {}", advisorEmail, status);
+
+        User advisor = userRepository.findByEmail(advisorEmail)
+                .orElseThrow(() -> new RuntimeException("Advisor not found with email: " + advisorEmail));
+
+        List<Client> clients = clientRepository.findByAdvisorId(advisor.getId());
+
+        List<CreditRequest> creditRequests = new ArrayList<>();
+        for (Client client : clients) {
+            creditRequests.addAll(
+                    creditRequestRepository.findByClientId(client.getId())
+                            .stream()
+                            .filter(cr -> cr.getStatus() == status)
+                            .collect(Collectors.toList())
+            );
+        }
+
+        return creditRequests.stream()
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countCreditRequestsByAdvisor(String advisorEmail) {
+        log.info("Counting credit requests for advisor email: {}", advisorEmail);
+
+        User advisor = userRepository.findByEmail(advisorEmail)
+                .orElseThrow(() -> new RuntimeException("Advisor not found with email: " + advisorEmail));
+
+        List<Client> clients = clientRepository.findByAdvisorId(advisor.getId());
+
+        long count = 0;
+        for (Client client : clients) {
+            count += creditRequestRepository.countByClientId(client.getId());
+        }
+
+        return count;
+    }
+
+    // ============================================
+    // MÉTHODES DE TRANSMISSION
+    // ============================================
+
+    @Override
+    public CreditResponseDTO transmitToAnalyst(String creditRequestId, String notes) {
+        return transmitToAnalyst(creditRequestId, notes, false);
+    }
+
+    @Override
+    public CreditResponseDTO transmitToAnalyst(String creditRequestId, String notes, boolean forceTransmit) {
+        log.info("Transmitting credit request {} to analyst. Notes: {}, Force: {}", creditRequestId, notes, forceTransmit);
+
+        CreditRequest creditRequest = creditRequestRepository.findById(creditRequestId)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + creditRequestId));
+
+        // Vérifier que la demande est en état DRAFT ou PENDING_DOCUMENTS
+        if (creditRequest.getStatus() != CreditStatus.DRAFT &&
+                creditRequest.getStatus() != CreditStatus.PENDING_DOCUMENTS) {
+            throw new IllegalStateException(
+                    "La demande doit être en état 'Brouillon' ou 'Documents manquants' pour être transmise. Statut actuel: " + creditRequest.getStatus()
+            );
+        }
+
+        // Vérifier que tous les documents obligatoires sont présents (sauf si forceTransmit)
+        if (!forceTransmit) {
+            List<String> missingDocs = getMissingDocumentsForTransmission(creditRequestId);
+            if (!missingDocs.isEmpty()) {
+                throw new IllegalStateException(
+                        "Tous les documents obligatoires ne sont pas présents. Documents manquants: " + String.join(", ", missingDocs)
+                );
+            }
+        }
+
+        // Changer le statut
+        creditRequest.setStatus(CreditStatus.PENDING_ANALYSIS);
+        creditRequest.setUpdatedAt(LocalDateTime.now());
+
+        CreditRequest savedRequest = creditRequestRepository.save(creditRequest);
+        log.info("Credit request {} transmitted to analyst successfully", creditRequestId);
+
+        return creditRequestMapper.toResponseDTO(savedRequest);
+    }
+
+    @Override
+    public boolean canTransmitToAnalyst(String creditRequestId) {
+        try {
+            CreditRequest creditRequest = creditRequestRepository.findById(creditRequestId)
+                    .orElseThrow(() -> new RuntimeException("Credit request not found"));
+
+            // Vérifier le statut
+            if (creditRequest.getStatus() != CreditStatus.DRAFT &&
+                    creditRequest.getStatus() != CreditStatus.PENDING_DOCUMENTS) {
+                return false;
+            }
+
+            // Vérifier les documents
+            List<String> missingDocs = getMissingDocumentsForTransmission(creditRequestId);
+            return missingDocs.isEmpty();
+
+        } catch (Exception e) {
+            log.error("Error checking if credit request can be transmitted: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public List<String> getMissingDocumentsForTransmission(String creditRequestId) {
+        // TODO: Implémenter la vérification des documents obligatoires
+        // Cette méthode devrait interroger le DocumentService pour vérifier
+        // si tous les documents obligatoires sont présents
+        log.info("Checking missing documents for credit request: {}", creditRequestId);
+
+        // Pour l'instant, retourner une liste vide (tous les documents sont présents)
+        return new ArrayList<>();
+    }
+
+    // ============================================
+    // MÉTHODES D'ANNULATION
+    // ============================================
 
     @Override
     public CreditResponseDTO cancelCreditRequest(String id) {
+        log.info("Cancelling credit request: {}", id);
+
         CreditRequest creditRequest = creditRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Demande non trouvée"));
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
 
         // Vérifier que la demande est en attente
         if (creditRequest.getStatus() != CreditStatus.PENDING_ANALYSIS &&
-                creditRequest.getStatus() != CreditStatus.UNDER_REVIEW) {
-            throw new IllegalStateException("Seules les demandes en attente peuvent être annulées");
+                creditRequest.getStatus() != CreditStatus.UNDER_REVIEW &&
+                creditRequest.getStatus() != CreditStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Seules les demandes en état 'Brouillon', 'En attente' ou 'En révision' peuvent être annulées. Statut actuel: " + creditRequest.getStatus()
+            );
         }
 
         creditRequest.setStatus(CreditStatus.CANCELLED);
@@ -259,14 +413,62 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         creditRequest.setUpdatedAt(LocalDateTime.now());
 
         CreditRequest saved = creditRequestRepository.save(creditRequest);
+        log.info("Credit request {} cancelled successfully", id);
 
-        // ✅ UTILISER LE MAPPER AU LIEU DE convertToDTO
         return creditRequestMapper.toResponseDTO(saved);
     }
 
-    // ✅ AJOUTER CETTE MÉTHODE SI ELLE MANQUE
-    private CreditResponseDTO convertToDTO(CreditRequest creditRequest) {
-        return creditRequestMapper.toResponseDTO(creditRequest);
+    @Override
+    public CreditResponseDTO cancelCreditRequestByAdvisor(String id, String reason) {
+        log.info("Cancelling credit request {} by advisor. Reason: {}", id, reason);
+
+        CreditRequest creditRequest = creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
+
+        // Vérifier que la demande peut être annulée
+        if (creditRequest.getStatus() != CreditStatus.PENDING_ANALYSIS &&
+                creditRequest.getStatus() != CreditStatus.UNDER_REVIEW &&
+                creditRequest.getStatus() != CreditStatus.DRAFT) {
+            throw new IllegalStateException(
+                    "Seules les demandes en état 'Brouillon', 'En attente' ou 'En révision' peuvent être annulées. Statut actuel: " + creditRequest.getStatus()
+            );
+        }
+
+        creditRequest.setStatus(CreditStatus.CANCELLED);
+        creditRequest.setRejectionReason("Annulé par le conseiller: " + (reason != null ? reason : "Non spécifié"));
+        creditRequest.setUpdatedAt(LocalDateTime.now());
+
+        CreditRequest saved = creditRequestRepository.save(creditRequest);
+        log.info("Credit request {} cancelled by advisor successfully", id);
+
+        return creditRequestMapper.toResponseDTO(saved);
     }
 
+    // ============================================
+    // MÉTHODES UTILITAIRES
+    // ============================================
+
+    @Override
+    public CreditRequest getCreditRequestEntityById(String id) {
+        return creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
+    }
+
+    @Override
+    public boolean isAdvisorOwnerOfCreditRequest(String advisorEmail, String creditRequestId) {
+        try {
+            CreditRequest creditRequest = creditRequestRepository.findById(creditRequestId)
+                    .orElseThrow(() -> new RuntimeException("Credit request not found"));
+
+            Client client = creditRequest.getClient();
+            if (client == null || client.getAdvisor() == null) {
+                return false;
+            }
+
+            return client.getAdvisor().getEmail().equals(advisorEmail);
+        } catch (Exception e) {
+            log.error("Error checking advisor ownership: {}", e.getMessage());
+            return false;
+        }
+    }
 }

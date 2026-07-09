@@ -1,0 +1,371 @@
+<div class="credit-request-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>Nouvelle demande de crédit</h1>
+        <p class="subtitle">Créez une demande de crédit pour un client</p>
+      </div>
+    </div>
+    <div class="header-right" *ngIf="client">
+      <div class="client-badge">
+        <mat-icon>person</mat-icon>
+        <span>{{ client.firstName }} {{ client.lastName }}</span>
+        <mat-chip color="primary" selected>
+          {{ client.clientNumber }}
+        </mat-chip>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <mat-stepper #stepper (selectionChange)="onStepChange($event)" linear>
+    
+    <!-- Étape 1: Informations client -->
+    <mat-step [stepControl]="clientInfoForm">
+      <ng-template matStepLabel>
+        <mat-icon>person</mat-icon>
+        Client
+      </ng-template>
+      
+      <div class="step-content">
+        <div class="info-banner" *ngIf="isLoading">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Chargement des informations...</span>
+        </div>
+        
+        <div class="client-info-grid" *ngIf="!isLoading && client">
+          <div class="info-item">
+            <label>Nom complet</label>
+            <span><strong>{{ client.firstName }} {{ client.lastName }}</strong></span>
+          </div>
+          <div class="info-item">
+            <label>Email</label>
+            <span>{{ client.email }}</span>
+          </div>
+          <div class="info-item">
+            <label>Téléphone</label>
+            <span>{{ client.phoneNumber || 'Non renseigné' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Profession</label>
+            <span>{{ client.profession || 'Non renseignée' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Employeur</label>
+            <span>{{ client.employer || 'Non renseigné' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Revenu mensuel</label>
+            <span class="income">{{ client.monthlyIncome ? formatCurrency(+client.monthlyIncome) : 'Non renseigné' }}</span>
+          </div>
+          <div class="info-item full-width">
+            <label>Adresse</label>
+            <span>{{ client.address || 'Non renseignée' }}</span>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!client">
+            Suivant <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- Étape 2: Détails du crédit -->
+    <mat-step [stepControl]="creditDetailsForm">
+      <ng-template matStepLabel>
+        <mat-icon>credit_card</mat-icon>
+        Détails du crédit
+      </ng-template>
+      
+      <div class="step-content">
+        <form [formGroup]="creditDetailsForm" class="credit-form">
+          <div class="form-grid">
+            <!-- Montant -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Montant demandé</mat-label>
+              <input matInput type="number" formControlName="amount" placeholder="0">
+              <span matPrefix>XOF &nbsp;</span>
+              <mat-hint>Minimum 1 000 XOF</mat-hint>
+              <mat-error *ngIf="creditDetailsForm.get('amount')?.hasError('required')">
+                Le montant est obligatoire
+              </mat-error>
+              <mat-error *ngIf="creditDetailsForm.get('amount')?.hasError('min')">
+                Le montant doit être supérieur à 1 000 XOF
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Devise -->
+            <mat-form-field appearance="outline">
+              <mat-label>Devise</mat-label>
+              <mat-select formControlName="currency">
+                <mat-option *ngFor="let currency of currencies" [value]="currency.value">
+                  {{ currency.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Durée -->
+            <mat-form-field appearance="outline">
+              <mat-label>Durée (mois)</mat-label>
+              <input matInput type="number" formControlName="durationMonths" placeholder="12">
+              <mat-hint>De 1 à 120 mois</mat-hint>
+              <mat-error *ngIf="creditDetailsForm.get('durationMonths')?.hasError('required')">
+                La durée est obligatoire
+              </mat-error>
+              <mat-error *ngIf="creditDetailsForm.get('durationMonths')?.hasError('min')">
+                La durée minimale est de 1 mois
+              </mat-error>
+              <mat-error *ngIf="creditDetailsForm.get('durationMonths')?.hasError('max')">
+                La durée maximale est de 120 mois
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Objet -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Objet du crédit</mat-label>
+              <textarea matInput formControlName="loanPurpose" rows="3" placeholder="Décrivez l'objet de la demande"></textarea>
+              <mat-hint align="end">{{ creditDetailsForm.get('loanPurpose')?.value?.length || 0 }}/500</mat-hint>
+              <mat-error *ngIf="creditDetailsForm.get('loanPurpose')?.hasError('required')">
+                L'objet est obligatoire
+              </mat-error>
+              <mat-error *ngIf="creditDetailsForm.get('loanPurpose')?.hasError('maxlength')">
+                Maximum 500 caractères
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Type de garantie -->
+            <mat-form-field appearance="outline">
+              <mat-label>Type de garantie</mat-label>
+              <mat-select formControlName="collateralType">
+                <mat-option value="">Aucune</mat-option>
+                <mat-option *ngFor="let type of collateralTypes" [value]="type">
+                  {{ type }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Valeur de la garantie -->
+            <mat-form-field appearance="outline">
+              <mat-label>Valeur de la garantie</mat-label>
+              <input matInput type="number" formControlName="collateralValue" placeholder="0">
+              <span matPrefix>XOF &nbsp;</span>
+              <mat-error *ngIf="creditDetailsForm.get('collateralValue')?.hasError('min')">
+                La valeur doit être positive
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Garant -->
+            <mat-form-field appearance="outline">
+              <mat-label>Nom du garant</mat-label>
+              <input matInput formControlName="guarantorName" placeholder="Nom du garant">
+            </mat-form-field>
+
+            <!-- Téléphone du garant -->
+            <mat-form-field appearance="outline">
+              <mat-label>Téléphone du garant</mat-label>
+              <input matInput formControlName="guarantorPhone" placeholder="+228 XX XX XX XX">
+              <mat-error *ngIf="creditDetailsForm.get('guarantorPhone')?.hasError('pattern')">
+                Format de téléphone invalide
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Date de décaissement prévue -->
+            <mat-form-field appearance="outline">
+              <mat-label>Date de décaissement prévue</mat-label>
+              <input matInput type="date" formControlName="expectedDisbursementDate">
+            </mat-form-field>
+          </div>
+
+          <!-- Résumé de la simulation -->
+          <div class="simulation-preview" *ngIf="creditDetailsForm.valid">
+            <h3>📊 Aperçu de la simulation</h3>
+            <div class="simulation-grid">
+              <div class="sim-item">
+                <span class="label">Mensualité</span>
+                <span class="value">{{ formatCurrency(calculateMonthlyPayment()) }}</span>
+              </div>
+              <div class="sim-item">
+                <span class="label">Taux d'intérêt</span>
+                <span class="value">{{ getInterestRate() }}%</span>
+              </div>
+              <div class="sim-item">
+                <span class="label">Total à rembourser</span>
+                <span class="value">{{ formatCurrency(getTotalPayment()) }}</span>
+              </div>
+              <div class="sim-item">
+                <span class="label">Intérêts totaux</span>
+                <span class="value">{{ formatCurrency(getTotalPayment() - creditDetailsForm.get('amount')?.value) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon> Précédent
+            </button>
+            <button mat-raised-button color="primary" matStepperNext [disabled]="creditDetailsForm.invalid">
+              Suivant <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-step>
+
+    <!-- Étape 3: Documents -->
+    <mat-step>
+      <ng-template matStepLabel>
+        <mat-icon>folder</mat-icon>
+        Documents
+      </ng-template>
+      
+      <div class="step-content">
+        <div class="documents-header">
+          <h3>📄 Vérification des documents obligatoires</h3>
+          <p class="subtitle">Assurez-vous que tous les documents obligatoires sont présents avant de continuer</p>
+        </div>
+
+        <!-- Barre de progression -->
+        <div class="progress-container" *ngIf="mandatoryDocuments.length > 0">
+          <div class="progress-info">
+            <span>Progression</span>
+            <span>{{ getMandatoryProgress() }}%</span>
+          </div>
+          <mat-progress-bar mode="determinate" [value]="getMandatoryProgress()" [color]="getMandatoryProgress() === 100 ? 'primary' : 'warn'"></mat-progress-bar>
+        </div>
+
+        <div class="documents-status" *ngIf="!isLoadingDocuments">
+          <!-- Documents obligatoires -->
+          <div class="document-list">
+            <div *ngFor="let type of mandatoryDocuments" class="document-item" 
+                 [class.valid]="documentStatus.get(type) === true" 
+                 [class.missing]="documentStatus.get(type) !== true">
+              <div class="doc-icon">
+                <mat-icon [style.color]="documentStatus.get(type) === true ? '#4caf50' : '#f44336'">
+                  {{ documentStatus.get(type) === true ? 'check_circle' : 'error' }}
+                </mat-icon>
+              </div>
+              <div class="doc-info">
+                <span class="doc-name">
+                  <mat-icon class="doc-type-icon">{{ getDocumentIcon(type) }}</mat-icon>
+                  {{ documentTypeLabels[type] }}
+                </span>
+                <span class="doc-status" [class.present]="documentStatus.get(type) === true" [class.missing]="documentStatus.get(type) !== true">
+                  {{ documentStatus.get(type) === true ? '✅ Présent' : '❌ Manquant' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Résumé -->
+          <div class="documents-summary">
+            <div class="summary-card" [class.complete]="hasMandatoryDocuments()">
+              <mat-icon>{{ hasMandatoryDocuments() ? 'check_circle' : 'pending' }}</mat-icon>
+              <div>
+                <span class="summary-title">
+                  {{ hasMandatoryDocuments() ? '✅ Tous les documents sont présents' : '📋 Documents manquants' }}
+                </span>
+                <span class="summary-text" *ngIf="!hasMandatoryDocuments()">
+                  {{ getMissingDocuments().length }} document(s) manquant(s)
+                </span>
+                <span class="summary-text" *ngIf="hasMandatoryDocuments()">
+                  Vous pouvez procéder à la validation
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Précédent
+          </button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!hasMandatoryDocuments()">
+            Suivant <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- Étape 4: Validation et transmission -->
+    <mat-step [stepControl]="reviewForm">
+      <ng-template matStepLabel>
+        <mat-icon>fact_check</mat-icon>
+        Validation
+      </ng-template>
+      
+      <div class="step-content final-step">
+        <div class="review-header">
+          <h2>✅ Validation finale</h2>
+          <p>Vérifiez tous les éléments avant de transmettre le dossier à l'analyste</p>
+        </div>
+
+        <!-- Résumé de la demande -->
+        <mat-card class="review-summary">
+          <mat-card-header>
+            <mat-card-title>Résumé de la demande</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="label">Client</span>
+                <span class="value">{{ client?.firstName }} {{ client?.lastName }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Montant</span>
+                <span class="value">{{ formatCurrency(creditDetailsForm.get('amount')?.value) }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Durée</span>
+                <span class="value">{{ creditDetailsForm.get('durationMonths')?.value }} mois</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Mensualité</span>
+                <span class="value">{{ formatCurrency(calculateMonthlyPayment()) }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Taux d'intérêt</span>
+                <span class="value">{{ getInterestRate() }}%</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Documents</span>
+                <span class="value" [style.color]="hasMandatoryDocuments() ? '#4caf50' : '#f44336'">
+                  {{ hasMandatoryDocuments() ? '✅ Complets' : '⚠️ Incomplets' }}
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Formulaire de validation -->
+        <form [formGroup]="reviewForm" class="review-form">
+          <mat-checkbox formControlName="verified" color="primary">
+            Je confirme avoir vérifié toutes les informations et documents du client
+          </mat-checkbox>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes pour l'analyste (optionnelles)</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Informations complémentaires pour l'analyste..."></textarea>
+          </mat-form-field>
+        </form>
+
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Précédent
+          </button>
+          <button mat-raised-button color="primary" (click)="submitCreditRequest()" 
+                  [disabled]="reviewForm.invalid || isSubmitting || !hasMandatoryDocuments()">
+            <mat-icon *ngIf="!isSubmitting">send</mat-icon>
+            <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+            {{ isSubmitting ? 'Envoi en cours...' : 'Transmettre à l\'analyste' }}
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

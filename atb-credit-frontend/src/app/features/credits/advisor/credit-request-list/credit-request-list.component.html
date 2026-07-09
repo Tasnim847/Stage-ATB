@@ -1,0 +1,201 @@
+<div class="credit-request-list-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>📋 Demandes de crédit</h1>
+      <span class="badge" *ngIf="totalItems > 0">{{ totalItems }} demande(s)</span>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" class="btn-primary" (click)="createNewRequest()">
+        <mat-icon>add</mat-icon>
+        Nouvelle demande
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid" *ngIf="filteredRequests.length > 0">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ totalItems }}</span>
+        <span class="stat-label">Total des demandes</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pending">
+        <mat-icon>hourglass_empty</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getPendingCount() }}</span>
+        <span class="stat-label">En attente</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amount">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ formatCurrency(getTotalAmount()) }}</span>
+        <span class="stat-label">Montant total</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon average">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ formatCurrency(getTotalAmount() / (totalItems || 1)) }}</span>
+        <span class="stat-label">Montant moyen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Rechercher</mat-label>
+        <input matInput placeholder="Client, numéro..." [(ngModel)]="searchTerm" (input)="onSearch()">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="status-filter">
+        <mat-label>Statut</mat-label>
+        <mat-select [(ngModel)]="filterStatus" (selectionChange)="onStatusFilterChange()">
+          <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button class="btn-clear" (click)="clearFilters()" *ngIf="searchTerm || filterStatus !== 'ALL'">
+        <mat-icon>clear</mat-icon>
+        Effacer les filtres
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des demandes...</span>
+  </div>
+
+  <!-- Grille de cartes -->
+  <div class="cards-grid" *ngIf="!isLoading && filteredRequests.length > 0">
+    <div class="credit-card" *ngFor="let request of getPaginatedData()" (click)="viewRequest(request.id)">
+      <!-- En-tête de la carte -->
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="request-number">{{ request.requestNumber }}</span>
+          <span class="request-date">{{ formatDate(request.createdAt) }}</span>
+        </div>
+        <div class="card-header-right">
+          <mat-chip [class]="getStatusChipClass(request.status)" selected>
+            <mat-icon class="status-icon">{{ getStatusIcon(request.status) }}</mat-icon>
+            {{ getStatusLabel(request.status) }}
+          </mat-chip>
+        </div>
+      </div>
+
+      <!-- Corps de la carte -->
+      <div class="card-body">
+        <!-- Client -->
+        <div class="client-info">
+          <div class="client-avatar">
+            {{ getInitials(request.clientName) }}
+          </div>
+          <div class="client-details">
+            <span class="client-name">{{ request.clientName }}</span>
+            <span class="client-email">{{ request.clientEmail }}</span>
+          </div>
+        </div>
+
+        <!-- Détails du crédit -->
+        <div class="credit-details">
+          <div class="detail-item">
+            <span class="detail-label">Montant</span>
+            <span class="detail-value amount">{{ formatCurrency(request.amount) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Durée</span>
+            <span class="detail-value">{{ request.durationMonths }} mois</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Mensualité</span>
+            <span class="detail-value">{{ formatCurrency(request.monthlyPayment) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Taux</span>
+            <span class="detail-value">{{ request.interestRate }}%</span>
+          </div>
+        </div>
+
+        <!-- Objet du crédit -->
+        <div class="loan-purpose" *ngIf="request.loanPurpose">
+          <mat-icon>description</mat-icon>
+          <span>{{ truncateText(request.loanPurpose, 80) }}</span>
+        </div>
+      </div>
+
+      <!-- Pied de carte -->
+      <div class="card-footer">
+        <div class="footer-left">
+          <span class="analyst-info" *ngIf="request.analystName">
+            <mat-icon>person</mat-icon>
+            Analyste: {{ request.analystName }}
+          </span>
+          <span class="analyst-info" *ngIf="!request.analystName">
+            <mat-icon>person_outline</mat-icon>
+            En attente d'analyse
+          </span>
+        </div>
+        <div class="footer-right">
+          <button mat-icon-button class="action-btn" (click)="$event.stopPropagation(); viewRequest(request.id)" matTooltip="Voir le détail">
+            <mat-icon>visibility</mat-icon>
+          </button>
+          <button mat-icon-button class="action-btn" (click)="$event.stopPropagation();" [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="editRequest(request.id)">
+              <mat-icon>edit</mat-icon>
+              <span>Modifier</span>
+            </button>
+            <button mat-menu-item (click)="deleteRequest(request.id)" color="warn">
+              <mat-icon>delete</mat-icon>
+              <span>Supprimer</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aucune donnée -->
+  <div class="no-data" *ngIf="!isLoading && filteredRequests.length === 0">
+    <div class="no-data-icon">
+      <mat-icon>inbox</mat-icon>
+    </div>
+    <h3>Aucune demande de crédit</h3>
+    <p>Commencez par créer une nouvelle demande de crédit pour un client</p>
+    <button mat-raised-button color="primary" class="btn-primary" (click)="createNewRequest()">
+      <mat-icon>add</mat-icon>
+      Créer une demande
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="filteredRequests.length > 0">
+    <mat-paginator
+      [length]="totalItems"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

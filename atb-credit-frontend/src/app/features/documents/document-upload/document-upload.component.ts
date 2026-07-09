@@ -1,7 +1,7 @@
 // features/documents/document-upload/document-upload.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,13 +11,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatOptionModule } from '@angular/material/core';
-import { ToastrService } from 'ngx-toastr';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DocumentService } from '@core/services/document.service';
 import { ClientService, ClientResponseDTO } from '@core/services/client.service';
 import { CreditRequestService } from '@core/services/credit-request.service';
-import { DOCUMENT_TYPE_CONFIG, DocumentType } from '@core/models';
-import { CreditResponseDTO } from '@core/models';
+import { DOCUMENT_TYPE_CONFIG, DocumentType, CreditResponseDTO } from '@core/models';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-document-upload',
@@ -34,6 +34,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     MatSelectModule,
     MatProgressSpinnerModule,
     MatOptionModule,
+    MatSnackBarModule,
     NgxMatSelectSearchModule
   ],
   templateUrl: './document-upload.component.html',
@@ -53,23 +54,46 @@ export class DocumentUploadComponent implements OnInit {
   loadingClients = false;
   clientSearchQuery = '';
   
-  // ✅ Liste des crédits du client sélectionné
+  // Liste des crédits du client sélectionné
   clientCreditRequests: CreditResponseDTO[] = [];
   loadingCredits = false;
   selectedClientId: string = '';
+
+  // ✅ IDs pré-remplis depuis les paramètres de route
+  preSelectedClientId: string | null = null;
+  preSelectedCreditRequestId: string | null = null;
+  isLoadingPreSelection = false;
 
   private fb = inject(FormBuilder);
   private documentService = inject(DocumentService);
   private clientService = inject(ClientService);
   private creditRequestService = inject(CreditRequestService);
-  private toastr = inject(ToastrService);
+  private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
     this.initForm();
+    
+    // ✅ Récupérer les paramètres de route
+    this.route.queryParams.subscribe(params => {
+      this.preSelectedClientId = params['clientId'] || null;
+      this.preSelectedCreditRequestId = params['creditRequestId'] || null;
+      
+      if (this.preSelectedClientId) {
+        this.uploadForm.get('clientId')?.setValue(this.preSelectedClientId);
+        this.selectedClientId = this.preSelectedClientId;
+        this.loadClientCreditRequests(this.preSelectedClientId);
+        
+        if (this.preSelectedCreditRequestId) {
+          this.uploadForm.get('creditRequestId')?.setValue(this.preSelectedCreditRequestId);
+        }
+      }
+    });
+    
     this.loadClients();
     
-    // ✅ Écouter les changements de sélection du client
+    // Écouter les changements de sélection du client
     this.uploadForm.get('clientId')?.valueChanges.subscribe((clientId) => {
       this.selectedClientId = clientId;
       if (clientId) {
@@ -99,39 +123,44 @@ export class DocumentUploadComponent implements OnInit {
         this.loadingClients = false;
       },
       error: () => {
-        this.toastr.error('Erreur lors du chargement des clients', 'Erreur');
+        this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 5000 });
         this.loadingClients = false;
       }
     });
   }
 
-  // ✅ Charger les crédits du client sélectionné
   loadClientCreditRequests(clientId: string): void {
     if (!clientId) return;
     
     this.loadingCredits = true;
     this.clientCreditRequests = [];
-    this.uploadForm.get('creditRequestId')?.setValue('');
+    
+    // ✅ Si un creditRequestId est pré-sélectionné, on le garde
+    const currentCreditId = this.uploadForm.get('creditRequestId')?.value;
     
     this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
       next: (credits) => {
         this.clientCreditRequests = credits || [];
         this.loadingCredits = false;
         
-        // Si un seul crédit, le sélectionner automatiquement
-        if (this.clientCreditRequests.length === 1) {
+        // ✅ Si un creditRequestId est pré-sélectionné, le remettre
+        if (this.preSelectedCreditRequestId && 
+            credits.some(c => c.id === this.preSelectedCreditRequestId)) {
+          this.uploadForm.get('creditRequestId')?.setValue(this.preSelectedCreditRequestId);
+        } 
+        // Sinon, si un seul crédit, le sélectionner automatiquement
+        else if (this.clientCreditRequests.length === 1 && !currentCreditId) {
           this.uploadForm.get('creditRequestId')?.setValue(this.clientCreditRequests[0].id);
         }
       },
       error: () => {
         this.clientCreditRequests = [];
         this.loadingCredits = false;
-        this.toastr.error('Erreur lors du chargement des crédits du client', 'Erreur');
+        this.snackBar.open('Erreur lors du chargement des crédits du client', 'Fermer', { duration: 5000 });
       }
     });
   }
 
-  // ✅ Méthode appelée lors de la recherche dans ngx-mat-select-search
   onClientSearchChange(event: Event): void {
     const value = (event.target as HTMLInputElement)?.value || '';
     this.clientSearchQuery = value;
@@ -158,17 +187,19 @@ export class DocumentUploadComponent implements OnInit {
     return `${client.firstName} ${client.lastName} (${client.clientNumber}) - ${client.email}`;
   }
 
-  // ✅ Formater l'affichage des crédits
   getCreditDisplayName(credit: CreditResponseDTO): string {
     const statusLabels: { [key: string]: string } = {
-      'PENDING': 'En attente',
+      'PENDING_ANALYSIS': 'En attente',
       'APPROVED': 'Approuvé',
       'REJECTED': 'Rejeté',
-      'IN_REVIEW': 'En révision',
-      'COMPLETED': 'Terminé'
+      'UNDER_REVIEW': 'En révision',
+      'COMPLETED': 'Terminé',
+      'DRAFT': 'Brouillon',
+      'PENDING_DOCUMENTS': 'Documents manquants',
+      'CANCELLED': 'Annulé'
     };
     const statusLabel = statusLabels[credit.status] || credit.status;
-    return `Demande #${credit.requestNumber || credit.id.substring(0, 8)} - ${credit.amount} € - ${statusLabel}`;
+    return `Demande #${credit.requestNumber || credit.id.substring(0, 8)} - ${credit.amount} ${credit.currency || 'XOF'} - ${statusLabel}`;
   }
 
   onFileSelected(event: Event): void {
@@ -202,7 +233,7 @@ export class DocumentUploadComponent implements OnInit {
 
   onSubmit(): void {
     if (this.uploadForm.invalid || !this.selectedFile) {
-      this.toastr.warning('Veuillez remplir tous les champs obligatoires', 'Attention');
+      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 5000 });
       return;
     }
 
@@ -222,21 +253,41 @@ export class DocumentUploadComponent implements OnInit {
     }
 
     this.documentService.uploadDocument(formData)
+      .pipe(finalize(() => {
+        this.uploading = false;
+      }))
       .subscribe({
         next: () => {
-          this.uploading = false;
-          this.toastr.success('Document téléchargé avec succès', 'Succès');
-          this.router.navigate(['/documents']);
+          this.snackBar.open('📄 Document téléchargé avec succès', 'Fermer', { duration: 3000 });
+          
+          // ✅ Rediriger vers la page de détail du crédit si disponible
+          if (creditRequestId) {
+            this.router.navigate(['/credit-requests', creditRequestId]);
+          } else if (this.uploadForm.get('clientId')?.value) {
+            this.router.navigate(['/clients', this.uploadForm.get('clientId')?.value]);
+          } else {
+            this.router.navigate(['/documents']);
+          }
         },
-        error: () => {
-          this.uploading = false;
-          this.toastr.error('Erreur lors du téléchargement', 'Erreur');
+        error: (error) => {
+          console.error('Erreur upload:', error);
+          this.snackBar.open('❌ Erreur lors du téléchargement du document', 'Fermer', { duration: 5000 });
         }
       });
   }
 
   cancel(): void {
-    this.router.navigate(['/documents']);
+    // ✅ Retourner à la page précédente
+    const creditId = this.uploadForm.get('creditRequestId')?.value;
+    const clientId = this.uploadForm.get('clientId')?.value;
+    
+    if (creditId) {
+      this.router.navigate(['/credit-requests', creditId]);
+    } else if (clientId) {
+      this.router.navigate(['/clients', clientId]);
+    } else {
+      this.router.navigate(['/documents']);
+    }
   }
 
   removeFile(): void {
@@ -246,5 +297,10 @@ export class DocumentUploadComponent implements OnInit {
     if (fileInput) {
       fileInput.value = '';
     }
+  }
+
+  // ✅ Vérifier si le formulaire est pré-rempli
+  isPreFilled(): boolean {
+    return !!this.preSelectedClientId || !!this.preSelectedCreditRequestId;
   }
 }

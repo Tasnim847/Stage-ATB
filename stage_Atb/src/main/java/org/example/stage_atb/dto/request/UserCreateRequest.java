@@ -39,4 +39,15 @@ public class UserCreateRequest {
 
     @NotNull(message = "Le rôle est requis")
     private UserRole role;
+
+    // ✅ AJOUTER CES CHAMPS
+    private String department;
+
+    private String position;
+
+    private String address;
+
+    private String city;
+
+    private String country;
 }
