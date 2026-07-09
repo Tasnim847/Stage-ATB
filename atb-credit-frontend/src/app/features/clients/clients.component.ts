@@ -1,6 +1,8 @@
+// clients.component.ts - AJOUTER LA MÉTHODE
+
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router'; // ✅ AJOUTER Router
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatDividerModule } from '@angular/material/divider'; // ✅ AJOUTÉ
+import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ClientService, ClientResponseDTO } from '@core/services/client.service';
@@ -32,7 +34,7 @@ import { AuthService } from '@core/services/auth.service';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatMenuModule,
-    MatDividerModule // ✅ AJOUTÉ
+    MatDividerModule
   ],
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.css']
@@ -41,6 +43,7 @@ export class ClientsComponent implements OnInit {
   private clientService = inject(ClientService);
   private authService = inject(AuthService);
   private toastr = inject(ToastrService);
+  private router = inject(Router); // ✅ AJOUTER Router
 
   clients: ClientResponseDTO[] = [];
   filteredClients: ClientResponseDTO[] = [];
@@ -107,6 +110,22 @@ export class ClientsComponent implements OnInit {
       client.clientNumber.toLowerCase().includes(query) ||
       client.phoneNumber?.includes(query)
     );
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Créer une demande de crédit pour un client
+  createCreditForClient(clientId: string): void {
+    const userRole = this.authService.getUserRole();
+    
+    // Rediriger vers la page appropriée selon le rôle
+    if (userRole === 'ADMIN' || userRole === 'MANAGER') {
+      // Pour l'admin, utiliser la page admin
+      this.router.navigate(['/admin/credit-requests/new', clientId]);
+    } else if (userRole === 'ADVISOR') {
+      // Pour le conseiller, utiliser la page conseiller
+      this.router.navigate(['/credit-requests/new', clientId]);
+    } else {
+      this.toastr.warning('Vous n\'avez pas les droits pour créer une demande de crédit', 'Accès refusé');
+    }
   }
 
   deleteClient(id: string, name: string): void {

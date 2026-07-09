@@ -123,6 +123,29 @@ export const routes: Routes = [
         data: { roles: ['CLIENT'] }
       },
 
+      // app.routes.ts - AJOUTER CES ROUTES
+
+// ============================================
+// CRÉDITS - ROUTES POUR ADMIN
+// ============================================
+
+// ➕ Nouvelle demande de crédit par admin
+{
+  path: 'admin/credit-requests/new',
+  loadComponent: () => import('./features/credits/admin/credit-admin/credit-admin.component')
+    .then(m => m.CreditAdminComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['ADMIN'] }
+},
+
+// ➕ Nouvelle demande de crédit pour un client spécifique
+{
+  path: 'admin/credit-requests/new/:clientId',
+  loadComponent: () => import('./features/credits/admin/credit-admin/credit-admin.component')
+    .then(m => m.CreditAdminComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['ADMIN'] }
+},
       // ============================================
       // SIMULATIONS - ROUTES POUR CLIENTS
       // ============================================

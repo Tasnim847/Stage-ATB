@@ -1,0 +1,250 @@
+<!-- features/credits/admin/credit-admin/credit-admin.component.html -->
+<div class="credit-admin-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <button mat-icon-button (click)="goBack()" class="back-btn">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>Nouvelle demande de crédit</h1>
+        <p class="subtitle" *ngIf="selectedClient">
+          Pour le client: <strong>{{ selectedClient.firstName }} {{ selectedClient.lastName }}</strong>
+          ({{ selectedClient.clientNumber }})
+        </p>
+        <p class="subtitle" *ngIf="!selectedClient">
+          Créez une demande de crédit pour un client
+        </p>
+      </div>
+    </div>
+    <div class="header-right">
+      <button mat-stroked-button color="warn" (click)="goBack()">
+        <mat-icon>close</mat-icon>
+        Annuler
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire -->
+  <mat-card class="form-card">
+    <mat-card-content>
+      <form [formGroup]="creditForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <!-- ✅ Sélection du client (pour admin) -->
+          <div class="full-width client-section">
+            <h3>👤 Sélection du client</h3>
+            
+            <!-- Si client pré-sélectionné -->
+            <div *ngIf="selectedClient" class="client-selected">
+              <div class="client-info-card">
+                <div class="client-avatar">
+                  {{ selectedClient.firstName.charAt(0) }}{{ selectedClient.lastName.charAt(0) }}
+                </div>
+                <div class="client-details">
+                  <span class="client-name">{{ selectedClient.firstName }} {{ selectedClient.lastName }}</span>
+                  <span class="client-number">N° Client: {{ selectedClient.clientNumber }}</span>
+                  <span class="client-email">Email: {{ selectedClient.email }}</span>
+                  <span class="client-phone" *ngIf="selectedClient.phoneNumber">Tél: {{ selectedClient.phoneNumber }}</span>
+                </div>
+                <button mat-icon-button color="warn" type="button" (click)="selectedClient = null; creditForm.patchValue({clientSearch: ''})" matTooltip="Changer de client">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <input type="hidden" formControlName="clientId" />
+            </div>
+
+            <!-- Recherche de client -->
+            <div *ngIf="!selectedClient" class="client-search">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Rechercher un client</mat-label>
+                <input 
+                  type="text"
+                  matInput
+                  formControlName="clientSearch"
+                  placeholder="Nom, prénom, numéro client..."
+                  [matAutocomplete]="clientAuto"
+                  required>
+                <mat-icon matSuffix>search</mat-icon>
+                <mat-hint *ngIf="!isSearching">Saisissez au moins 2 caractères</mat-hint>
+                <mat-hint *ngIf="isSearching">Recherche en cours...</mat-hint>
+                <mat-error *ngIf="creditForm.get('clientSearch')?.invalid && creditForm.get('clientSearch')?.touched">
+                  Veuillez sélectionner un client
+                </mat-error>
+              </mat-form-field>
+
+              <mat-autocomplete #clientAuto="matAutocomplete" (optionSelected)="selectClient($event.option.value)">
+                <mat-option *ngFor="let client of filteredClients" [value]="client">
+                  <div class="client-option">
+                    <div class="client-avatar-small">
+                      {{ client.firstName.charAt(0) }}{{ client.lastName.charAt(0) }}
+                    </div>
+                    <div class="client-option-info">
+                      <span class="client-option-name">{{ client.firstName }} {{ client.lastName }}</span>
+                      <span class="client-option-number">{{ client.clientNumber }}</span>
+                    </div>
+                    <span class="client-option-status" [class.active]="client.active">
+                      {{ client.active ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </div>
+                </mat-option>
+                <mat-option *ngIf="filteredClients.length === 0 && creditForm.get('clientSearch')?.value?.length >= 2">
+                  <span class="no-results">Aucun client trouvé</span>
+                </mat-option>
+              </mat-autocomplete>
+            </div>
+          </div>
+
+          <mat-divider class="full-width"></mat-divider>
+
+          <!-- ✅ Informations du crédit -->
+          <div class="full-width">
+            <h3>💰 Détails du crédit</h3>
+          </div>
+
+          <!-- Montant et Devise -->
+          <mat-form-field appearance="outline">
+            <mat-label>Montant</mat-label>
+            <input matInput type="number" formControlName="amount" placeholder="Ex: 50000" required>
+            <mat-icon matSuffix>attach_money</mat-icon>
+            <mat-error *ngIf="creditForm.get('amount')?.hasError('required')">
+              Le montant est requis
+            </mat-error>
+            <mat-error *ngIf="creditForm.get('amount')?.hasError('min')">
+              Minimum 100 TND
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Devise</mat-label>
+            <mat-select formControlName="currency" required>
+              <mat-option *ngFor="let currency of currencies" [value]="currency">
+                {{ currency }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Durée et Taux -->
+          <mat-form-field appearance="outline">
+            <mat-label>Durée (mois)</mat-label>
+            <input matInput type="number" formControlName="durationMonths" placeholder="Ex: 36" required>
+            <mat-icon matSuffix>calendar_today</mat-icon>
+            <mat-error *ngIf="creditForm.get('durationMonths')?.hasError('required')">
+              La durée est requise
+            </mat-error>
+            <mat-error *ngIf="creditForm.get('durationMonths')?.hasError('min')">
+              Minimum 1 mois
+            </mat-error>
+            <mat-error *ngIf="creditForm.get('durationMonths')?.hasError('max')">
+              Maximum 120 mois
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Taux d'intérêt (%)</mat-label>
+            <input matInput type="number" formControlName="interestRate" placeholder="Ex: 6.5" required step="0.1">
+            <mat-icon matSuffix>percent</mat-icon>
+            <mat-error *ngIf="creditForm.get('interestRate')?.hasError('required')">
+              Le taux est requis
+            </mat-error>
+            <mat-error *ngIf="creditForm.get('interestRate')?.hasError('min')">
+              Taux minimum 0%
+            </mat-error>
+            <mat-error *ngIf="creditForm.get('interestRate')?.hasError('max')">
+              Taux maximum 30%
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Objectif et Garantie -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Objectif du crédit</mat-label>
+            <mat-select formControlName="loanPurpose" required>
+              <mat-option *ngFor="let purpose of loanPurposes" [value]="purpose">
+                {{ purpose }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="creditForm.get('loanPurpose')?.hasError('required')">
+              L'objectif est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Type de garantie</mat-label>
+            <mat-select formControlName="collateralType">
+              <mat-option *ngFor="let type of collateralTypes" [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Valeur de la garantie</mat-label>
+            <input matInput type="number" formControlName="collateralValue" placeholder="Ex: 100000">
+            <mat-icon matSuffix>attach_money</mat-icon>
+          </mat-form-field>
+
+          <!-- Garant -->
+          <mat-form-field appearance="outline">
+            <mat-label>Nom du garant</mat-label>
+            <input matInput formControlName="guarantorName" placeholder="Ex: Ali Ben Salah">
+            <mat-icon matSuffix>person</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Téléphone du garant</mat-label>
+            <input matInput formControlName="guarantorPhone" placeholder="+216 98 765 432">
+            <mat-icon matSuffix>phone</mat-icon>
+          </mat-form-field>
+
+          <!-- Date de décaissement -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date de décaissement prévue</mat-label>
+            <input matInput type="date" formControlName="expectedDisbursementDate">
+            <mat-icon matSuffix>event</mat-icon>
+          </mat-form-field>
+
+          <!-- Notes -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes (optionnelles)</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Informations complémentaires..."></textarea>
+            <mat-icon matSuffix>description</mat-icon>
+          </mat-form-field>
+
+          <!-- ✅ Résumé de la simulation -->
+          <div class="full-width simulation-preview" *ngIf="creditForm.get('amount')?.value && creditForm.get('durationMonths')?.value">
+            <h4>📊 Aperçu du crédit</h4>
+            <div class="simulation-grid">
+              <div class="sim-item">
+                <span class="label">Mensualité</span>
+                <span class="value">{{ calculateMonthlyPayment() | currency:'TND' }}</span>
+              </div>
+              <div class="sim-item">
+                <span class="label">Total à rembourser</span>
+                <span class="value">{{ getTotalPayment() | currency:'TND' }}</span>
+              </div>
+              <div class="sim-item">
+                <span class="label">Intérêts totaux</span>
+                <span class="value">{{ getTotalInterest() | currency:'TND' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button mat-button type="button" (click)="goBack()" class="cancel-btn">
+            Annuler
+          </button>
+          <button mat-raised-button color="primary" type="submit" 
+                  [disabled]="creditForm.invalid || isSubmitting || !selectedClient" 
+                  class="submit-btn">
+            <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+            <span *ngIf="!isSubmitting">
+              <mat-icon>check</mat-icon>
+              Créer la demande
+            </span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

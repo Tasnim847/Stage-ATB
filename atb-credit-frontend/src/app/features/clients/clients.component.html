@@ -113,12 +113,24 @@
 
       <!-- Actions -->
       <div class="card-actions">
+        <!-- ✅ BOUTON CRÉER UN CRÉDIT (pour admin et conseiller) -->
+        <button 
+          mat-icon-button 
+          color="primary" 
+          (click)="createCreditForClient(client.id)"
+          matTooltip="Créer une demande de crédit"
+          class="credit-btn">
+          <mat-icon>add_card</mat-icon>
+        </button>
+
         <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]" matTooltip="Voir les détails">
           <mat-icon>visibility</mat-icon>
         </button>
+        
         <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']" matTooltip="Modifier">
           <mat-icon>edit</mat-icon>
         </button>
+        
         <button 
           mat-icon-button 
           [color]="client.active ? 'warn' : 'primary'" 
@@ -127,6 +139,7 @@
         >
           <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
         </button>
+        
         <button 
           mat-icon-button 
           color="warn" 
@@ -135,9 +148,11 @@
         >
           <mat-icon>delete</mat-icon>
         </button>
+        
         <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
           <mat-icon>more_vert</mat-icon>
         </button>
+        
         <mat-menu #menu="matMenu">
           <button mat-menu-item [routerLink]="['/clients', client.id]">
             <mat-icon>visibility</mat-icon>
