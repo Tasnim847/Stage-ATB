@@ -1,29 +1,133 @@
+<!-- features/credits/advisor/credit-request-create/credit-request-create.component.html -->
 <div class="credit-request-container">
   <!-- En-tête -->
   <div class="page-header">
     <div class="header-left">
-      <button mat-icon-button (click)="goBack()">
+      <button mat-icon-button (click)="goBack()" class="back-btn">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div>
         <h1>Nouvelle demande de crédit</h1>
-        <p class="subtitle">Créez une demande de crédit pour un client</p>
+        <p class="subtitle" *ngIf="client">
+          Client: <strong>{{ client.firstName }} {{ client.lastName }}</strong>
+          <span class="client-number-badge">{{ client.clientNumber }}</span>
+        </p>
+        <p class="subtitle" *ngIf="!client && showClientSearch">
+          Sélectionnez un client pour continuer
+        </p>
       </div>
     </div>
     <div class="header-right" *ngIf="client">
       <div class="client-badge">
-        <mat-icon>person</mat-icon>
-        <span>{{ client.firstName }} {{ client.lastName }}</span>
-        <mat-chip color="primary" selected>
-          {{ client.clientNumber }}
-        </mat-chip>
+        <div class="client-avatar-small">
+          {{ client.firstName.charAt(0) }}{{ client.lastName.charAt(0) }}
+        </div>
+        <div class="client-badge-info">
+          <span class="client-badge-name">{{ client.firstName }} {{ client.lastName }}</span>
+          <span class="client-badge-number">{{ client.clientNumber }}</span>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- ✅ Recherche de client (si aucun clientId) -->
+  <div *ngIf="showClientSearch" class="client-search-section">
+    <mat-card class="search-client-card">
+      <mat-card-content>
+        <div class="search-client-header">
+          <mat-icon>search</mat-icon>
+          <h3>Rechercher un client</h3>
+          <span class="search-hint-text">Saisissez au moins 2 caractères</span>
+        </div>
+        <div class="search-client-container">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom, prénom, numéro client...</mat-label>
+            <input 
+              matInput 
+              [formControl]="clientSearchControl"
+              placeholder="Ex: Jean Dupont"
+              autocomplete="off"
+            />
+            <mat-icon matSuffix>person_search</mat-icon>
+          </mat-form-field>
+          
+          <div class="client-results" *ngIf="filteredClients.length > 0">
+            <div 
+              class="client-result-item" 
+              *ngFor="let client of filteredClients"
+              (click)="selectClient(client)">
+              <div class="client-avatar">
+                {{ client.firstName.charAt(0) }}{{ client.lastName.charAt(0) }}
+              </div>
+              <div class="client-info">
+                <span class="client-name">{{ client.firstName }} {{ client.lastName }}</span>
+                <span class="client-number">{{ client.clientNumber }}</span>
+                <span class="client-email">{{ client.email }}</span>
+              </div>
+              <div class="client-status-badge" [class.active]="client.active">
+                {{ client.active ? 'Actif' : 'Inactif' }}
+              </div>
+              <mat-icon class="select-icon">arrow_forward</mat-icon>
+            </div>
+          </div>
+          
+          <div class="no-results" *ngIf="getSearchLength() >= 2 && filteredClients.length === 0">
+            <mat-icon>search_off</mat-icon>
+            <span>Aucun client trouvé</span>
+          </div>
+          
+          <div class="search-hint" *ngIf="getSearchLength() < 2">
+            <mat-icon>info</mat-icon>
+            <span>Saisissez au moins 2 caractères pour lancer la recherche</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
   <!-- Stepper -->
-  <mat-stepper #stepper (selectionChange)="onStepChange($event)" linear>
+  <mat-stepper #stepper (selectionChange)="onStepChange($event)" linear *ngIf="client">
     
+    <!-- Étape 0: Type de crédit -->
+    <mat-step [stepControl]="creditTypeForm">
+      <ng-template matStepLabel>
+        <span class="step-label">
+          <mat-icon>credit_card</mat-icon>
+          Type de crédit
+        </span>
+      </ng-template>
+      <div class="step-content">
+        <form [formGroup]="creditTypeForm">
+          <div class="form-section">
+            <h3>Choisissez le type de crédit</h3>
+            
+            <div class="credit-type-grid">
+              <div 
+                *ngFor="let type of creditTypes"
+                class="credit-type-card"
+                [class.selected]="creditType === type.id"
+                (click)="selectCreditType(type.id)">
+                <div class="card-icon">
+                  <mat-icon>{{ type.icon }}</mat-icon>
+                </div>
+                <h4>{{ type.label }}</h4>
+                <p>{{ type.description }}</p>
+                <div class="card-check" *ngIf="creditType === type.id">
+                  <mat-icon>check_circle</mat-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button mat-raised-button color="primary" matStepperNext class="btn-next">
+              Suivant <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </form>
+      </div>
+    </mat-step>
+
     <!-- Étape 1: Informations client -->
     <mat-step [stepControl]="clientInfoForm">
       <ng-template matStepLabel>
@@ -69,6 +173,9 @@
         </div>
 
         <div class="step-actions">
+          <button mat-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Précédent
+          </button>
           <button mat-raised-button color="primary" matStepperNext [disabled]="!client">
             Suivant <mat-icon>arrow_forward</mat-icon>
           </button>
@@ -126,18 +233,95 @@
               </mat-error>
             </mat-form-field>
 
-            <!-- Objet -->
+            <!-- Objectif -->
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Objet du crédit</mat-label>
-              <textarea matInput formControlName="loanPurpose" rows="3" placeholder="Décrivez l'objet de la demande"></textarea>
-              <mat-hint align="end">{{ creditDetailsForm.get('loanPurpose')?.value?.length || 0 }}/500</mat-hint>
+              <mat-label>Objectif du crédit</mat-label>
+              <mat-select formControlName="loanPurpose">
+                <mat-option *ngFor="let purpose of loanPurposes" [value]="purpose">
+                  {{ purpose }}
+                </mat-option>
+              </mat-select>
               <mat-error *ngIf="creditDetailsForm.get('loanPurpose')?.hasError('required')">
-                L'objet est obligatoire
-              </mat-error>
-              <mat-error *ngIf="creditDetailsForm.get('loanPurpose')?.hasError('maxlength')">
-                Maximum 500 caractères
+                L'objectif est obligatoire
               </mat-error>
             </mat-form-field>
+
+            <!-- Salaire mensuel -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Salaire mensuel du client (XOF)</mat-label>
+              <input matInput type="number" formControlName="monthlySalary" placeholder="Ex: 500000" min="0">
+              <mat-icon matSuffix>attach_money</mat-icon>
+              <mat-error *ngIf="creditDetailsForm.get('monthlySalary')?.hasError('required')">
+                Le salaire mensuel est obligatoire
+              </mat-error>
+              <mat-error *ngIf="creditDetailsForm.get('monthlySalary')?.hasError('min')">
+                Le salaire doit être supérieur à 0
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Autres revenus -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Autre(s) revenu(s) mensuel(s) (optionnel)</mat-label>
+              <input matInput type="number" formControlName="otherMonthlyIncome" placeholder="Ex: 100000" min="0">
+              <mat-icon matSuffix>attach_money</mat-icon>
+            </mat-form-field>
+
+            <!-- Autres crédits -->
+            <div class="full-width credit-toggle">
+              <mat-slide-toggle formControlName="hasOtherCredits" color="primary">
+                Le client a-t-il d'autres crédits en cours ?
+              </mat-slide-toggle>
+            </div>
+
+            <div *ngIf="creditDetailsForm.get('hasOtherCredits')?.value" class="full-width">
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Montant des autres crédits (XOF)</mat-label>
+                  <input matInput type="number" formControlName="otherCreditsAmount" placeholder="Ex: 100000" min="0">
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Loyer mensuel (XOF)</mat-label>
+                  <input matInput type="number" formControlName="rentAmount" placeholder="Ex: 50000" min="0">
+                  <mat-icon matSuffix>home</mat-icon>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Rachat de crédit -->
+            <div *ngIf="creditType === 'refinance'" class="full-width refinance-section">
+              <h4>Informations de rachat de crédit</h4>
+              <div class="row">
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Montant à racheter (XOF)</mat-label>
+                  <input matInput type="number" formControlName="refinanceAmount" placeholder="Ex: 2500000" min="0">
+                  <mat-icon matSuffix>attach_money</mat-icon>
+                  <mat-error *ngIf="creditDetailsForm.get('refinanceAmount')?.hasError('required')">
+                    Le montant est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="half-width">
+                  <mat-label>Banque actuelle</mat-label>
+                  <input matInput formControlName="refinanceBankName" placeholder="Nom de la banque">
+                  <mat-icon matSuffix>business</mat-icon>
+                  <mat-error *ngIf="creditDetailsForm.get('refinanceBankName')?.hasError('required')">
+                    Le nom de la banque est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+              <div class="row">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Numéro de contrat actuel</mat-label>
+                  <input matInput formControlName="refinanceContractNumber" placeholder="Ex: CT-2024-001">
+                  <mat-icon matSuffix>description</mat-icon>
+                  <mat-error *ngIf="creditDetailsForm.get('refinanceContractNumber')?.hasError('required')">
+                    Le numéro de contrat est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
 
             <!-- Type de garantie -->
             <mat-form-field appearance="outline">
@@ -180,27 +364,49 @@
               <mat-label>Date de décaissement prévue</mat-label>
               <input matInput type="date" formControlName="expectedDisbursementDate">
             </mat-form-field>
-          </div>
 
-          <!-- Résumé de la simulation -->
-          <div class="simulation-preview" *ngIf="creditDetailsForm.valid">
-            <h3>📊 Aperçu de la simulation</h3>
-            <div class="simulation-grid">
-              <div class="sim-item">
-                <span class="label">Mensualité</span>
-                <span class="value">{{ formatCurrency(calculateMonthlyPayment()) }}</span>
+            <!-- Taux d'intérêt calculé -->
+            <mat-form-field appearance="outline" class="full-width highlight-field" *ngIf="calculatedInterestRate > 0">
+              <mat-label>Taux d'intérêt calculé</mat-label>
+              <input matInput [value]="calculatedInterestRate + '%'" readonly>
+              <mat-icon matSuffix>percent</mat-icon>
+              <mat-hint>
+                Niveau de risque: <strong [class]="riskLevel">{{ riskLevel }}</strong>
+              </mat-hint>
+            </mat-form-field>
+
+            <!-- Ajustements du taux -->
+            <div *ngIf="rateAdjustments.length > 0 && calculatedInterestRate > 0" class="full-width rate-adjustments">
+              <h4>📊 Détail du calcul du taux</h4>
+              <div class="adjustments-grid">
+                <div class="adjustment-item" *ngFor="let adj of rateAdjustments">
+                  <span>{{ adj }}</span>
+                </div>
               </div>
-              <div class="sim-item">
-                <span class="label">Taux d'intérêt</span>
-                <span class="value">{{ getInterestRate() }}%</span>
+            </div>
+
+            <!-- Indicateurs financiers -->
+            <div class="full-width financial-indicators" *ngIf="creditDetailsForm.get('monthlySalary')?.value > 0">
+              <h4>📈 Indicateurs financiers</h4>
+              <div class="indicators-grid">
+                <div class="indicator-item">
+                  <span class="label">Mensualité estimée</span>
+                  <span class="value">{{ calculateMonthlyPayment() | currency:'XOF' }}</span>
+                </div>
+                <div class="indicator-item">
+                  <span class="label">Taux d'endettement</span>
+                  <span class="value" [class.warning]="calculateDebtRatio() > 33">
+                    {{ calculateDebtRatio() }}%
+                  </span>
+                </div>
+                <div class="indicator-item">
+                  <span class="label">Total à rembourser</span>
+                  <span class="value">{{ getTotalPayment() | currency:'XOF' }}</span>
+                </div>
               </div>
-              <div class="sim-item">
-                <span class="label">Total à rembourser</span>
-                <span class="value">{{ formatCurrency(getTotalPayment()) }}</span>
-              </div>
-              <div class="sim-item">
-                <span class="label">Intérêts totaux</span>
-                <span class="value">{{ formatCurrency(getTotalPayment() - creditDetailsForm.get('amount')?.value) }}</span>
+              <div *ngIf="calculateDebtRatio() > 33" class="debt-warning">
+                <mat-icon>warning</mat-icon>
+                <span>Le taux d'endettement dépasse 33%. Veuillez réviser la demande.</span>
               </div>
             </div>
           </div>
@@ -217,7 +423,7 @@
       </div>
     </mat-step>
 
-    <!-- Étape 3: Documents -->
+    <!-- Étape 3: Documents - VERSION AVEC UPLOAD INTÉGRÉ -->
     <mat-step>
       <ng-template matStepLabel>
         <mat-icon>folder</mat-icon>
@@ -226,11 +432,27 @@
       
       <div class="step-content">
         <div class="documents-header">
-          <h3>📄 Vérification des documents obligatoires</h3>
-          <p class="subtitle">Assurez-vous que tous les documents obligatoires sont présents avant de continuer</p>
+          <div class="documents-header-left">
+            <h3>📄 Gestion des documents obligatoires</h3>
+            <p class="subtitle">Téléchargez les documents requis pour la demande de crédit</p>
+          </div>
+          <div class="documents-header-right">
+            <button mat-icon-button (click)="refreshDocumentStatus()" matTooltip="Rafraîchir">
+              <mat-icon>refresh</mat-icon>
+            </button>
+          </div>
         </div>
 
-        <!-- Barre de progression -->
+        <!-- ✅ Upload inline -->
+        <app-document-upload-inline
+          *ngIf="clientId"
+          [clientId]="clientId"
+          [creditRequestId]="creditRequestId"
+          (documentUploaded)="onDocumentUploaded($event)">
+        </app-document-upload-inline>
+
+        <mat-divider class="full-width"></mat-divider>
+
         <div class="progress-container" *ngIf="mandatoryDocuments.length > 0">
           <div class="progress-info">
             <span>Progression</span>
@@ -240,7 +462,6 @@
         </div>
 
         <div class="documents-status" *ngIf="!isLoadingDocuments">
-          <!-- Documents obligatoires -->
           <div class="document-list">
             <div *ngFor="let type of mandatoryDocuments" class="document-item" 
                  [class.valid]="documentStatus.get(type) === true" 
@@ -262,7 +483,6 @@
             </div>
           </div>
 
-          <!-- Résumé -->
           <div class="documents-summary">
             <div class="summary-card" [class.complete]="hasMandatoryDocuments()">
               <mat-icon>{{ hasMandatoryDocuments() ? 'check_circle' : 'pending' }}</mat-icon>
@@ -305,7 +525,6 @@
           <p>Vérifiez tous les éléments avant de transmettre le dossier à l'analyste</p>
         </div>
 
-        <!-- Résumé de la demande -->
         <mat-card class="review-summary">
           <mat-card-header>
             <mat-card-title>Résumé de la demande</mat-card-title>
@@ -314,7 +533,7 @@
             <div class="summary-grid">
               <div class="summary-item">
                 <span class="label">Client</span>
-                <span class="value">{{ client?.firstName }} {{ client?.lastName }}</span>
+                <span class="value">{{ client.firstName }} {{ client.lastName }}</span>
               </div>
               <div class="summary-item">
                 <span class="label">Montant</span>
@@ -330,7 +549,13 @@
               </div>
               <div class="summary-item">
                 <span class="label">Taux d'intérêt</span>
-                <span class="value">{{ getInterestRate() }}%</span>
+                <span class="value">{{ calculatedInterestRate }}%</span>
+              </div>
+              <div class="summary-item">
+                <span class="label">Taux d'endettement</span>
+                <span class="value" [style.color]="calculateDebtRatio() > 33 ? '#f44336' : '#4caf50'">
+                  {{ calculateDebtRatio() }}%
+                </span>
               </div>
               <div class="summary-item">
                 <span class="label">Documents</span>
@@ -342,7 +567,6 @@
           </mat-card-content>
         </mat-card>
 
-        <!-- Formulaire de validation -->
         <form [formGroup]="reviewForm" class="review-form">
           <mat-checkbox formControlName="verified" color="primary">
             Je confirme avoir vérifié toutes les informations et documents du client
@@ -358,7 +582,7 @@
           <button mat-button matStepperPrevious>
             <mat-icon>arrow_back</mat-icon> Précédent
           </button>
-          <button mat-raised-button color="primary" (click)="submitCreditRequest()" 
+          <button mat-raised-button color="primary" (click)="onSubmit()" 
                   [disabled]="reviewForm.invalid || isSubmitting || !hasMandatoryDocuments()">
             <mat-icon *ngIf="!isSubmitting">send</mat-icon>
             <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>

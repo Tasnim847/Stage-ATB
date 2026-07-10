@@ -158,7 +158,6 @@ export class SidebarComponent {
   
     // ✅ Gestion des demandes de crédit - CORRIGÉ
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
-    { path: '/credit-requests/new', icon: 'add', label: 'Nouvelle demande', badge: 0 },
   
     // ✅ Simulation (accessible aussi pour le conseiller)
     { path: '/simulation', icon: 'calculate', label: 'Simulation de crédit', badge: 0 },
