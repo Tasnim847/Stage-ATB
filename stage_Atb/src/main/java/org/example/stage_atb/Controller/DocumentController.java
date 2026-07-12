@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -26,13 +27,60 @@ public class DocumentController {
 
     private final IDocumentService documentService;
 
+    // ✅ SOLUTION RECOMMANDÉE : Utiliser @RequestParam
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DocumentResponseDTO>> uploadDocument(
-            @Valid @ModelAttribute DocumentUploadRequestDTO requestDTO) {
-        log.info("POST /api/documents/upload - Uploading document");
-        DocumentResponseDTO response = documentService.uploadDocument(requestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Document uploaded successfully", response));
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("clientId") String clientId,
+            @RequestParam("documentType") String documentType,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "creditRequestId", required = false) String creditRequestId) {
+
+        log.info("=== UPLOAD DOCUMENT ===");
+        log.info("📤 File: {}", file.getOriginalFilename());
+        log.info("📤 File Size: {} bytes", file.getSize());
+        log.info("📤 ClientId: {}", clientId);
+        log.info("📤 DocumentType: {}", documentType);
+        log.info("📤 Description: {}", description);
+        log.info("📤 CreditRequestId: {}", creditRequestId);
+
+        try {
+            // Convertir le type de document
+            DocumentType docType;
+            try {
+                docType = DocumentType.valueOf(documentType);
+            } catch (IllegalArgumentException e) {
+                log.error("Invalid document type: {}", documentType);
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("Invalid document type: " + documentType));
+            }
+
+            // Vérifier que le fichier n'est pas vide
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error("File is empty"));
+            }
+
+            // Créer le DTO
+            DocumentUploadRequestDTO requestDTO = DocumentUploadRequestDTO.builder()
+                    .file(file)
+                    .clientId(clientId)
+                    .documentType(docType)
+                    .description(description)
+                    .creditRequestId(creditRequestId)
+                    .build();
+
+            DocumentResponseDTO response = documentService.uploadDocument(requestDTO);
+            log.info("✅ Document uploaded successfully with id: {}", response.getId());
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Document uploaded successfully", response));
+
+        } catch (Exception e) {
+            log.error("❌ Error uploading document: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error uploading document: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")

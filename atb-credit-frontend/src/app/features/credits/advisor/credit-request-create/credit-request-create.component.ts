@@ -1,5 +1,5 @@
 // features/credits/advisor/credit-request-create/credit-request-create.component.ts
-import { Component, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -59,7 +59,7 @@ import { DocumentUploadInlineComponent } from './components/document-upload-inli
   templateUrl: './credit-request-create.component.html',
   styleUrls: ['./credit-request-create.component.css']
 })
-export class CreditRequestCreateComponent implements OnInit {
+export class CreditRequestCreateComponent implements OnInit, OnDestroy {
   @ViewChild('stepper') stepper!: MatStepper;
 
   private fb = inject(FormBuilder);
@@ -82,6 +82,9 @@ export class CreditRequestCreateComponent implements OnInit {
   documentStatus: Map<DocumentType, boolean> = new Map();
   currentStep = 0;
   creditRequestId: string | null = null;
+  private refreshInterval: any = null;
+  private animatingDocuments: Set<DocumentType> = new Set();
+  private uploadedDocumentTypes: Set<DocumentType> = new Set();
 
   // Recherche client
   showClientSearch = false;
@@ -186,14 +189,16 @@ export class CreditRequestCreateComponent implements OnInit {
       }
     });
 
-    // Écouter les changements pour recalculer le taux
     this.creditDetailsForm.valueChanges.subscribe(() => {
       this.calculateInterestRate();
     });
   }
 
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
+
   initForms(): void {
-    // Formulaire des informations client (lecture seule)
     this.clientInfoForm = this.fb.group({
       firstName: [{ value: '', disabled: true }],
       lastName: [{ value: '', disabled: true }],
@@ -205,12 +210,10 @@ export class CreditRequestCreateComponent implements OnInit {
       address: [{ value: '', disabled: true }]
     });
 
-    // Formulaire du type de crédit
     this.creditTypeForm = this.fb.group({
       creditType: ['new', Validators.required]
     });
 
-    // Formulaire des détails du crédit
     this.creditDetailsForm = this.fb.group({
       amount: ['', [Validators.required, Validators.min(1000)]],
       currency: ['XOF', [Validators.required]],
@@ -232,13 +235,11 @@ export class CreditRequestCreateComponent implements OnInit {
       refinanceContractNumber: ['']
     });
 
-    // Formulaire de validation finale
     this.reviewForm = this.fb.group({
       verified: [false, [Validators.requiredTrue]],
       notes: ['']
     });
 
-    // Écouter les changements de type de crédit
     this.creditTypeForm.get('creditType')?.valueChanges.subscribe((type) => {
       this.creditType = type;
       this.updateFinancialValidations(type);
@@ -265,7 +266,6 @@ export class CreditRequestCreateComponent implements OnInit {
     refinanceContractNumber?.updateValueAndValidity();
   }
 
-  // ✅ Initialisation de la recherche de client
   initClientSearch(): void {
     this.clientSearchControl.valueChanges
       .pipe(
@@ -290,7 +290,6 @@ export class CreditRequestCreateComponent implements OnInit {
       });
   }
 
-  // ✅ Sélectionner un client
   selectClient(client: ClientResponseDTO): void {
     this.clientId = client.id;
     this.loadClientInfo(client.id);
@@ -305,6 +304,8 @@ export class CreditRequestCreateComponent implements OnInit {
 
   loadClientInfo(clientId: string): void {
     this.isLoading = true;
+    this.uploadedDocumentTypes = new Set();
+    
     this.clientService.getClientById(clientId).subscribe({
       next: (client) => {
         this.client = client;
@@ -363,12 +364,16 @@ export class CreditRequestCreateComponent implements OnInit {
   checkDocumentStatus(): void {
     if (!this.clientId) return;
     
+    this.isLoadingDocuments = true;
     this.documentService.getMandatoryDocumentStatus(this.clientId).subscribe({
       next: (status) => {
         this.documentStatus = status;
+        this.isLoadingDocuments = false;
+        this.updateProgress();
       },
       error: (error) => {
         console.error('Erreur vérification statut documents:', error);
+        this.isLoadingDocuments = false;
       }
     });
   }
@@ -379,16 +384,29 @@ export class CreditRequestCreateComponent implements OnInit {
 
   hasMandatoryDocuments(): boolean {
     if (!this.clientId) return false;
-    return this.mandatoryDocuments.every(type => this.documentStatus.get(type) === true);
+    if (this.mandatoryDocuments.length === 0) return false;
+    
+    return this.mandatoryDocuments.every(type => 
+      this.documentStatus.get(type) === true || 
+      this.uploadedDocumentTypes.has(type)
+    );
   }
 
   getMissingDocuments(): DocumentType[] {
-    return this.mandatoryDocuments.filter(type => this.documentStatus.get(type) !== true);
+    return this.mandatoryDocuments.filter(type => 
+      this.documentStatus.get(type) !== true && 
+      !this.uploadedDocumentTypes.has(type)
+    );
   }
 
   getMandatoryProgress(): number {
     if (this.mandatoryDocuments.length === 0) return 0;
-    const present = this.mandatoryDocuments.filter(type => this.documentStatus.get(type) === true).length;
+    
+    const present = this.mandatoryDocuments.filter(type => 
+      this.documentStatus.get(type) === true || 
+      this.uploadedDocumentTypes.has(type)
+    ).length;
+    
     return Math.round((present / this.mandatoryDocuments.length) * 100);
   }
 
@@ -405,7 +423,6 @@ export class CreditRequestCreateComponent implements OnInit {
     let adjustments: string[] = [];
     let totalAdjustment = 0;
 
-    // Score de solvabilité estimé
     const score = this.estimateSolvencyScore();
     
     if (score >= 90) {
@@ -416,7 +433,6 @@ export class CreditRequestCreateComponent implements OnInit {
       adjustments.push('✅ Bon score (-0.25%)');
     }
 
-    // Salaire
     if (monthlySalary >= 5000) {
       totalAdjustment -= 0.15;
       adjustments.push('✅ Salaire élevé (-0.15%)');
@@ -425,7 +441,6 @@ export class CreditRequestCreateComponent implements OnInit {
       adjustments.push('⚠️ Salaire modeste (+0.30%)');
     }
 
-    // Autres crédits
     if (hasOtherCredits && otherCreditsAmount > 0) {
       if (otherCreditsAmount > 1000) {
         totalAdjustment += 0.50;
@@ -436,7 +451,6 @@ export class CreditRequestCreateComponent implements OnInit {
       }
     }
 
-    // Durée
     if (durationMonths > 60) {
       totalAdjustment += 0.20;
       adjustments.push('⚠️ Longue durée > 60 mois (+0.20%)');
@@ -661,18 +675,13 @@ export class CreditRequestCreateComponent implements OnInit {
     }
   }
 
-  
-
-  /**
-    * ✅ Télécharger un document spécifique
-  */
+  // ✅ Télécharger un document spécifique
   uploadDocument(documentType: DocumentType): void {
     if (!this.clientId) {
       this.snackBar.open('Aucun client sélectionné', 'Fermer', { duration: 3000 });
       return;
     }
 
-    // Rediriger vers la page de téléchargement avec les paramètres pré-remplis
     this.router.navigate(['/documents/upload'], {
       queryParams: {
         clientId: this.clientId,
@@ -682,16 +691,13 @@ export class CreditRequestCreateComponent implements OnInit {
     });
   }
 
-  /**
-    *  ✅ Télécharger tous les documents manquants
-  */
+  // ✅ Télécharger tous les documents manquants
   uploadAllDocuments(): void {
     if (!this.clientId) {
       this.snackBar.open('Aucun client sélectionné', 'Fermer', { duration: 3000 });
       return;
     }
 
-    // Rediriger vers la page de téléchargement
     this.router.navigate(['/documents/upload'], {
       queryParams: {
         clientId: this.clientId,
@@ -700,69 +706,159 @@ export class CreditRequestCreateComponent implements OnInit {
     });
   }
 
-/**
- * ✅ Vérifier si un document est téléchargé
- */
-isDocumentUploaded(type: DocumentType): boolean {
-  return this.documentStatus.get(type) === true;
-}
-
-/**
- * ✅ Rafraîchir le statut des documents
- */
-refreshDocumentStatus(): void {
-  if (this.clientId) {
-    this.checkDocumentStatus();
-  }
-}
-
-
-/**
- * ✅ Transmettre la demande avec tous les documents
- */
-transmitWithDocuments(): void {
-  if (!this.creditRequestId) {
-    this.snackBar.open('Aucune demande à transmettre', 'Fermer', { duration: 3000 });
-    return;
+  // ✅ Vérifier si un document est téléchargé
+  isDocumentUploaded(type: DocumentType): boolean {
+    return this.documentStatus.get(type) === true || this.uploadedDocumentTypes.has(type);
   }
 
-  if (!this.hasMandatoryDocuments()) {
-    this.snackBar.open('Tous les documents obligatoires ne sont pas présents', 'Fermer', { duration: 3000 });
-    return;
+  // ✅ Vérifier si un document est en animation
+  isAnimating(type: DocumentType): boolean {
+    return this.animatingDocuments.has(type);
   }
 
-  this.isSubmitting = true;
-  const notes = this.reviewForm.get('notes')?.value || '';
-  
-  this.creditRequestService.transmitToAnalyst(this.creditRequestId, notes).subscribe({
-    next: () => {
-      this.isSubmitting = false;
-      this.snackBar.open('📤 Dossier transmis à l\'analyste avec succès !', 'Fermer', { duration: 3000 });
-      this.router.navigate(['/credit-requests', this.creditRequestId]);
-    },
-    error: (error) => {
-      console.error('Erreur transmission:', error);
-      this.isSubmitting = false;
-      this.snackBar.open('❌ Erreur lors de la transmission', 'Fermer', { duration: 5000 });
+  // ✅ Rafraîchir le statut des documents
+  refreshDocumentStatus(): void {
+    if (this.clientId) {
+      this.checkDocumentStatus();
     }
-  });
-}
-// features/credits/advisor/credit-request-create/credit-request-create.component.ts
-
-/**
- * ✅ Appelé lorsqu'un document est téléchargé
- */
-onDocumentUploaded(documentType: DocumentType): void {
-  // Rafraîchir le statut des documents
-  this.refreshDocumentStatus();
-  
-  // Afficher un message de succès
-  this.snackBar.open(`✅ ${this.documentTypeLabels[documentType]} téléchargé avec succès`, 'Fermer', { duration: 3000 });
-  
-  // Si tous les documents sont présents, proposer de continuer
-  if (this.hasMandatoryDocuments()) {
-    this.snackBar.open('🎉 Tous les documents obligatoires sont présents !', 'Fermer', { duration: 5000 });
   }
-}
 
+  // ✅ Démarrer le rafraîchissement automatique
+  startAutoRefresh(): void {
+    this.stopAutoRefresh();
+    this.refreshInterval = setInterval(() => {
+      if (this.clientId && this.currentStep === 2) {
+        this.checkDocumentStatus();
+      }
+    }, 5000);
+  }
+
+  // ✅ Arrêter le rafraîchissement automatique
+  stopAutoRefresh(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+  }
+
+  // ✅ Transmettre la demande avec tous les documents
+  transmitWithDocuments(): void {
+    if (!this.creditRequestId) {
+      this.snackBar.open('Aucune demande à transmettre', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    if (!this.hasMandatoryDocuments()) {
+      this.snackBar.open('Tous les documents obligatoires ne sont pas présents', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    this.isSubmitting = true;
+    const notes = this.reviewForm.get('notes')?.value || '';
+    
+    this.creditRequestService.transmitToAnalyst(this.creditRequestId, notes).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.snackBar.open('📤 Dossier transmis à l\'analyste avec succès !', 'Fermer', { duration: 3000 });
+        this.router.navigate(['/credit-requests', this.creditRequestId]);
+      },
+      error: (error) => {
+        console.error('Erreur transmission:', error);
+        this.isSubmitting = false;
+        this.snackBar.open('❌ Erreur lors de la transmission', 'Fermer', { duration: 5000 });
+      }
+    });
+  }
+
+  // ✅ Appelé lorsqu'un document est téléchargé
+  onDocumentUploaded(event: { documentType: DocumentType, clientId: string }): void {
+    console.log('📥 Document uploaded event received:', event);
+    
+    if (!event.documentType) {
+      console.warn('⚠️ Document type is undefined, forcing refresh');
+      this.forceRefreshDocumentStatus();
+      return;
+    }
+    
+    // ✅ Ajouter le document à la liste des documents téléchargés
+    this.uploadedDocumentTypes.add(event.documentType);
+    
+    // ✅ Mettre à jour immédiatement le statut local
+    this.documentStatus.set(event.documentType, true);
+    
+    // ✅ Ajouter l'animation
+    this.animatingDocuments.add(event.documentType);
+    
+    // ✅ Afficher un message de succès
+    this.snackBar.open(`✅ ${this.documentTypeLabels[event.documentType]} téléchargé avec succès`, 'Fermer', { duration: 3000 });
+    
+    // ✅ Forcer la mise à jour de la progression
+    this.updateProgress();
+    
+    // ✅ Supprimer l'animation après un délai
+    setTimeout(() => {
+      this.animatingDocuments.delete(event.documentType);
+    }, 500);
+    
+    // ✅ Forcer le rafraîchissement du statut depuis le backend
+    setTimeout(() => {
+      this.forceRefreshDocumentStatus();
+    }, 1000);
+    
+    // ✅ Si tous les documents sont présents, proposer de continuer
+    if (this.hasMandatoryDocuments()) {
+      this.snackBar.open('🎉 Tous les documents obligatoires sont présents !', 'Fermer', { duration: 5000 });
+    }
+  }
+
+  // ✅ Forcer le rafraîchissement du statut des documents
+  forceRefreshDocumentStatus(): void {
+    if (!this.clientId) return;
+    
+    console.log('🔄 Force refreshing document status...');
+    this.isLoadingDocuments = true;
+    
+    this.documentService.getDocumentsByClient(this.clientId).subscribe({
+      next: (docs) => {
+        console.log('📄 Documents found:', docs);
+        
+        this.documentService.getMandatoryDocumentTypes().subscribe({
+          next: (mandatoryTypes) => {
+            console.log('📋 Mandatory types:', mandatoryTypes);
+            this.mandatoryDocuments = mandatoryTypes;
+            
+            const newStatus = new Map<DocumentType, boolean>();
+            mandatoryTypes.forEach(type => {
+              const hasDoc = docs.some(doc => 
+                doc.documentType === type && doc.verified === true
+              );
+              const isUploaded = this.uploadedDocumentTypes.has(type);
+              newStatus.set(type, hasDoc || isUploaded);
+              console.log(`📊 ${type}: ${hasDoc || isUploaded ? '✅' : '❌'} (uploaded: ${isUploaded})`);
+            });
+            
+            this.documentStatus = newStatus;
+            this.isLoadingDocuments = false;
+            this.updateProgress();
+            
+            console.log('📊 Updated document status:', this.documentStatus);
+          },
+          error: (error) => {
+            console.error('❌ Error getting mandatory types:', error);
+            this.isLoadingDocuments = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error getting documents:', error);
+        this.isLoadingDocuments = false;
+      }
+    });
+  }
+
+  // ✅ Mettre à jour la progression
+  updateProgress(): void {
+    const progress = this.getMandatoryProgress();
+    console.log('📊 Progression des documents:', progress + '%');
+  }
 }

@@ -423,94 +423,104 @@
       </div>
     </mat-step>
 
-    <!-- Étape 3: Documents - VERSION AVEC UPLOAD INTÉGRÉ -->
+
+    <!-- Étape 3: Documents -->
     <mat-step>
       <ng-template matStepLabel>
         <mat-icon>folder</mat-icon>
-        Documents
+          Documents
       </ng-template>
-      
+  
       <div class="step-content">
         <div class="documents-header">
           <div class="documents-header-left">
             <h3>📄 Gestion des documents obligatoires</h3>
             <p class="subtitle">Téléchargez les documents requis pour la demande de crédit</p>
           </div>
-          <div class="documents-header-right">
-            <button mat-icon-button (click)="refreshDocumentStatus()" matTooltip="Rafraîchir">
-              <mat-icon>refresh</mat-icon>
-            </button>
+      <div class="documents-header-right">
+        <button mat-icon-button (click)="refreshDocumentStatus()" matTooltip="Rafraîchir" [disabled]="isLoadingDocuments">
+          <mat-icon [class.spinning]="isLoadingDocuments">refresh</mat-icon>
+        </button>
+        <span class="progress-text">{{ getMandatoryProgress() }}%</span>
+      </div>
+    </div>
+
+    <!-- ✅ Upload inline -->
+    <app-document-upload-inline
+      *ngIf="clientId"
+      [clientId]="clientId"
+      [creditRequestId]="creditRequestId"
+      (documentUploaded)="onDocumentUploaded($event)">
+    </app-document-upload-inline>
+
+    <mat-divider class="full-width"></mat-divider>
+
+    <!-- ✅ Barre de progression avec mise à jour en temps réel -->
+    <div class="progress-container" *ngIf="mandatoryDocuments.length > 0">
+      <div class="progress-info">
+        <span>Progression</span>
+        <span>{{ getMandatoryProgress() }}%</span>
+      </div>
+      <mat-progress-bar 
+        mode="determinate" 
+        [value]="getMandatoryProgress()" 
+        [color]="getMandatoryProgress() === 100 ? 'primary' : 'warn'"
+        [class.complete]="getMandatoryProgress() === 100">
+      </mat-progress-bar>
+    </div>
+
+    <!-- ✅ Liste des documents avec statut en temps réel -->
+    <div class="documents-status" *ngIf="!isLoadingDocuments">
+      <div class="document-list">
+        <div *ngFor="let type of mandatoryDocuments" class="document-item" 
+             [class.valid]="isDocumentUploaded(type)" 
+             [class.missing]="!isDocumentUploaded(type)"
+             [class.animating]="isAnimating(type)">
+          <div class="doc-icon">
+            <mat-icon [style.color]="isDocumentUploaded(type) ? '#4caf50' : '#f44336'">
+              {{ isDocumentUploaded(type) ? 'check_circle' : 'error' }}
+            </mat-icon>
           </div>
-        </div>
-
-        <!-- ✅ Upload inline -->
-        <app-document-upload-inline
-          *ngIf="clientId"
-          [clientId]="clientId"
-          [creditRequestId]="creditRequestId"
-          (documentUploaded)="onDocumentUploaded($event)">
-        </app-document-upload-inline>
-
-        <mat-divider class="full-width"></mat-divider>
-
-        <div class="progress-container" *ngIf="mandatoryDocuments.length > 0">
-          <div class="progress-info">
-            <span>Progression</span>
-            <span>{{ getMandatoryProgress() }}%</span>
+          <div class="doc-info">
+            <span class="doc-name">
+              <mat-icon class="doc-type-icon">{{ getDocumentIcon(type) }}</mat-icon>
+              {{ documentTypeLabels[type] }}
+            </span>
+            <span class="doc-status" [class.present]="isDocumentUploaded(type)" [class.missing]="!isDocumentUploaded(type)">
+              {{ isDocumentUploaded(type) ? '✅ Présent' : '❌ Manquant' }}
+            </span>
           </div>
-          <mat-progress-bar mode="determinate" [value]="getMandatoryProgress()" [color]="getMandatoryProgress() === 100 ? 'primary' : 'warn'"></mat-progress-bar>
-        </div>
-
-        <div class="documents-status" *ngIf="!isLoadingDocuments">
-          <div class="document-list">
-            <div *ngFor="let type of mandatoryDocuments" class="document-item" 
-                 [class.valid]="documentStatus.get(type) === true" 
-                 [class.missing]="documentStatus.get(type) !== true">
-              <div class="doc-icon">
-                <mat-icon [style.color]="documentStatus.get(type) === true ? '#4caf50' : '#f44336'">
-                  {{ documentStatus.get(type) === true ? 'check_circle' : 'error' }}
-                </mat-icon>
-              </div>
-              <div class="doc-info">
-                <span class="doc-name">
-                  <mat-icon class="doc-type-icon">{{ getDocumentIcon(type) }}</mat-icon>
-                  {{ documentTypeLabels[type] }}
-                </span>
-                <span class="doc-status" [class.present]="documentStatus.get(type) === true" [class.missing]="documentStatus.get(type) !== true">
-                  {{ documentStatus.get(type) === true ? '✅ Présent' : '❌ Manquant' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div class="documents-summary">
-            <div class="summary-card" [class.complete]="hasMandatoryDocuments()">
-              <mat-icon>{{ hasMandatoryDocuments() ? 'check_circle' : 'pending' }}</mat-icon>
-              <div>
-                <span class="summary-title">
-                  {{ hasMandatoryDocuments() ? '✅ Tous les documents sont présents' : '📋 Documents manquants' }}
-                </span>
-                <span class="summary-text" *ngIf="!hasMandatoryDocuments()">
-                  {{ getMissingDocuments().length }} document(s) manquant(s)
-                </span>
-                <span class="summary-text" *ngIf="hasMandatoryDocuments()">
-                  Vous pouvez procéder à la validation
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="step-actions">
-          <button mat-button matStepperPrevious>
-            <mat-icon>arrow_back</mat-icon> Précédent
-          </button>
-          <button mat-raised-button color="primary" matStepperNext [disabled]="!hasMandatoryDocuments()">
-            Suivant <mat-icon>arrow_forward</mat-icon>
-          </button>
         </div>
       </div>
-    </mat-step>
+
+      <div class="documents-summary">
+        <div class="summary-card" [class.complete]="hasMandatoryDocuments()">
+          <mat-icon>{{ hasMandatoryDocuments() ? 'check_circle' : 'pending' }}</mat-icon>
+          <div>
+            <span class="summary-title">
+              {{ hasMandatoryDocuments() ? '✅ Tous les documents sont présents' : '📋 Documents manquants' }}
+            </span>
+            <span class="summary-text" *ngIf="!hasMandatoryDocuments()">
+              {{ getMissingDocuments().length }} document(s) manquant(s)
+            </span>
+            <span class="summary-text" *ngIf="hasMandatoryDocuments()">
+              Vous pouvez procéder à la validation
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-actions">
+      <button mat-button matStepperPrevious>
+        <mat-icon>arrow_back</mat-icon> Précédent
+      </button>
+      <button mat-raised-button color="primary" matStepperNext [disabled]="!hasMandatoryDocuments()">
+        Suivant <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-step>
 
     <!-- Étape 4: Validation et transmission -->
     <mat-step [stepControl]="reviewForm">

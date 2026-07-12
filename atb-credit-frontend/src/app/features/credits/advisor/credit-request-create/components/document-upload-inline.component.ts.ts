@@ -252,8 +252,8 @@ import { DocumentType, DOCUMENT_TYPE_CONFIG } from '@core/models';
 })
 export class DocumentUploadInlineComponent implements OnInit {
   @Input() clientId!: string;
-  @Input() creditRequestId: string | null = null; // ✅ Accepter null
-  @Output() documentUploaded = new EventEmitter<DocumentType>();
+  @Input() creditRequestId: string | null = null;
+  @Output() documentUploaded = new EventEmitter<{ documentType: DocumentType, clientId: string }>();
 
   private fb = inject(FormBuilder);
   private documentService = inject(DocumentService);
@@ -283,7 +283,23 @@ export class DocumentUploadInlineComponent implements OnInit {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
+      const file = input.files[0];
+      
+      if (file.size > 10 * 1024 * 1024) {
+        this.snackBar.open('❌ Le fichier est trop volumineux (max 10MB)', 'Fermer', { duration: 5000 });
+        input.value = '';
+        return;
+      }
+      
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|doc|docx)$/i)) {
+        this.snackBar.open('❌ Format de fichier non supporté', 'Fermer', { duration: 5000 });
+        input.value = '';
+        return;
+      }
+      
+      this.selectedFile = file;
+      input.value = '';
     }
   }
 
@@ -292,7 +308,14 @@ export class DocumentUploadInlineComponent implements OnInit {
     this.isDragover = false;
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.selectedFile = files[0];
+      const file = files[0];
+      
+      if (file.size > 10 * 1024 * 1024) {
+        this.snackBar.open('❌ Le fichier est trop volumineux (max 10MB)', 'Fermer', { duration: 5000 });
+        return;
+      }
+      
+      this.selectedFile = file;
     }
   }
 
@@ -310,28 +333,60 @@ export class DocumentUploadInlineComponent implements OnInit {
 
     this.isUploading = true;
     const formData = new FormData();
+    
+    // ✅ Sauvegarder le type de document avant l'upload
+    const documentType = this.uploadForm.get('documentType')?.value;
+    
     formData.append('file', this.selectedFile);
     formData.append('clientId', this.clientId);
-    formData.append('documentType', this.uploadForm.get('documentType')?.value);
-    if (this.uploadForm.get('description')?.value) {
-      formData.append('description', this.uploadForm.get('description')?.value);
+    formData.append('documentType', documentType);
+    
+    const description = this.uploadForm.get('description')?.value;
+    if (description && description.trim()) {
+      formData.append('description', description);
     }
+    
     if (this.creditRequestId) {
       formData.append('creditRequestId', this.creditRequestId);
     }
+
+    console.log('📤 Uploading document:', {
+      clientId: this.clientId,
+      documentType: documentType,
+      creditRequestId: this.creditRequestId,
+      fileName: this.selectedFile.name,
+      fileSize: this.selectedFile.size,
+      fileType: this.selectedFile.type
+    });
 
     this.documentService.uploadDocument(formData).subscribe({
       next: (response) => {
         this.isUploading = false;
         this.snackBar.open('✅ Document téléchargé avec succès', 'Fermer', { duration: 3000 });
         this.selectedFile = null;
-        this.uploadForm.reset();
-        this.documentUploaded.emit(response.documentType);
+        this.uploadForm.patchValue({ documentType: '', description: '' });
+        this.uploadForm.get('documentType')?.markAsUntouched();
+        
+        // ✅ Utiliser le type du formulaire si la réponse ne le contient pas
+        const emittedType = response?.documentType || documentType;
+        console.log('📤 Emitting event with type:', emittedType);
+        this.documentUploaded.emit({
+          documentType: emittedType,
+          clientId: this.clientId
+        });
       },
       error: (error) => {
-        console.error('Erreur upload:', error);
+        console.error('❌ Erreur upload:', error);
+        
+        let errorMessage = 'Erreur lors du téléchargement';
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.error && typeof error.error === 'string') {
+          errorMessage = error.error;
+        }
+        
+        this.snackBar.open(`❌ ${errorMessage}`, 'Fermer', { duration: 5000 });
         this.isUploading = false;
-        this.snackBar.open('❌ Erreur lors du téléchargement', 'Fermer', { duration: 5000 });
       }
     });
   }

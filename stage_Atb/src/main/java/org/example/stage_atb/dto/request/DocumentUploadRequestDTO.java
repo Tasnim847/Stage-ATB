@@ -1,3 +1,4 @@
+// dto/request/DocumentUploadRequestDTO.java - Assurez-vous qu'il est complet
 package org.example.stage_atb.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
@@ -15,16 +16,16 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class DocumentUploadRequestDTO {
 
+    @NotNull(message = "File is required")
+    private MultipartFile file;
+
     @NotBlank(message = "Client ID is required")
     private String clientId;
-
-    private String creditRequestId;
 
     @NotNull(message = "Document type is required")
     private DocumentType documentType;
 
     private String description;
 
-    @NotNull(message = "File is required")
-    private MultipartFile file;
+    private String creditRequestId;
 }

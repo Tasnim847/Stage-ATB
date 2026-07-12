@@ -1031,3 +1031,108 @@
     justify-content: center;
   }
 }
+
+
+/* features/credits/advisor/credit-request-create/credit-request-create.component.css */
+/* Ajouter à la fin du fichier */
+
+/* ✅ Animation de chargement */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ✅ Animation pour les documents */
+.document-item.animating {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ✅ Progression en temps réel */
+.progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8B1A1A;
+  margin-left: 8px;
+}
+
+.loading-spinner-small {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.loading-spinner-small ::ng-deep .mat-spinner circle {
+  stroke: #8B1A1A !important;
+}
+
+/* ✅ Barre de progression complète */
+mat-progress-bar.complete ::ng-deep .mat-progress-bar-buffer {
+  background: #A5D6A7 !important;
+}
+
+mat-progress-bar.complete ::ng-deep .mat-progress-bar-fill::after {
+  background-color: #4CAF50 !important;
+}
+
+/* ✅ Document items */
+.doc-status.present {
+  color: #4CAF50 !important;
+  font-weight: 600;
+}
+
+.doc-status.missing {
+  color: #F44336 !important;
+  font-weight: 600;
+}
+
+.document-item.valid {
+  border-left-color: #4CAF50 !important;
+  background: #E8F5E9 !important;
+}
+
+.document-item.missing {
+  border-left-color: #F44336 !important;
+  background: #FFEBEE !important;
+}
+
+/* ✅ Documents header */
+.documents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.documents-header-left h3 {
+  margin: 0 0 4px 0;
+  color: #1a2332;
+  font-size: 18px;
+}
+
+.documents-header-left .subtitle {
+  color: #718096;
+  margin: 0;
+  font-size: 14px;
+}
+
+.documents-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

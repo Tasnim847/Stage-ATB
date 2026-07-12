@@ -1,4 +1,3 @@
-// SecurityConfig.java - VERSION CORRIGÉE
 package org.example.stage_atb.security;
 
 import lombok.RequiredArgsConstructor;
@@ -90,14 +89,17 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
 
+                        // ============================================
                         // ✅ ROUTES CLIENTS
+                        // ============================================
                         .requestMatchers("/api/clients/me").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/my-credits/**").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/my-credits").hasRole("CLIENT")
-                        .requestMatchers(HttpMethod.POST, "/api/credit-requests").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/*/simulation").hasRole("CLIENT")
 
+                        // ============================================
                         // ✅ ROUTES ADMIN
+                        // ============================================
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .requestMatchers("/api/users/role/**").hasRole("ADMIN")
@@ -109,42 +111,63 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/audit-logs/recent").hasRole("ADMIN")
                         .requestMatchers("/api/admin/audit-logs/statistics").hasRole("ADMIN")
 
+                        // ============================================
                         // ✅ ROUTES ANALYSTE
+                        // ============================================
                         .requestMatchers("/api/financial-analysis/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/risk-analysis/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/fraud-alerts/**").hasAnyRole("ANALYST", "ADMIN")
                         .requestMatchers("/api/copilot/**").hasAnyRole("ANALYST", "ADMIN")
 
+                        // ============================================
                         // ✅ ROUTES CLIENTS + ADVISOR + ANALYST + ADMIN
+                        // ============================================
                         .requestMatchers("/api/clients/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers("/api/clients/advisor/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ ROUTES CREDIT REQUESTS - CORRIGÉ : AJOUT DE ADVISOR
-                        .requestMatchers(HttpMethod.GET, "/api/credit-requests").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/credit-requests/{id}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        // ============================================
+                        // ✅ ROUTES CREDIT REQUESTS
+                        // ============================================
+                        // ✅ GET - Lecture des demandes
+                        .requestMatchers(HttpMethod.GET, "/api/credit-requests").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/credit-requests/{id}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER", "CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/client/{clientId}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/status/{status}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ Création de demande de crédit : ADVISOR + ADMIN + ANALYST
-                        .requestMatchers(HttpMethod.POST, "/api/credit-requests").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        // ✅ POST - Création de demande (TOUS LES RÔLES CONCERNÉS)
+                        .requestMatchers(HttpMethod.POST, "/api/credit-requests").hasAnyRole("CLIENT", "ADVISOR", "ANALYST", "ADMIN", "MANAGER")
 
-                        // ✅ Mise à jour de demande : ADVISOR + ADMIN + ANALYST
+                        // ✅ PUT/PATCH - Mise à jour
                         .requestMatchers(HttpMethod.PUT, "/api/credit-requests/{id}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/status").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/cancel").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER", "CLIENT")
+                        .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/transmit-to-analyst").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER")
 
-                        // ✅ Annulation : ADVISOR peut annuler ses propres demandes
-                        .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/cancel").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
+                        // ✅ DELETE
+                        .requestMatchers(HttpMethod.DELETE, "/api/credit-requests/{id}").hasAnyRole("ADMIN")
 
+                        // ============================================
                         // ✅ KYC
+                        // ============================================
                         .requestMatchers("/api/kyc/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ Notifications
+                        // ============================================
+                        // ✅ NOTIFICATIONS
+                        // ============================================
                         .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/api/dashboard/**").authenticated()
 
-                        // ✅ Simulation
-                        .requestMatchers("/api/credit-simulations/**").hasAnyRole("CLIENT", "ADVISOR", "ANALYST", "ADMIN")
+                        // ============================================
+                        // ✅ SIMULATION
+                        // ============================================
+                        .requestMatchers("/api/credit-simulations/**").hasAnyRole("CLIENT", "ADVISOR", "ANALYST", "ADMIN", "MANAGER")
+
+                        // ============================================
+                        // ✅ DOCUMENTS
+                        // ============================================
+                        .requestMatchers(HttpMethod.POST, "/api/documents/upload").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/documents/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "CLIENT")
 
                         .anyRequest().authenticated()
                 )
