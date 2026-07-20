@@ -15,7 +15,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { ClientService, ClientResponseDTO } from '@core/services/client.service';
+import { ClientService } from '@core/services/client.service';
+import { ClientResponseDTO } from '@core/models/client.model';
 import { AuthService } from '@core/services/auth.service';
 
 @Component({

@@ -389,4 +389,58 @@ public class ClientServiceImpl implements IClientService {
 
         log.info("Advisor removed from client {}", clientId);
     }
+
+
+    // Service/impl/ClientServiceImpl.java - AJOUTER LES MÉTHODES POUR ANALYSTE
+
+    @Override
+    public ClientResponseDTO assignAnalystToClient(String clientId, String analystId) {
+        log.info("Assigning analyst {} to client {}", analystId, clientId);
+
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        User analyst = userService.getUserEntityById(analystId);
+        if (analyst.getRole() != UserRole.ANALYST) {
+            throw new RuntimeException("User is not an ANALYST");
+        }
+
+        client.setAnalyst(analyst);
+        Client updatedClient = clientRepository.save(client);
+
+        log.info("Analyst {} assigned to client {}", analystId, clientId);
+        return clientMapper.toResponseDTO(updatedClient);
+    }
+
+    @Override
+    public ClientResponseDTO removeAnalystFromClient(String clientId) {
+        log.info("Removing analyst from client {}", clientId);
+
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + clientId));
+
+        client.setAnalyst(null);
+        Client updatedClient = clientRepository.save(client);
+
+        log.info("Analyst removed from client {}", clientId);
+        return clientMapper.toResponseDTO(updatedClient);
+    }
+
+    @Override
+    public List<ClientResponseDTO> getClientsByAnalyst(String analystId) {
+        log.info("Fetching clients for analyst {}", analystId);
+
+        userService.getUserEntityById(analystId);
+
+        // Récupérer tous les clients et filtrer par analystId
+        List<Client> allClients = clientRepository.findAll();
+        List<Client> clients = allClients.stream()
+                .filter(c -> c.getAnalyst() != null && c.getAnalyst().getId().equals(analystId))
+                .collect(Collectors.toList());
+
+        log.info("Found {} clients for analyst {}", clients.size(), analystId);
+        return clients.stream()
+                .map(clientMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
 }

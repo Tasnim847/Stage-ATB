@@ -1,4 +1,4 @@
-// features/admin/client-assignment/client-assignment.component.ts - COMPLET
+// features/admin/client-assignment/client-assignment.component.ts - CORRIGÉ
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,12 +16,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
 import { UserService } from '@core/services/user.service';
-import { ClientService } from '@core/services/client.service';
 import { AuthService } from '@core/services/auth.service';
-import { ClientAssignmentService } from '@core/services/client-assignment.service';
 import { ClientResponseDTO } from '@core/models/client.model';
 import { UserResponse } from '@core/models/user.model';
+import { ClientAssignmentService, ClientService } from '@app/core/services';
 
 @Component({
   selector: 'app-client-assignment',
@@ -42,7 +42,8 @@ import { UserResponse } from '@core/models/user.model';
     MatTooltipModule,
     MatDividerModule,
     MatBadgeModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatTabsModule
   ],
   templateUrl: './client-assignment.component.html',
   styleUrls: ['./client-assignment.component.css']
@@ -57,31 +58,45 @@ export class ClientAssignmentComponent implements OnInit {
   // États
   isLoading = signal(false);
   selectedAdvisorId = signal<string>('');
+  selectedAnalystId = signal<string>('');
   searchQuery = signal<string>('');
   showOnlyUnassigned = signal<boolean>(true);
-  filterByAdvisor = signal<string>(''); // ✅ Filtre par advisor
+  filterByAdvisor = signal<string>('');
+  filterByAnalyst = signal<string>('');
   selectedClientIds = signal<string[]>([]);
+  selectedTabIndex = signal<number>(0);
 
   // Données
   advisors = signal<UserResponse[]>([]);
+  allAdvisors = signal<UserResponse[]>([]);
+  allAnalysts = signal<UserResponse[]>([]);
   allClients = signal<ClientResponseDTO[]>([]);
-  filteredClientsList = signal<ClientResponseDTO[]>([]);
 
-  // Computed values
+  // Computed pour les conseillers
+  filteredAdvisors = computed(() => {
+    if (this.selectedTabIndex() === 1) {
+      return this.advisors().filter(a => a.role === 'ADVISOR');
+    } else if (this.selectedTabIndex() === 2) {
+      return this.advisors().filter(a => a.role === 'ANALYST');
+    }
+    return this.advisors();
+  });
+
   filteredClients = computed(() => {
     let clients = this.allClients();
     
-    // ✅ Filtre par statut (assigné/non assigné)
     if (this.showOnlyUnassigned()) {
-      clients = clients.filter(c => !c.advisorId);
+      clients = clients.filter(c => !c.advisorId && !c.analystId);
     }
     
-    // ✅ Filtre par advisor
     if (this.filterByAdvisor()) {
       clients = clients.filter(c => c.advisorId === this.filterByAdvisor());
     }
     
-    // ✅ Filtre par recherche
+    if (this.filterByAnalyst()) {
+      clients = clients.filter(c => c.analystId === this.filterByAnalyst());
+    }
+    
     const query = this.searchQuery().toLowerCase().trim();
     if (query) {
       clients = clients.filter(client => 
@@ -95,14 +110,20 @@ export class ClientAssignmentComponent implements OnInit {
     return clients;
   });
 
-  // ✅ Statistiques
+  // Statistiques
   totalClients = computed(() => this.filteredClients().length);
   selectedCount = computed(() => this.selectedClientIds().length);
-  unassignedCount = computed(() => this.allClients().filter(c => !c.advisorId).length);
-  assignedCount = computed(() => this.allClients().filter(c => c.advisorId).length);
+  unassignedCount = computed(() => this.allClients().filter(c => !c.advisorId && !c.analystId).length);
+  assignedCount = computed(() => this.allClients().filter(c => c.advisorId || c.analystId).length);
   
-  canAssign = computed(() => 
+  canAssignAdvisor = computed(() => 
     this.selectedAdvisorId() && 
+    this.selectedClientIds().length > 0 && 
+    !this.isLoading()
+  );
+
+  canAssignAnalyst = computed(() => 
+    this.selectedAnalystId() && 
     this.selectedClientIds().length > 0 && 
     !this.isLoading()
   );
@@ -112,115 +133,65 @@ export class ClientAssignmentComponent implements OnInit {
     !this.isLoading()
   );
 
+  advisorCount = computed(() => this.advisors().filter(a => a.role === 'ADVISOR').length);
+  analystCount = computed(() => this.advisors().filter(a => a.role === 'ANALYST').length);
+
   ngOnInit(): void {
     const user = this.authService.getUserInfo();
     console.log('👤 Current user:', user);
-    console.log('🔑 User role:', user?.role);
-    console.log('🛡️ Is ADMIN?', user?.role === 'ADMIN');
-    
-    const token = this.authService.getToken();
-    console.log('🔐 Token:', token ? 'Present' : 'Missing');
-    
     this.loadAllData();
   }
 
   loadAllData(): void {
     this.isLoading.set(true);
     
-    // Charger tous les conseillers
     this.userService.getUsersByRole('ADVISOR').subscribe({
       next: (advisors) => {
-        console.log('✅ Advisors loaded:', advisors);
-        this.advisors.set(advisors.filter(a => a.active));
+        this.allAdvisors.set(advisors.filter(a => a.active));
         
-        // Charger tous les clients
-        this.clientService.getAllClients().subscribe({
-          next: (clients) => {
-            console.log('✅ All clients loaded:', clients);
-            this.allClients.set(clients);
-            this.isLoading.set(false);
+        this.userService.getUsersByRole('ANALYST').subscribe({
+          next: (analysts) => {
+            this.allAnalysts.set(analysts.filter(a => a.active));
+            this.advisors.set([...this.allAdvisors(), ...this.allAnalysts()]);
+            
+            this.clientService.getAllClients().subscribe({
+              next: (clients: ClientResponseDTO[]) => {
+                // ✅ Typage explicite
+                this.allClients.set(clients);
+                this.isLoading.set(false);
+              },
+              error: () => {
+                this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 3000 });
+                this.isLoading.set(false);
+              }
+            });
           },
-          error: (error) => {
-            console.error('❌ Error loading clients:', error);
-            this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 3000 });
+          error: () => {
             this.isLoading.set(false);
           }
         });
       },
-      error: (error) => {
-        console.error('❌ Error loading advisors:', error);
-        let errorMessage = 'Erreur lors du chargement des conseillers';
-        if (error.status === 403) {
-          errorMessage = 'Accès non autorisé. Vous devez être administrateur.';
-        } else if (error.status === 401) {
-          errorMessage = 'Session expirée. Veuillez vous reconnecter.';
-        }
-        this.snackBar.open(errorMessage, 'Fermer', { duration: 5000 });
+      error: () => {
+        this.snackBar.open('Erreur lors du chargement des conseillers', 'Fermer', { duration: 3000 });
         this.isLoading.set(false);
       }
     });
   }
 
-  // ✅ Désaffecter un client (retirer le conseiller)
-  unassignClient(clientId: string): void {
-    if (!confirm('Voulez-vous retirer le conseiller de ce client ?')) return;
-    
-    this.isLoading.set(true);
-    
-    // Appel au service pour retirer l'advisor
-    this.assignmentService.removeAdvisorFromClient(clientId).subscribe({
-      next: () => {
-        this.snackBar.open('Conseiller retiré avec succès', 'Fermer', { duration: 3000 });
-        this.selectedClientIds.set([]);
-        this.loadAllData();
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error unassigning client:', error);
-        this.snackBar.open(
-          error.error?.message || 'Erreur lors du retrait du conseiller', 
-          'Fermer', 
-          { duration: 3000 }
-        );
-        this.isLoading.set(false);
-      }
-    });
+  // ============================================
+  // GESTION DES ONGLETS
+  // ============================================
+
+  onTabChange(index: number): void {
+    this.selectedTabIndex.set(index);
+    this.selectedAdvisorId.set('');
+    this.selectedAnalystId.set('');
+    this.selectedClientIds.set([]);
   }
 
-  // ✅ Désaffecter plusieurs clients
-  unassignSelectedClients(): void {
-    if (this.selectedClientIds().length === 0) {
-      this.snackBar.open('Veuillez sélectionner au moins un client', 'Fermer', { duration: 3000 });
-      return;
-    }
-
-    if (!confirm(`Voulez-vous retirer le conseiller de ${this.selectedClientIds().length} client(s) ?`)) return;
-    
-    this.isLoading.set(true);
-    
-    // Désaffecter chaque client sélectionné
-    const unassignRequests = this.selectedClientIds().map(id => 
-      this.assignmentService.removeAdvisorFromClient(id)
-    );
-    
-    // Exécuter toutes les requêtes
-    Promise.all(unassignRequests.map(req => req.toPromise()))
-      .then(() => {
-        this.snackBar.open(
-          `${this.selectedClientIds().length} client(s) désaffecté(s) avec succès`, 
-          'Fermer', 
-          { duration: 3000 }
-        );
-        this.selectedClientIds.set([]);
-        this.loadAllData();
-        this.isLoading.set(false);
-      })
-      .catch((error) => {
-        console.error('Error unassigning clients:', error);
-        this.snackBar.open('Erreur lors de la désaffectation', 'Fermer', { duration: 3000 });
-        this.isLoading.set(false);
-      });
-  }
+  // ============================================
+  // SÉLECTION DES CLIENTS
+  // ============================================
 
   toggleClientSelection(clientId: string): void {
     const current = this.selectedClientIds();
@@ -237,72 +208,6 @@ export class ClientAssignmentComponent implements OnInit {
     return this.selectedClientIds().includes(clientId);
   }
 
-  assignSelectedClients(): void {
-    if (!this.canAssign()) return;
-
-    this.isLoading.set(true);
-
-    this.assignmentService.assignAdvisorToMultipleClients({
-      advisorId: this.selectedAdvisorId(),
-      clientIds: this.selectedClientIds()
-    }).subscribe({
-      next: (updatedClients) => {
-        this.snackBar.open(
-          `${updatedClients.length} client(s) affecté(s) avec succès`, 
-          'Fermer', 
-          { duration: 3000 }
-        );
-        this.selectedClientIds.set([]);
-        this.loadAllData();
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error assigning clients:', error);
-        this.snackBar.open(
-          error.error?.message || 'Erreur lors de l\'affectation', 
-          'Fermer', 
-          { duration: 3000 }
-        );
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  assignSingleClient(clientId: string, advisorId: string): void {
-    if (!advisorId) return;
-    
-    this.isLoading.set(true);
-
-    this.assignmentService.assignAdvisorToClient(clientId, advisorId).subscribe({
-      next: () => {
-        this.snackBar.open('Client affecté avec succès', 'Fermer', { duration: 3000 });
-        this.loadAllData();
-        this.isLoading.set(false);
-      },
-      error: (error) => {
-        console.error('Error assigning client:', error);
-        this.snackBar.open(
-          error.error?.message || 'Erreur lors de l\'affectation', 
-          'Fermer', 
-          { duration: 3000 }
-        );
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  getAdvisorName(advisorId: string): string {
-    if (!advisorId) return 'Non assigné';
-    const advisor = this.advisors().find(a => a.id === advisorId);
-    return advisor ? `${advisor.firstName} ${advisor.lastName}` : 'Conseiller inconnu';
-  }
-
-  getAdvisorEmail(advisorId: string): string {
-    if (!advisorId) return '';
-    const advisor = this.advisors().find(a => a.id === advisorId);
-    return advisor ? advisor.email : '';
-  }
-
   selectAll(): void {
     this.selectedClientIds.set(this.filteredClients().map(c => c.id));
   }
@@ -311,8 +216,214 @@ export class ClientAssignmentComponent implements OnInit {
     this.selectedClientIds.set([]);
   }
 
-  refreshData(): void {
-    this.loadAllData();
+  // ============================================
+  // AFFECTATION AU CONSEILLER
+  // ============================================
+
+  assignAdvisorToSelectedClients(): void {
+    if (!this.canAssignAdvisor()) return;
+
+    this.isLoading.set(true);
+
+    this.assignmentService.assignAdvisorToMultipleClients({
+      advisorId: this.selectedAdvisorId(),
+      clientIds: this.selectedClientIds()
+    }).subscribe({
+      next: (updatedClients: ClientResponseDTO[]) => {
+        this.snackBar.open(
+          `${updatedClients.length} client(s) affecté(s) au conseiller avec succès`, 
+          'Fermer', 
+          { duration: 3000 }
+        );
+        this.selectedClientIds.set([]);
+        this.loadAllData();
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error assigning advisor:', error);
+        this.snackBar.open('Erreur lors de l\'affectation', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  assignAdvisorToClient(clientId: string, advisorId: string): void {
+    if (!advisorId) return;
+    
+    this.isLoading.set(true);
+
+    this.assignmentService.assignAdvisorToClient(clientId, advisorId).subscribe({
+      next: () => {
+        this.snackBar.open('Conseiller affecté avec succès', 'Fermer', { duration: 3000 });
+        this.loadAllData();
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error assigning advisor to client:', error);
+        this.snackBar.open('Erreur lors de l\'affectation du conseiller', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  removeAdvisorFromClient(clientId: string): void {
+    if (!confirm('Voulez-vous retirer le conseiller de ce client ?')) return;
+    
+    this.isLoading.set(true);
+    
+    this.assignmentService.removeAdvisorFromClient(clientId).subscribe({
+      next: () => {
+        this.snackBar.open('Conseiller retiré avec succès', 'Fermer', { duration: 3000 });
+        this.selectedClientIds.set([]);
+        this.loadAllData();
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error removing advisor:', error);
+        this.snackBar.open('Erreur lors du retrait du conseiller', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  removeAdvisorFromSelectedClients(): void {
+    if (this.selectedClientIds().length === 0) {
+      this.snackBar.open('Veuillez sélectionner au moins un client', 'Fermer', { duration: 3000 });
+      return;
+    }
+
+    if (!confirm(`Voulez-vous retirer le conseiller de ${this.selectedClientIds().length} client(s) ?`)) return;
+    
+    this.isLoading.set(true);
+    
+    const requests = this.selectedClientIds().map(id => 
+      this.assignmentService.removeAdvisorFromClient(id)
+    );
+    
+    Promise.all(requests.map(req => req.toPromise()))
+      .then(() => {
+        this.snackBar.open(
+          `${this.selectedClientIds().length} client(s) désaffecté(s) avec succès`, 
+          'Fermer', 
+          { duration: 3000 }
+        );
+        this.selectedClientIds.set([]);
+        this.loadAllData();
+        this.isLoading.set(false);
+      })
+      .catch((error: any) => {
+        console.error('Error removing advisors:', error);
+        this.snackBar.open('Erreur lors de la désaffectation', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      });
+  }
+
+  // ============================================
+  // AFFECTATION À L'ANALYSTE
+  // ============================================
+
+  assignAnalystToSelectedClients(): void {
+    if (!this.canAssignAnalyst()) return;
+
+    this.isLoading.set(true);
+
+    const requests = this.selectedClientIds().map(clientId =>
+      this.assignmentService.assignAnalystToClient(clientId, this.selectedAnalystId())
+    );
+    
+    Promise.all(requests.map(req => req.toPromise()))
+      .then(() => {
+        this.snackBar.open(
+          `${this.selectedClientIds().length} client(s) affecté(s) à l'analyste avec succès`,
+          'Fermer',
+          { duration: 3000 }
+        );
+        this.selectedClientIds.set([]);
+        this.loadAllData();
+        this.isLoading.set(false);
+      })
+      .catch((error: any) => {
+        console.error('Error assigning analysts:', error);
+        this.snackBar.open('Erreur lors de l\'affectation des analystes', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      });
+  }
+
+  assignAnalystToClient(clientId: string, analystId: string): void {
+    if (!analystId) return;
+    
+    this.isLoading.set(true);
+
+    this.assignmentService.assignAnalystToClient(clientId, analystId).subscribe({
+      next: () => {
+        this.snackBar.open('Analyste affecté avec succès', 'Fermer', { duration: 3000 });
+        this.loadAllData();
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error assigning analyst:', error);
+        this.snackBar.open('Erreur lors de l\'affectation de l\'analyste', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  removeAnalystFromClient(clientId: string): void {
+    if (!confirm('Voulez-vous retirer l\'analyste de ce client ?')) return;
+    
+    this.isLoading.set(true);
+    
+    this.assignmentService.removeAnalystFromClient(clientId).subscribe({
+      next: () => {
+        this.snackBar.open('Analyste retiré avec succès', 'Fermer', { duration: 3000 });
+        this.selectedClientIds.set([]);
+        this.loadAllData();
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error removing analyst:', error);
+        this.snackBar.open('Erreur lors du retrait de l\'analyste', 'Fermer', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  // ============================================
+  // UTILITAIRES
+  // ============================================
+
+  getRoleLabel(role: string): string {
+    const labels: { [key: string]: string } = {
+      'ADVISOR': 'Conseiller',
+      'ANALYST': 'Analyste'
+    };
+    return labels[role] || role;
+  }
+
+  getRoleColor(role: string): string {
+    const colors: { [key: string]: string } = {
+      'ADVISOR': '#8e44ad',
+      'ANALYST': '#2980b9'
+    };
+    return colors[role] || '#95a5a6';
+  }
+
+  getAdvisorName(advisorId: string): string {
+    if (!advisorId) return 'Non assigné';
+    const advisor = this.advisors().find(a => a.id === advisorId);
+    return advisor ? `${advisor.firstName} ${advisor.lastName}` : 'Conseiller inconnu';
+  }
+
+  getAdvisorRole(advisorId: string): string {
+    if (!advisorId) return '';
+    const advisor = this.advisors().find(a => a.id === advisorId);
+    return advisor ? this.getRoleLabel(advisor.role) : '';
+  }
+
+  getAdvisorColor(advisorId: string): string {
+    if (!advisorId) return '#95a5a6';
+    const advisor = this.advisors().find(a => a.id === advisorId);
+    return advisor ? this.getRoleColor(advisor.role) : '#95a5a6';
   }
 
   getInitials(client: ClientResponseDTO): string {
@@ -327,12 +438,17 @@ export class ClientAssignmentComponent implements OnInit {
     return `${client.firstName || ''} ${client.lastName || ''}`.trim();
   }
 
-  // ✅ Réinitialiser les filtres
+  refreshData(): void {
+    this.loadAllData();
+  }
+
   resetFilters(): void {
     this.searchQuery.set('');
     this.filterByAdvisor.set('');
+    this.filterByAnalyst.set('');
     this.showOnlyUnassigned.set(true);
     this.selectedAdvisorId.set('');
+    this.selectedAnalystId.set('');
     this.selectedClientIds.set([]);
   }
 }

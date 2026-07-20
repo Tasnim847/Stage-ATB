@@ -27,6 +27,9 @@ public interface ClientMapper {
 
     @Mapping(target = "advisorName", expression = "java(client.getAdvisor() != null ? client.getAdvisor().getFirstName() + \" \" + client.getAdvisor().getLastName() : null)")
     @Mapping(target = "advisorId", expression = "java(client.getAdvisor() != null ? client.getAdvisor().getId() : null)")
+    // Mappers/ClientMapper.java - VÉRIFIER QUE LES CHAMPS SONT MAPPÉS
+    @Mapping(target = "analystName", expression = "java(client.getAnalyst() != null ? client.getAnalyst().getFirstName() + \" \" + client.getAnalyst().getLastName() : null)")
+    @Mapping(target = "analystId", expression = "java(client.getAnalyst() != null ? client.getAnalyst().getId() : null)")
     @Mapping(target = "totalCreditRequests", expression = "java(client.getCreditRequests() != null ? client.getCreditRequests().size() : 0)")
     @Mapping(target = "averageCreditScore", expression = "java(calculateAverageCreditScore(client))")
     @Mapping(target = "riskCategory", expression = "java(client.getClientScoring() != null ? client.getClientScoring().getRiskCategory() : null)")

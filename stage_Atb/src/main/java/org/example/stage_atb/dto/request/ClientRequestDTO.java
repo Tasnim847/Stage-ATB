@@ -63,4 +63,7 @@ public class ClientRequestDTO {
     private String notes;
 
     private String advisorId;
+
+    private String analystId;
+
 }

@@ -30,6 +30,8 @@ public class ClientResponseDTO {
     private String country;
     private String advisorName;
     private String advisorId;
+    private String analystName;
+    private String analystId;
     private Boolean active;
     private LocalDateTime createdAt;
     private Integer totalCreditRequests;

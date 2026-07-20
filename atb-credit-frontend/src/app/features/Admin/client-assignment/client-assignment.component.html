@@ -3,7 +3,7 @@
   <div class="header">
     <div>
       <h1>Affectation des clients</h1>
-      <p class="subtitle">Gérez l'affectation des clients aux conseillers</p>
+      <p class="subtitle">Gérez l'affectation des clients aux conseillers et analystes</p>
     </div>
     <div class="header-actions">
       <span class="client-count-badge">{{ totalClients() }} clients</span>
@@ -27,7 +27,7 @@
         <mat-icon>person_add</mat-icon>
         <div class="stat-info">
           <span class="stat-value">{{ unassignedCount() }}</span>
-          <span class="stat-label">Sans conseiller</span>
+          <span class="stat-label">Sans affectation</span>
         </div>
       </div>
     </mat-card>
@@ -37,43 +37,89 @@
         <mat-icon>person</mat-icon>
         <div class="stat-info">
           <span class="stat-value">{{ assignedCount() }}</span>
-          <span class="stat-label">Avec conseiller</span>
+          <span class="stat-label">Avec affectation</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card advisors">
+      <div class="stat-content">
+        <mat-icon>group</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ advisorCount() + analystCount() }}</span>
+          <span class="stat-label">Conseillers/Analystes</span>
         </div>
       </div>
     </mat-card>
   </div>
 
-  <!-- Sélection du conseiller -->
+  <!-- Onglets -->
+  <mat-tab-group 
+    class="role-tabs" 
+    (selectedIndexChange)="onTabChange($event)"
+    [selectedIndex]="selectedTabIndex()">
+    <mat-tab label="👥 Tous"></mat-tab>
+    <mat-tab label="👤 Conseillers"></mat-tab>
+    <mat-tab label="🔬 Analystes"></mat-tab>
+  </mat-tab-group>
+
+  <!-- Sélection -->
   <mat-card class="selection-card">
     <mat-card-content>
       <div class="advisor-selection">
-        <mat-form-field appearance="outline" class="advisor-select">
-          <mat-label>Sélectionner un conseiller</mat-label>
-          <mat-select [(ngModel)]="selectedAdvisorId">
-            <mat-option [value]="null">Choisir un conseiller...</mat-option>
-            <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
-              <div class="advisor-option">
-                <span class="advisor-avatar">{{ getInitialsAdvisor(advisor) }}</span>
-                <span>{{ advisor.firstName }} {{ advisor.lastName }}</span>
-                <span class="advisor-email">{{ advisor.email }}</span>
-              </div>
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <!-- Sélection Conseiller -->
+        <div class="selection-section">
+          <h4>👤 Conseiller</h4>
+          <mat-form-field appearance="outline" class="advisor-select">
+            <mat-label>Sélectionner un conseiller</mat-label>
+            <mat-select [(ngModel)]="selectedAdvisorId">
+              <mat-option [value]="null">Choisir...</mat-option>
+              <!-- ✅ Filtrer par rôle ADVISOR -->
+              <mat-option *ngFor="let advisor of allAdvisors()" [value]="advisor.id">
+                {{ advisor.firstName }} {{ advisor.lastName }}
+                <span class="role-badge advisor">Conseiller</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Sélection Analyste -->
+        <div class="selection-section">
+          <h4>🔬 Analyste</h4>
+          <mat-form-field appearance="outline" class="advisor-select">
+            <mat-label>Sélectionner un analyste</mat-label>
+            <mat-select [(ngModel)]="selectedAnalystId">
+              <mat-option [value]="null">Choisir...</mat-option>
+              <!-- ✅ Utiliser allAnalysts() au lieu de filteredAdvisors() -->
+              <mat-option *ngFor="let analyst of allAnalysts()" [value]="analyst.id">
+                {{ analyst.firstName }} {{ analyst.lastName }}
+                <span class="role-badge analyst">Analyste</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
 
         <div class="actions">
           <button 
             mat-raised-button 
             color="primary" 
-            (click)="assignSelectedClients()"
-            [disabled]="!canAssign()">
+            (click)="assignAdvisorToSelectedClients()"
+            [disabled]="!canAssignAdvisor()">
             <mat-icon>assignment</mat-icon>
-            Affecter {{ selectedCount() }} client(s)
+            Affecter {{ selectedCount() }} client(s) au conseiller
+          </button>
+          <button 
+            mat-raised-button 
+            color="accent" 
+            (click)="assignAnalystToSelectedClients()"
+            [disabled]="!canAssignAnalyst()">
+            <mat-icon>analytics</mat-icon>
+            Affecter {{ selectedCount() }} client(s) à l'analyste
           </button>
           <button 
             mat-raised-button 
             color="warn" 
-            (click)="unassignSelectedClients()"
+            (click)="removeAdvisorFromSelectedClients()"
             [disabled]="!canUnassign()">
             <mat-icon>remove_circle</mat-icon>
             Désaffecter {{ selectedCount() }} client(s)
@@ -108,9 +154,19 @@
           <mat-form-field appearance="outline" class="filter-field">
             <mat-label>Filtrer par conseiller</mat-label>
             <mat-select [(ngModel)]="filterByAdvisor">
-              <mat-option [value]="null">Tous les conseillers</mat-option>
-              <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
+              <mat-option [value]="null">Tous</mat-option>
+              <mat-option *ngFor="let advisor of allAdvisors()" [value]="advisor.id">
                 {{ advisor.firstName }} {{ advisor.lastName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Filtrer par analyste</mat-label>
+            <mat-select [(ngModel)]="filterByAnalyst">
+              <mat-option [value]="null">Tous</mat-option>
+              <mat-option *ngFor="let analyst of allAnalysts()" [value]="analyst.id">
+                {{ analyst.firstName }} {{ analyst.lastName }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -124,7 +180,7 @@
 
         <div class="filter-actions">
           <mat-slide-toggle [(ngModel)]="showOnlyUnassigned" color="primary">
-            Clients sans conseiller uniquement
+            Clients sans affectation uniquement
           </mat-slide-toggle>
           <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
             <mat-icon>clear_all</mat-icon>
@@ -147,7 +203,7 @@
       *ngFor="let client of filteredClients()" 
       class="client-card"
       [class.selected]="isClientSelected(client.id)"
-      [class.assigned]="client.advisorId"
+      [class.assigned]="client.advisorId || client.analystId"
       (click)="toggleClientSelection(client.id)">
       
       <div class="card-content">
@@ -171,36 +227,72 @@
           <div class="client-details">
             <span class="email"><mat-icon>email</mat-icon> {{ client.email }}</span>
             <span class="phone" *ngIf="client.phoneNumber"><mat-icon>phone</mat-icon> {{ client.phoneNumber }}</span>
-            <span class="advisor-tag" *ngIf="client.advisorId">
+            
+            <!-- Conseiller -->
+            <span class="advisor-tag" *ngIf="client.advisorId" [style.border-color]="getAdvisorColor(client.advisorId)">
               <mat-icon>person</mat-icon>
               {{ getAdvisorName(client.advisorId) }}
+              <span class="advisor-role-tag advisor" [style.background]="getAdvisorColor(client.advisorId)">
+                Conseiller
+              </span>
             </span>
-            <span class="advisor-tag unassigned" *ngIf="!client.advisorId">
+            
+            <!-- Analyste -->
+            <span class="advisor-tag analyst" *ngIf="client.analystId" [style.border-color]="getRoleColor('ANALYST')">
+              <mat-icon>analytics</mat-icon>
+              {{ getAdvisorName(client.analystId) }}
+              <span class="advisor-role-tag analyst" [style.background]="getRoleColor('ANALYST')">
+                Analyste
+              </span>
+            </span>
+            
+            <span class="advisor-tag unassigned" *ngIf="!client.advisorId && !client.analystId">
               <mat-icon>person_outline</mat-icon>
-              Non assigné
+              Non affecté
             </span>
           </div>
           
           <div class="quick-actions" (click)="$event.stopPropagation()">
-            <!-- Affectation rapide -->
+            <!-- Affectation rapide conseiller -->
             <mat-form-field appearance="outline" class="quick-select" *ngIf="!client.advisorId">
-              <mat-label>Affecter à</mat-label>
-              <mat-select (selectionChange)="assignSingleClient(client.id, $event.value)">
+              <mat-label>Conseiller</mat-label>
+              <mat-select (selectionChange)="assignAdvisorToClient(client.id, $event.value)">
                 <mat-option [value]="null">Choisir...</mat-option>
-                <mat-option *ngFor="let advisor of advisors()" [value]="advisor.id">
+                <mat-option *ngFor="let advisor of allAdvisors()" [value]="advisor.id">
                   {{ advisor.firstName }} {{ advisor.lastName }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
 
-            <!-- Désaffectation rapide -->
+            <!-- Retirer conseiller -->
             <button 
               *ngIf="client.advisorId"
               mat-icon-button 
               color="warn"
-              (click)="unassignClient(client.id)"
+              (click)="removeAdvisorFromClient(client.id)"
               matTooltip="Retirer le conseiller">
               <mat-icon>person_remove</mat-icon>
+            </button>
+
+            <!-- Affectation rapide analyste -->
+            <mat-form-field appearance="outline" class="quick-select" *ngIf="!client.analystId">
+              <mat-label>Analyste</mat-label>
+              <mat-select (selectionChange)="assignAnalystToClient(client.id, $event.value)">
+                <mat-option [value]="null">Choisir...</mat-option>
+                <mat-option *ngFor="let analyst of allAnalysts()" [value]="analyst.id">
+                  {{ analyst.firstName }} {{ analyst.lastName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Retirer analyste -->
+            <button 
+              *ngIf="client.analystId"
+              mat-icon-button 
+              color="warn"
+              (click)="removeAnalystFromClient(client.id)"
+              matTooltip="Retirer l'analyste">
+              <mat-icon>analytics_off</mat-icon>
             </button>
           </div>
         </div>
@@ -213,8 +305,8 @@
     <mat-icon class="empty-icon">check_circle_outline</mat-icon>
     <h3>Aucun client trouvé</h3>
     <p *ngIf="searchQuery()">Aucun client ne correspond à votre recherche "{{ searchQuery() }}".</p>
-    <p *ngIf="!searchQuery() && filterByAdvisor()">Aucun client pour ce conseiller.</p>
-    <p *ngIf="!searchQuery() && !filterByAdvisor() && showOnlyUnassigned()">Tous les clients ont un conseiller.</p>
+    <p *ngIf="!searchQuery() && (filterByAdvisor() || filterByAnalyst())">Aucun client pour ce filtre.</p>
+    <p *ngIf="!searchQuery() && !filterByAdvisor() && !filterByAnalyst() && showOnlyUnassigned()">Tous les clients ont une affectation.</p>
     <button mat-raised-button color="primary" (click)="resetFilters()">
       <mat-icon>clear_all</mat-icon>
       Réinitialiser les filtres

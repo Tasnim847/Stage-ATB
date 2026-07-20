@@ -52,4 +52,10 @@ public interface IClientService {
 
     // Service/IClientService.java - AJOUTER
     void removeAdvisorFromClient(String clientId);
+
+    ClientResponseDTO assignAnalystToClient(String clientId, String analystId);
+
+    ClientResponseDTO removeAnalystFromClient(String clientId);
+
+    List<ClientResponseDTO> getClientsByAnalyst(String analystId);
 }

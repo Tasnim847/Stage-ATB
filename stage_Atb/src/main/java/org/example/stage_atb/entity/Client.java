@@ -93,6 +93,10 @@ public class Client {
     @JoinColumn(name = "advisor_id")
     private User advisor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "analyst_id")
+    private User analyst;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

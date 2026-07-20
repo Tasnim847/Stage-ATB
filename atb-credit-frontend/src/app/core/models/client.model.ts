@@ -1,3 +1,6 @@
+// core/models/client.model.ts - VERSION COMPLÈTE
+import { UserRole } from './user.model';
+
 /**
  * Modèle pour la requête de création/modification de client
  */
@@ -23,6 +26,7 @@ export interface ClientRequestDTO {
   postalCode?: string;
   notes?: string;
   advisorId?: string;
+  analystId?: string;
 }
 
 /**
@@ -43,8 +47,15 @@ export interface ClientResponseDTO {
   address: string;
   city: string;
   country: string;
+  
+  // ✅ Conseiller (ADVISOR)
   advisorName: string;
   advisorId: string;
+  
+  // ✅ Analyste (ANALYST)
+  analystName: string;
+  analystId: string;
+  
   active: boolean;
   createdAt: string;
   totalCreditRequests: number;

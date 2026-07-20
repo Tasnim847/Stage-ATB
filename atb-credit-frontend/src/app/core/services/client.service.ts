@@ -1,56 +1,10 @@
+// core/services/client.service.ts - Version correcte
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-
-export interface ClientRequestDTO {
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  email: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
-  placeOfBirth?: string;
-  nationality?: string;
-  maritalStatus?: string;
-  gender?: string;
-  identityNumber?: string;
-  identityType?: string;
-  profession?: string;
-  employer?: string;
-  monthlyIncome?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  postalCode?: string;
-  notes?: string;
-  advisorId?: string;
-}
-
-export interface ClientResponseDTO {
-  id: string;
-  clientNumber: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  dateOfBirth: string;
-  nationality: string;
-  profession: string;
-  employer: string;
-  monthlyIncome: string;
-  address: string;
-  city: string;
-  country: string;
-  advisorName: string;
-  advisorId: string;
-  active: boolean;
-  createdAt: string;
-  totalCreditRequests: number;
-  averageCreditScore: number;
-  riskCategory: string;
-  overallScore: number;
-}
+// ✅ Importer depuis les modèles
+import { ClientResponseDTO, ClientRequestDTO } from '@core/models/client.model';
 
 @Injectable({
   providedIn: 'root'
@@ -144,7 +98,7 @@ export class ClientService {
   }
 
   /**
-   * ✅ Récupérer le client connecté (pour le rôle CLIENT)
+   * Récupérer le client connecté (pour le rôle CLIENT)
    */
   getCurrentClient(): Observable<ClientResponseDTO> {
     return this.http.get<ClientResponseDTO>(`${this.apiUrl}/clients/me`);

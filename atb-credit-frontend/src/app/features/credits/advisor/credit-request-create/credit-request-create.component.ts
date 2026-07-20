@@ -22,8 +22,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-
-import { ClientService, ClientResponseDTO } from '@core/services/client.service';
+import { ClientService } from '@core/services/client.service';
+import { ClientResponseDTO } from '@core/models/client.model';
 import { CreditRequestService } from '@core/services/credit-request.service';
 import { DocumentService } from '@core/services/document.service';
 import { AuthService } from '@core/services/auth.service';

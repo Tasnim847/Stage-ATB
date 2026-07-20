@@ -150,4 +150,53 @@ public class ClientAssignmentController {
         clientService.removeAdvisorFromClient(clientId);
         return ResponseEntity.ok().build();
     }
+
+    // ============================================
+    // ✅ ENDPOINTS POUR ANALYSTE
+    // ============================================
+
+    /**
+     * Récupérer les clients d'un analyste spécifique
+     */
+    @GetMapping("/analyst/{analystId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ClientResponseDTO>> getClientsByAnalyst(@PathVariable String analystId) {
+        log.info("Fetching clients for analyst: {}", analystId);
+        try {
+            List<ClientResponseDTO> clients = clientService.getClientsByAnalyst(analystId);
+            return ResponseEntity.ok(clients);
+        } catch (Exception e) {
+            log.error("Error fetching clients for analyst: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Affecter un analyste à un client
+     */
+    @PostMapping("/assign-analyst")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ClientResponseDTO> assignAnalystToClient(
+            @RequestParam String clientId,
+            @RequestParam String analystId) {
+        log.info("Assigning analyst {} to client {}", analystId, clientId);
+        try {
+            ClientResponseDTO updatedClient = clientService.assignAnalystToClient(clientId, analystId);
+            return ResponseEntity.ok(updatedClient);
+        } catch (Exception e) {
+            log.error("Error assigning analyst: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Retirer l'analyste d'un client
+     */
+    @DeleteMapping("/{clientId}/analyst")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> removeAnalystFromClient(@PathVariable String clientId) {
+        log.info("Removing analyst from client {}", clientId);
+        clientService.removeAnalystFromClient(clientId);
+        return ResponseEntity.ok().build();
+    }
 }
