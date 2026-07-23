@@ -1,4 +1,5 @@
-// features/admin/user-management/user-management.component.ts
+// features/admin/user-management/user-management.component.ts - Ajout de la suppression
+
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -10,7 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog'; // ✅ AJOUTER MatDialog
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
@@ -18,6 +19,7 @@ import { ToastrService } from 'ngx-toastr';
 import { UserManagementService } from '@core/services/user-management.service';
 import { UserResponseDTO } from '@core/models/user-management.model';
 import { AuthService } from '@core/services/auth.service';
+import { ConfirmDialogComponent } from '@app/features/clients/confirm-dialog.component';
 
 @Component({
   selector: 'app-user-management',
@@ -48,6 +50,7 @@ export class UserManagementComponent implements OnInit {
   private toastr = inject(ToastrService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog); // ✅ AJOUTER
 
   users: UserResponseDTO[] = [];
   filteredUsers: UserResponseDTO[] = [];
@@ -96,24 +99,31 @@ export class UserManagementComponent implements OnInit {
     this.loadData();
   }
 
-  initForms(): void {
-    this.createForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      firstName: ['', [Validators.required]],
-      lastName: ['', [Validators.required]],
-      phoneNumber: [''],
-      role: ['', [Validators.required]]
-    });
 
-    this.editForm = this.fb.group({
-      firstName: ['', [Validators.required]],
-      lastName: ['', [Validators.required]],
-      phoneNumber: [''],
-      role: ['', [Validators.required]]
-    });
-  }
+initForms(): void {
+  this.createForm = this.fb.group({
+    username: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
+    phoneNumber: [''],
+    role: ['', [Validators.required]],
+    // ✅ AJOUTER LES CHAMPS SUPPLÉMENTAIRES
+    department: [''],
+    position: [''],
+    address: [''],
+    city: [''],
+    country: ['']
+  });
+
+  this.editForm = this.fb.group({
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
+    phoneNumber: [''],
+    role: ['', [Validators.required]]
+  });
+}
 
   loadData(): void {
     this.isLoading = true;
@@ -277,6 +287,73 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  // ========== SUPPRESSION ==========
+  /**
+   * ✅ Supprimer un utilisateur avec dialogue de confirmation
+   */
+  deleteUser(user: UserResponseDTO): void {
+    // Vérifier si c'est l'utilisateur courant
+    if (user.id === this.currentUserId) {
+      this.toastr.warning('Vous ne pouvez pas supprimer votre propre compte', 'Action non autorisée');
+      return;
+    }
+
+    // Vérifier si c'est le dernier administrateur
+    const admins = this.users.filter(u => u.role === 'ADMIN' && u.active);
+    if (user.role === 'ADMIN' && admins.length <= 1) {
+      this.toastr.warning('Impossible de supprimer le dernier administrateur', 'Action non autorisée');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      data: {
+        title: 'Confirmer la suppression',
+        message: `Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>${user.firstName} ${user.lastName}</strong> ?<br><br>
+                  <span style="color: #d32f2f; font-weight: 500;">⚠️ Cette action est irréversible.</span>`,
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        confirmColor: 'warn',
+        icon: 'delete_forever'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.performDeleteUser(user);
+      }
+    });
+  }
+
+  /**
+   * ✅ Exécution de la suppression
+   */
+  private performDeleteUser(user: UserResponseDTO): void {
+    this.isLoading = true;
+
+    this.userService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.toastr.success(
+          `L'utilisateur ${user.firstName} ${user.lastName} a été supprimé avec succès`,
+          'Succès'
+        );
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('❌ Error deleting user:', error);
+        let errorMessage = 'Erreur lors de la suppression de l\'utilisateur';
+        
+        if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.toastr.error(errorMessage, 'Erreur');
+        this.isLoading = false;
+      }
+    });
+  }
+
   // ========== DÉSACTIVATION / ACTIVATION ==========
   toggleActive(user: UserResponseDTO): void {
     if (user.id === this.currentUserId) {
@@ -285,20 +362,34 @@ export class UserManagementComponent implements OnInit {
     }
 
     const action = user.active ? 'désactiver' : 'activer';
-    if (!confirm(`Voulez-vous ${action} l'utilisateur ${user.firstName} ${user.lastName} ?`)) return;
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `Confirmer la ${action}`,
+        message: `Voulez-vous ${action} l'utilisateur ${user.firstName} ${user.lastName} ?`,
+        confirmText: action === 'désactiver' ? 'Désactiver' : 'Activer',
+        cancelText: 'Annuler',
+        confirmColor: action === 'désactiver' ? 'warn' : 'primary'
+      }
+    });
 
-    const serviceCall = user.active
-      ? this.userService.deactivateUser(user.id)
-      : this.userService.activateUser(user.id);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const serviceCall = user.active
+          ? this.userService.deactivateUser(user.id)
+          : this.userService.activateUser(user.id);
 
-    serviceCall.subscribe({
-      next: () => {
-        this.toastr.success(`Utilisateur ${action}é avec succès`, 'Succès');
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Error toggling user status:', error);
-        this.toastr.error('Erreur lors de l\'opération', 'Erreur');
+        serviceCall.subscribe({
+          next: () => {
+            this.toastr.success(`Utilisateur ${action}é avec succès`, 'Succès');
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Error toggling user status:', error);
+            this.toastr.error('Erreur lors de l\'opération', 'Erreur');
+          }
+        });
       }
     });
   }
@@ -310,21 +401,36 @@ export class UserManagementComponent implements OnInit {
       return;
     }
 
-    if (!confirm(`Voulez-vous réinitialiser le mot de passe de ${user.firstName} ${user.lastName} à "ATB2024!" ?`)) {
-      return;
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Réinitialiser le mot de passe',
+        message: `Voulez-vous réinitialiser le mot de passe de ${user.firstName} ${user.lastName} ?<br><br>
+                  <span style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-family: monospace;">
+                    Nouveau mot de passe: ATB2024!
+                  </span>`,
+        confirmText: 'Réinitialiser',
+        cancelText: 'Annuler',
+        confirmColor: 'primary',
+        icon: 'lock_reset'
+      }
+    });
 
-    this.userService.resetPassword(user.id).subscribe({
-      next: () => {
-        this.toastr.success(
-          `Mot de passe réinitialisé avec succès. Nouveau mot de passe: ATB2024!`,
-          'Succès'
-        );
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Error resetting password:', error);
-        this.toastr.error('Erreur lors de la réinitialisation', 'Erreur');
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.resetPassword(user.id).subscribe({
+          next: () => {
+            this.toastr.success(
+              `Mot de passe réinitialisé avec succès. Nouveau mot de passe: ATB2024!`,
+              'Succès'
+            );
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Error resetting password:', error);
+            this.toastr.error('Erreur lors de la réinitialisation', 'Erreur');
+          }
+        });
       }
     });
   }
@@ -337,20 +443,34 @@ export class UserManagementComponent implements OnInit {
     }
 
     const action = user.locked ? 'déverrouiller' : 'verrouiller';
-    if (!confirm(`Voulez-vous ${action} l'utilisateur ${user.firstName} ${user.lastName} ?`)) return;
+    
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `Confirmer la ${action}`,
+        message: `Voulez-vous ${action} l'utilisateur ${user.firstName} ${user.lastName} ?`,
+        confirmText: action === 'déverrouiller' ? 'Déverrouiller' : 'Verrouiller',
+        cancelText: 'Annuler',
+        confirmColor: action === 'déverrouiller' ? 'primary' : 'warn'
+      }
+    });
 
-    const serviceCall = user.locked
-      ? this.userService.unlockUser(user.id)
-      : this.userService.lockUser(user.id);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        const serviceCall = user.locked
+          ? this.userService.unlockUser(user.id)
+          : this.userService.lockUser(user.id);
 
-    serviceCall.subscribe({
-      next: () => {
-        this.toastr.success(`Utilisateur ${action}é avec succès`, 'Succès');
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Error toggling lock status:', error);
-        this.toastr.error('Erreur lors de l\'opération', 'Erreur');
+        serviceCall.subscribe({
+          next: () => {
+            this.toastr.success(`Utilisateur ${action}é avec succès`, 'Succès');
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Error toggling lock status:', error);
+            this.toastr.error('Erreur lors de l\'opération', 'Erreur');
+          }
+        });
       }
     });
   }
@@ -392,11 +512,7 @@ export class UserManagementComponent implements OnInit {
     return colors[role] || '#95a5a6';
   }
 
-  // features/admin/user-management/user-management.component.ts - AJOUTER
-
-  /**
-   * Mettre à jour la valeur du rôle depuis un select natif
-  */
+  // ========== GESTION DU RÔLE (select natif) ==========
   updateRole(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     if (selectElement && selectElement.value) {

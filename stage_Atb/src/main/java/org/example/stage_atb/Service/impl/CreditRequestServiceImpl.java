@@ -57,20 +57,32 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         );
         creditRequest.setUser(currentUser);
 
+        // ✅ Si submitImmediately est true, mettre PENDING_ANALYSIS, sinon DRAFT
+        if (creditRequestDTO.isSubmitImmediately()) {
+            creditRequest.setStatus(CreditStatus.PENDING_ANALYSIS);
+            log.info("✅ Credit request submitted immediately - status: PENDING_ANALYSIS");
+        } else {
+            // Le mapper a déjà mis DRAFT, mais on le force au cas où
+            creditRequest.setStatus(CreditStatus.DRAFT);
+            log.info("📝 Credit request saved as draft - status: DRAFT");
+        }
+
         CreditRequest savedRequest = creditRequestRepository.save(creditRequest);
         log.info("Credit request created with number: {}", savedRequest.getRequestNumber());
 
-        // ✅ Créer automatiquement la simulation
-        try {
-            CreditSimulation simulation = creditSimulationService.createSimulationFromCreditRequest(savedRequest, currentUser);
-            log.info("Simulation created with id: {}", simulation.getId());
-        } catch (Exception e) {
-            log.error("Error creating simulation: {}", e.getMessage(), e);
+        // ✅ Créer automatiquement la simulation seulement si soumis immédiatement
+        if (creditRequestDTO.isSubmitImmediately()) {
+            try {
+                CreditSimulation simulation = creditSimulationService.createSimulationFromCreditRequest(savedRequest, currentUser);
+                log.info("Simulation created with id: {}", simulation.getId());
+            } catch (Exception e) {
+                log.error("Error creating simulation: {}", e.getMessage(), e);
+            }
         }
 
         return creditRequestMapper.toResponseDTO(savedRequest);
     }
-
+    
     @Override
     public CreditResponseDTO getCreditRequestById(String id) {
         CreditRequest creditRequest = creditRequestRepository.findById(id)
@@ -470,5 +482,81 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
             log.error("Error checking advisor ownership: {}", e.getMessage());
             return false;
         }
+    }
+
+    // ============================================
+      // MÉTHODES POUR ANALYSTE
+    // ============================================
+
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByAnalystId(String analystId) {
+        log.info("Getting credit requests for analyst id: {}", analystId);
+
+        // Récupérer tous les clients assignés à cet analyste
+        List<Client> clients = clientRepository.findByAnalystId(analystId);
+
+        // Récupérer toutes les demandes de crédit des clients de l'analyste
+        List<CreditRequest> creditRequests = new ArrayList<>();
+        for (Client client : clients) {
+            creditRequests.addAll(creditRequestRepository.findByClientId(client.getId()));
+        }
+
+        // Trier par date de création (plus récent en premier)
+        creditRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+        return creditRequests.stream()
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByAnalystEmail(String analystEmail) {
+        log.info("Getting credit requests for analyst email: {}", analystEmail);
+
+        User analyst = userRepository.findByEmail(analystEmail)
+                .orElseThrow(() -> new RuntimeException("Analyst not found with email: " + analystEmail));
+
+        return getCreditRequestsByAnalystId(analyst.getId());
+    }
+
+    @Override
+    public List<CreditResponseDTO> getCreditRequestsByAnalystAndStatus(String analystEmail, CreditStatus status) {
+        log.info("Getting credit requests for analyst email: {} and status: {}", analystEmail, status);
+
+        User analyst = userRepository.findByEmail(analystEmail)
+                .orElseThrow(() -> new RuntimeException("Analyst not found with email: " + analystEmail));
+
+        List<Client> clients = clientRepository.findByAnalystId(analyst.getId());
+
+        List<CreditRequest> creditRequests = new ArrayList<>();
+        for (Client client : clients) {
+            creditRequests.addAll(
+                    creditRequestRepository.findByClientId(client.getId())
+                            .stream()
+                            .filter(cr -> cr.getStatus() == status)
+                            .collect(Collectors.toList())
+            );
+        }
+
+        return creditRequests.stream()
+                .map(creditRequestMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countCreditRequestsByAnalyst(String analystEmail) {
+        log.info("Counting credit requests for analyst email: {}", analystEmail);
+
+        User analyst = userRepository.findByEmail(analystEmail)
+                .orElseThrow(() -> new RuntimeException("Analyst not found with email: " + analystEmail));
+
+        List<Client> clients = clientRepository.findByAnalystId(analyst.getId());
+
+        long count = 0;
+        for (Client client : clients) {
+            count += creditRequestRepository.countByClientId(client.getId());
+        }
+
+        return count;
     }
 }

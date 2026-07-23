@@ -1,0 +1,186 @@
+<div class="analyst-credit-requests-container">
+  
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>📋 Demandes de crédit - Analyste</h1>
+      <p class="subtitle">Gérez les demandes de crédit de vos clients assignés</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="loadCreditRequests()" class="btn-primary">
+      <mat-icon>refresh</mat-icon>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total">
+      <div class="stat-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ totalCount }}</h3>
+        <p>Total</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card pending">
+      <div class="stat-icon">
+        <mat-icon>pending</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ pendingCount }}</h3>
+        <p>En attente d'analyse</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card review">
+      <div class="stat-icon">
+        <mat-icon>visibility</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ underReviewCount }}</h3>
+        <p>En révision</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card approved">
+      <div class="stat-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ approvedCount }}</h3>
+        <p>Approuvés</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card rejected">
+      <div class="stat-icon">
+        <mat-icon>cancel</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ rejectedCount }}</h3>
+        <p>Refusés</p>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card completed">
+      <div class="stat-icon">
+        <mat-icon>done_all</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ completedCount }}</h3>
+        <p>Terminés</p>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filter-section">
+    <div class="filter-header">
+      <span class="filter-label">Filtrer par statut :</span>
+    </div>
+    <div class="filter-chips">
+      <button 
+        *ngFor="let status of statusOptions"
+        class="filter-chip"
+        [class.active]="selectedStatus === status.value"
+        (click)="onStatusFilterChange(status.value)">
+        {{ status.label }}
+        <span class="chip-count" *ngIf="getStatusCount(status.value) > 0">
+          {{ getStatusCount(status.value) }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement des demandes...</p>
+  </div>
+
+  <!-- Erreur -->
+  <div class="error-container" *ngIf="error && !loading">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadCreditRequests()">Réessayer</button>
+  </div>
+
+  <!-- Cartes des demandes -->
+  <div class="credits-grid" *ngIf="!loading && !error">
+    <mat-card *ngFor="let request of filteredRequests" class="credit-card" [class]="'status-' + getStatusClass(request.status)">
+      <div class="card-header">
+        <div class="card-number">
+          <span class="label">N° Demande</span>
+          <span class="value">{{ request.requestNumber }}</span>
+        </div>
+        <div class="card-status">
+          <span class="status-badge" [class]="'status-' + getStatusClass(request.status)">
+            {{ getStatusLabel(request.status) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="card-client">
+          <span class="label">Client</span>
+          <span class="value">{{ request.clientName }}</span>
+          <span class="email">{{ request.clientEmail }}</span>
+        </div>
+        <div class="card-amount">
+          <span class="label">Montant</span>
+          <span class="value">{{ formatCurrency(request.amount) }}</span>
+        </div>
+        <div class="card-duration">
+          <span class="label">Durée</span>
+          <span class="value">{{ request.durationMonths }} mois</span>
+        </div>
+        <div class="card-rate">
+          <span class="label">Taux d'intérêt</span>
+          <span class="value">{{ request.interestRate }}%</span>
+        </div>
+        <div class="card-monthly">
+          <span class="label">Mensualité</span>
+          <span class="value">{{ formatCurrency(request.monthlyPayment) }}</span>
+        </div>
+        <div class="card-date">
+          <span class="label">Date de création</span>
+          <span class="value">{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="footer-actions">
+          <button mat-stroked-button color="primary" [routerLink]="['/credit-requests', request.id]">
+            <mat-icon>visibility</mat-icon>
+            Détails
+          </button>
+          <button mat-stroked-button color="accent" 
+                  [routerLink]="['/financial-analysis', request.id]"
+                  *ngIf="request.status === 'PENDING_ANALYSIS'">
+            <mat-icon>analytics</mat-icon>
+            Analyse
+          </button>
+          <button mat-stroked-button color="warn"
+                  [routerLink]="['/risk-analysis', request.id]"
+                  *ngIf="request.status === 'UNDER_REVIEW'">
+            <mat-icon>warning</mat-icon>
+            Risques
+          </button>
+        </div>
+        <span class="card-date-small">
+          <mat-icon>calendar_today</mat-icon>
+          {{ request.createdAt | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+    </mat-card>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="filteredRequests.length === 0">
+      <mat-icon>inbox</mat-icon>
+      <h3>Aucune demande de crédit</h3>
+      <p>Aucune demande de crédit trouvée pour vos clients assignés.</p>
+    </div>
+  </div>
+</div>

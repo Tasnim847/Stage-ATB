@@ -1,13 +1,16 @@
 package org.example.stage_atb.Controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.stage_atb.Repositories.CreditRequestRepository;
 import org.example.stage_atb.Service.ICreditRequestService;
 import org.example.stage_atb.Service.ICreditSimulationService;
+import org.example.stage_atb.Service.IUserService;
 import org.example.stage_atb.dto.request.CreditRequestDTO;
 import org.example.stage_atb.dto.response.CreditResponseDTO;
 import org.example.stage_atb.dto.response.CreditSimulationDTO;
 import org.example.stage_atb.entity.CreditRequest;
 import org.example.stage_atb.entity.CreditSimulation;
+import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.CreditStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,8 @@ public class CreditRequestController {
 
     private final ICreditRequestService creditRequestService;
     private final ICreditSimulationService creditSimulationService;
+    private final IUserService userService; // ✅ AJOUTER
+    private final CreditRequestRepository creditRequestRepository; // ✅ AJOUTER pour les méthodes avec count
 
     @PostMapping
     public ResponseEntity<CreditResponseDTO> createCreditRequest(@Valid @RequestBody CreditRequestDTO requestDTO) {
@@ -139,13 +145,52 @@ public class CreditRequestController {
 
     /**
      * ✅ Récupérer les crédits du client connecté
+     * Fonctionne pour les rôles CLIENT, ADVISOR, ADMIN, ANALYST
      */
     @GetMapping("/my-credits")
     public ResponseEntity<List<CreditResponseDTO>> getMyCreditRequests() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        List<CreditResponseDTO> credits = creditRequestService.getCreditRequestsByClientEmail(email);
+        log.info("🔍 Getting credit requests for user: {}", email);
+
+        // Récupérer l'utilisateur connecté
+        User currentUser = userService.getCurrentUser();
+
+        List<CreditResponseDTO> credits = new ArrayList<>();
+
+        // Déterminer le rôle et récupérer les crédits appropriés
+        switch (currentUser.getRole()) {
+            case CLIENT:
+                // Le client voit ses propres crédits
+                credits = creditRequestService.getCreditRequestsByClientEmail(email);
+                log.info("📋 Found {} credit requests for client: {}", credits.size(), email);
+                break;
+
+            case ADVISOR:
+                // Le conseiller voit les crédits de ses clients
+                credits = creditRequestService.getCreditRequestsByAdvisorEmail(email);
+                log.info("📋 Found {} credit requests for advisor's clients: {}", credits.size(), email);
+                break;
+
+            case ANALYST:
+                // L'analyste voit les crédits des clients qui lui sont assignés
+                credits = creditRequestService.getCreditRequestsByAnalystEmail(email);
+                log.info("📋 Found {} credit requests for analyst's clients: {}", credits.size(), email);
+                break;
+
+            case ADMIN:
+            case MANAGER:
+                // L'admin/manager voit tous les crédits
+                credits = creditRequestService.getAllCreditRequests();
+                log.info("📋 Found {} total credit requests for admin/manager: {}", credits.size(), email);
+                break;
+
+            default:
+                log.warn("⚠️ Unknown role: {}", currentUser.getRole());
+                credits = new ArrayList<>();
+        }
+
         return ResponseEntity.ok(credits);
     }
 
@@ -157,7 +202,34 @@ public class CreditRequestController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        List<CreditResponseDTO> credits = creditRequestService.getCreditRequestsByClientEmailAndStatus(email, status);
+        log.info("🔍 Getting credit requests for user: {} with status: {}", email, status);
+
+        User currentUser = userService.getCurrentUser();
+        List<CreditResponseDTO> credits = new ArrayList<>();
+
+        switch (currentUser.getRole()) {
+            case CLIENT:
+                credits = creditRequestService.getCreditRequestsByClientEmailAndStatus(email, status);
+                break;
+
+            case ADVISOR:
+                credits = creditRequestService.getCreditRequestsByAdvisorAndStatus(email, status);
+                break;
+
+            case ANALYST:
+                credits = creditRequestService.getCreditRequestsByAnalystAndStatus(email, status);
+                break;
+
+            case ADMIN:
+            case MANAGER:
+                credits = creditRequestService.getCreditRequestsByStatus(status);
+                break;
+
+            default:
+                credits = new ArrayList<>();
+        }
+
+        log.info("📋 Found {} credit requests with status: {}", credits.size(), status);
         return ResponseEntity.ok(credits);
     }
 
@@ -169,7 +241,34 @@ public class CreditRequestController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        long count = creditRequestService.countCreditRequestsByClientEmail(email);
+        log.info("🔍 Counting credit requests for user: {}", email);
+
+        User currentUser = userService.getCurrentUser();
+        long count = 0;
+
+        switch (currentUser.getRole()) {
+            case CLIENT:
+                count = creditRequestService.countCreditRequestsByClientEmail(email);
+                break;
+
+            case ADVISOR:
+                count = creditRequestService.countCreditRequestsByAdvisor(email);
+                break;
+
+            case ANALYST:
+                count = creditRequestService.countCreditRequestsByAnalyst(email);
+                break;
+
+            case ADMIN:
+            case MANAGER:
+                count = creditRequestRepository.count();
+                break;
+
+            default:
+                count = 0;
+        }
+
+        log.info("📋 Total credit requests count: {}", count);
         return ResponseEntity.ok(count);
     }
 
@@ -382,5 +481,51 @@ public class CreditRequestController {
         String reason = payload != null ? payload.get("reason") : null;
         CreditResponseDTO response = creditRequestService.cancelCreditRequestByAdvisor(id, reason);
         return ResponseEntity.ok(response);
+    }
+
+
+    // ============================================
+// MÉTHODES POUR ANALYSTE
+// ============================================
+
+    /**
+     * ✅ Récupérer les demandes de crédit des clients assignés à l'analyste connecté
+     */
+    @GetMapping("/analyst/my-clients")
+    public ResponseEntity<List<CreditResponseDTO>> getCreditRequestsForAnalyst() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Getting credit requests for analyst: {}", email);
+
+        List<CreditResponseDTO> requests = creditRequestService.getCreditRequestsByAnalystEmail(email);
+        return ResponseEntity.ok(requests);
+    }
+
+    /**
+     * ✅ Récupérer les demandes de crédit des clients assignés à l'analyste par statut
+     */
+    @GetMapping("/analyst/my-clients/status/{status}")
+    public ResponseEntity<List<CreditResponseDTO>> getCreditRequestsForAnalystByStatus(
+            @PathVariable CreditStatus status) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        log.info("Getting credit requests for analyst: {} with status: {}", email, status);
+
+        List<CreditResponseDTO> requests = creditRequestService.getCreditRequestsByAnalystAndStatus(email, status);
+        return ResponseEntity.ok(requests);
+    }
+
+    /**
+     * ✅ Compter les demandes de crédit des clients assignés à l'analyste
+     */
+    @GetMapping("/analyst/my-clients/count")
+    public ResponseEntity<Long> countCreditRequestsForAnalyst() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        long count = creditRequestService.countCreditRequestsByAnalyst(email);
+        return ResponseEntity.ok(count);
     }
 }

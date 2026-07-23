@@ -186,20 +186,34 @@
           <span class="role-badge">{{ getRoleLabel(user.role) }}</span>
         </div>
       </div>
-      <div class="user-card-actions">
-        <button mat-icon-button color="primary" (click)="openEditDialog(user)" [disabled]="!canModifyUser(user)" matTooltip="Modifier">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button [color]="user.active ? 'warn' : 'primary'" (click)="toggleActive(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.active ? 'Désactiver' : 'Activer' }}">
-          <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
-        </button>
-        <button mat-icon-button color="warn" (click)="resetPassword(user)" [disabled]="!canModifyUser(user)" matTooltip="Réinitialiser le mot de passe">
-          <mat-icon>lock_reset</mat-icon>
-        </button>
-        <button mat-icon-button [color]="user.locked ? 'primary' : 'warn'" (click)="toggleLocked(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.locked ? 'Déverrouiller' : 'Verrouiller' }}">
-          <mat-icon>{{ user.locked ? 'lock_open' : 'lock' }}</mat-icon>
-        </button>
-      </div>
+      <!-- features/admin/user-management/user-management.component.html -->
+<!-- Dans la partie user-card-actions, AJOUTER le bouton Supprimer -->
+
+<div class="user-card-actions">
+  <button mat-icon-button color="primary" (click)="openEditDialog(user)" [disabled]="!canModifyUser(user)" matTooltip="Modifier">
+    <mat-icon>edit</mat-icon>
+  </button>
+  <button mat-icon-button [color]="user.active ? 'warn' : 'primary'" (click)="toggleActive(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.active ? 'Désactiver' : 'Activer' }}">
+    <mat-icon>{{ user.active ? 'block' : 'check_circle' }}</mat-icon>
+  </button>
+  <button mat-icon-button color="warn" (click)="resetPassword(user)" [disabled]="!canModifyUser(user)" matTooltip="Réinitialiser le mot de passe">
+    <mat-icon>lock_reset</mat-icon>
+  </button>
+  <button mat-icon-button [color]="user.locked ? 'primary' : 'warn'" (click)="toggleLocked(user)" [disabled]="!canModifyUser(user)" matTooltip="{{ user.locked ? 'Déverrouiller' : 'Verrouiller' }}">
+    <mat-icon>{{ user.locked ? 'lock_open' : 'lock' }}</mat-icon>
+  </button>
+  
+  <!-- ✅ NOUVEAU BOUTON SUPPRIMER -->
+  <button 
+    mat-icon-button 
+    color="warn" 
+    (click)="deleteUser(user)" 
+    [disabled]="!canModifyUser(user) || user.id === currentUserId"
+    matTooltip="Supprimer définitivement"
+    class="delete-btn">
+    <mat-icon>delete_forever</mat-icon>
+  </button>
+</div>
     </mat-card>
   </div>
 

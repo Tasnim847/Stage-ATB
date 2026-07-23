@@ -96,7 +96,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/credit-requests/my-credits/**").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/my-credits").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/*/simulation").hasRole("CLIENT")
-
+// ============================================
+// ✅ ROUTES ANALYSTE - AJOUTER CES LIGNES
+// ============================================
+                                .requestMatchers("/api/credit-requests/analyst/**").hasAnyRole("ANALYST", "ADMIN")
                         // ============================================
                         // ✅ ROUTES ADMIN
                         // ============================================

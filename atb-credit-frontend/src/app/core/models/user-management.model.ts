@@ -1,6 +1,10 @@
-// core/models/user-management.model.ts - MODIFIÉ
+// core/models/user-management.model.ts - VERSION CORRIGÉE (sans doublon)
+
 import { UserRole } from './user.model';
 
+/**
+ * Requête de création d'utilisateur
+ */
 export interface UserCreateRequest {
   username: string;
   email: string;
@@ -9,7 +13,6 @@ export interface UserCreateRequest {
   lastName: string;
   phoneNumber?: string;
   role: UserRole | string;
-  // ✅ AJOUTER CES CHAMPS
   department?: string;
   position?: string;
   address?: string;
@@ -17,6 +20,9 @@ export interface UserCreateRequest {
   country?: string;
 }
 
+/**
+ * Requête de mise à jour d'utilisateur
+ */
 export interface UserUpdateRequest {
   username?: string;
   firstName?: string;
@@ -27,6 +33,9 @@ export interface UserUpdateRequest {
   locked?: boolean;
 }
 
+/**
+ * ✅ Réponse utilisateur (UNIQUE DÉCLARATION)
+ */
 export interface UserResponseDTO {
   id: string;
   username: string;
@@ -41,7 +50,7 @@ export interface UserResponseDTO {
   createdAt: string;
   totalCreditRequests: number;
   totalNotifications: number;
-  // ✅ AJOUTER CES CHAMPS OPTIONNELS
+  // Champs optionnels pour les employés
   department?: string;
   position?: string;
   address?: string;

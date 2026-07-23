@@ -3,6 +3,7 @@ package org.example.stage_atb.Service;
 import org.example.stage_atb.dto.request.ClientRegisterRequest;
 import org.example.stage_atb.dto.request.ClientRequestDTO;
 import org.example.stage_atb.dto.response.ClientResponseDTO;
+import org.example.stage_atb.entity.Client;
 import org.example.stage_atb.entity.User;
 
 import java.util.List;
@@ -58,4 +59,29 @@ public interface IClientService {
     ClientResponseDTO removeAnalystFromClient(String clientId);
 
     List<ClientResponseDTO> getClientsByAnalyst(String analystId);
+
+    /**
+     * ✅ Créer un client à partir d'un utilisateur (retourne l'entité)
+     */
+    Client createClientEntityFromUser(User user, ClientRegisterRequest request);
+
+    /**
+     * ✅ Supprimer un client par userId
+     */
+    void deleteClientByUserId(String userId);
+
+    /**
+     * ✅ Activer un client par userId
+     */
+    void activateClientByUserId(String userId);
+
+    /**
+     * ✅ Désactiver un client par userId
+     */
+    void deactivateClientByUserId(String userId);
+
+    /**
+     * ✅ Récupérer un client par userId
+     */
+    Client getClientByUserId(String userId);
 }

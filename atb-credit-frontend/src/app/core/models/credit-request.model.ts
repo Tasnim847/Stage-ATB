@@ -17,7 +17,7 @@ export enum CreditStatus {
  */
 export interface CreditRequestDTO {
   clientId: string;
-  userId: string; // ✅ AJOUTER CETTE LIGNE
+  userId: string;
   amount: number;
   currency: string;
   durationMonths: number;
@@ -29,6 +29,8 @@ export interface CreditRequestDTO {
   guarantorName?: string;
   guarantorPhone?: string;
   expectedDisbursementDate?: string;
+  // ✅ AJOUTER CETTE LIGNE
+  submitImmediately?: boolean;
 }
 
 /**

@@ -112,67 +112,71 @@
       </div>
 
       <!-- Actions -->
-      <div class="card-actions">
-        <!-- ✅ BOUTON CRÉER UN CRÉDIT (pour admin et conseiller) -->
-        <button 
-          mat-icon-button 
-          color="primary" 
-          (click)="createCreditForClient(client.id)"
-          matTooltip="Créer une demande de crédit"
-          class="credit-btn">
-          <mat-icon>add_card</mat-icon>
-        </button>
+      <!-- clients.component.html - Partie actions améliorée -->
+<!-- Actions -->
+<div class="card-actions">
+  <button 
+    mat-icon-button 
+    color="primary" 
+    (click)="createCreditForClient(client.id)"
+    matTooltip="Créer une demande de crédit"
+    class="credit-btn">
+    <mat-icon>add_card</mat-icon>
+  </button>
 
-        <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]" matTooltip="Voir les détails">
-          <mat-icon>visibility</mat-icon>
-        </button>
-        
-        <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']" matTooltip="Modifier">
-          <mat-icon>edit</mat-icon>
-        </button>
-        
-        <button 
-          mat-icon-button 
-          [color]="client.active ? 'warn' : 'primary'" 
-          (click)="toggleClientStatus(client.id, client.active)"
-          matTooltip="{{ client.active ? 'Désactiver' : 'Activer' }}"
-        >
-          <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
-        </button>
-        
-        <button 
-          mat-icon-button 
-          color="warn" 
-          (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))"
-          matTooltip="Supprimer"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
-        
-        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        
-        <mat-menu #menu="matMenu">
-          <button mat-menu-item [routerLink]="['/clients', client.id]">
-            <mat-icon>visibility</mat-icon>
-            <span>Détails</span>
-          </button>
-          <button mat-menu-item [routerLink]="['/clients', client.id, 'edit']">
-            <mat-icon>edit</mat-icon>
-            <span>Modifier</span>
-          </button>
-          <button mat-menu-item (click)="toggleClientStatus(client.id, client.active)">
-            <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
-            <span>{{ client.active ? 'Désactiver' : 'Activer' }}</span>
-          </button>
-          <mat-divider></mat-divider>
-          <button mat-menu-item (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))" class="danger-item">
-            <mat-icon color="warn">delete</mat-icon>
-            <span>Supprimer</span>
-          </button>
-        </mat-menu>
-      </div>
+  <button mat-icon-button color="primary" [routerLink]="['/clients', client.id]" matTooltip="Voir les détails">
+    <mat-icon>visibility</mat-icon>
+  </button>
+  
+  <button mat-icon-button color="accent" [routerLink]="['/clients', client.id, 'edit']" matTooltip="Modifier">
+    <mat-icon>edit</mat-icon>
+  </button>
+  
+  <button 
+    mat-icon-button 
+    [color]="client.active ? 'warn' : 'primary'" 
+    (click)="toggleClientStatus(client.id, client.active)"
+    matTooltip="{{ client.active ? 'Désactiver' : 'Activer' }}"
+  >
+    <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
+  </button>
+  
+  <button 
+    mat-icon-button 
+    color="warn" 
+    (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))"
+    matTooltip="Supprimer"
+    [disabled]="isLoading"
+  >
+    <mat-icon>delete</mat-icon>
+  </button>
+  
+  <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item [routerLink]="['/clients', client.id]">
+      <mat-icon>visibility</mat-icon>
+      <span>Détails</span>
+    </button>
+    <button mat-menu-item [routerLink]="['/clients', client.id, 'edit']">
+      <mat-icon>edit</mat-icon>
+      <span>Modifier</span>
+    </button>
+    <button mat-menu-item (click)="toggleClientStatus(client.id, client.active)">
+      <mat-icon>{{ client.active ? 'block' : 'check_circle' }}</mat-icon>
+      <span>{{ client.active ? 'Désactiver' : 'Activer' }}</span>
+    </button>
+    <mat-divider></mat-divider>
+    <!-- ✅ Menu de suppression amélioré -->
+    <button mat-menu-item (click)="deleteClient(client.id, getFullName(client.firstName, client.lastName))" 
+            class="danger-item">
+      <mat-icon color="warn">delete_forever</mat-icon>
+      <span>Supprimer définitivement</span>
+    </button>
+  </mat-menu>
+</div>
     </mat-card>
   </div>
 

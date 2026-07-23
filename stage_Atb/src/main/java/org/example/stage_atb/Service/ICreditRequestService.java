@@ -130,4 +130,28 @@ public interface ICreditRequestService {
      * ✅ Vérifier si un conseiller est le propriétaire de la demande
      */
     boolean isAdvisorOwnerOfCreditRequest(String advisorEmail, String creditRequestId);
+
+    // ============================================
+// MÉTHODES POUR ANALYSTE
+// ============================================
+
+    /**
+     * ✅ Récupérer les demandes de crédit des clients assignés à l'analyste
+     */
+    List<CreditResponseDTO> getCreditRequestsByAnalystId(String analystId);
+
+    /**
+     * ✅ Récupérer les demandes de crédit des clients assignés à l'analyste par email
+     */
+    List<CreditResponseDTO> getCreditRequestsByAnalystEmail(String analystEmail);
+
+    /**
+     * ✅ Récupérer les demandes de crédit des clients assignés à l'analyste par statut
+     */
+    List<CreditResponseDTO> getCreditRequestsByAnalystAndStatus(String analystEmail, CreditStatus status);
+
+    /**
+     * ✅ Compter les demandes de crédit des clients assignés à l'analyste
+     */
+    long countCreditRequestsByAnalyst(String analystEmail);
 }

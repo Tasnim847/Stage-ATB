@@ -1,5 +1,3 @@
-// Controller/UserManagementController.java - VERSION COMPLÈTE CORRIGÉE
-
 package org.example.stage_atb.Controller;
 
 import jakarta.validation.Valid;
@@ -21,10 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -44,44 +41,37 @@ public class UserManagementController {
     // ============================================
 
     /**
-     * Créer un employé à partir d'un utilisateur
+     * ✅ Créer un employé à partir d'un utilisateur
+     * ⚠️ PAS DE @Transactional sur les méthodes privées
      */
-    private void createEmployeeFromUser(User user, UserCreateRequest request) {
-        // ✅ Générer le numéro d'employé
+    private Employee createEmployeeFromUser(User user, UserCreateRequest request) {
         String employeeNumber = generateEmployeeNumber();
         log.info("📝 Création d'un employé avec le numéro: {}", employeeNumber);
 
-        // ✅ Créer le DTO avec le numéro d'employé
         EmployeeRegisterRequest employeeRequest = convertToEmployeeRegisterRequest(request, employeeNumber);
-
-        // ✅ Appeler le service
-        employeeService.createEmployeeFromUser(user, employeeRequest);
+        Employee employee = employeeService.createEmployeeEntityFromUser(user, employeeRequest);
         log.info("✅ Employé créé pour l'utilisateur: {}", user.getEmail());
+        return employee;
     }
 
     /**
-     * Créer un client à partir d'un utilisateur
+     * ✅ Créer un client à partir d'un utilisateur
+     * ⚠️ PAS DE @Transactional sur les méthodes privées
      */
-    private void createClientFromUser(User user, UserCreateRequest request) {
-        // ✅ Générer le numéro de client
+    private Client createClientFromUser(User user, UserCreateRequest request) {
         String clientNumber = generateClientNumber();
         log.info("📝 Création d'un client avec le numéro: {}", clientNumber);
 
-        // ✅ Créer le DTO
-        ClientRegisterRequest clientRequest = convertToClientRegisterRequest(request);
-
-        // ✅ Appeler le service
-        clientService.createClientFromUser(user, clientRequest);
+        ClientRegisterRequest clientRequest = convertToClientRegisterRequest(request, clientNumber);
+        Client client = clientService.createClientEntityFromUser(user, clientRequest);
         log.info("✅ Client créé pour l'utilisateur: {}", user.getEmail());
+        return client;
     }
 
     // ============================================
     // ENDPOINTS
     // ============================================
 
-    /**
-     * Récupérer tous les utilisateurs
-     */
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         log.info("📋 Récupération de tous les utilisateurs");
@@ -89,9 +79,6 @@ public class UserManagementController {
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * Récupérer un utilisateur par ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable String id) {
         log.info("👤 Récupération de l'utilisateur: {}", id);
@@ -100,27 +87,28 @@ public class UserManagementController {
     }
 
     /**
-     * Créer un nouvel utilisateur avec gestion des rôles
+     * ✅ Créer un nouvel utilisateur - LA TRANSACTION EST ICI
      */
     @PostMapping
+    @Transactional  // ✅ La transaction est sur la méthode publique
     public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateRequest request) {
         log.info("➕ Création d'un nouvel utilisateur: {} avec rôle: {}", request.getEmail(), request.getRole());
         try {
-            // Vérifier si l'email existe déjà
+            // 1. Vérifier si l'email existe déjà
             if (userService.existsByEmail(request.getEmail())) {
                 log.warn("⚠️ Email déjà existant: {}", request.getEmail());
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Email déjà existant: " + request.getEmail());
             }
 
-            // Vérifier si le username existe déjà
+            // 2. Vérifier si le username existe déjà
             if (userService.existsByUsername(request.getUsername())) {
                 log.warn("⚠️ Username déjà existant: {}", request.getUsername());
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Nom d'utilisateur déjà existant: " + request.getUsername());
             }
 
-            // 1. Créer l'utilisateur
+            // 3. Créer l'utilisateur
             User newUser = new User();
             newUser.setUsername(request.getUsername());
             newUser.setEmail(request.getEmail());
@@ -135,13 +123,15 @@ public class UserManagementController {
             User savedUser = userService.createUser(newUser);
             log.info("✅ Utilisateur créé avec ID: {}", savedUser.getId());
 
-            // 2. Créer l'entité associée selon le rôle
+            // 4. Créer l'entité associée selon le rôle
+            // Ces méthodes seront exécutées dans la même transaction
             if (request.getRole() == UserRole.CLIENT) {
                 createClientFromUser(savedUser, request);
             } else {
                 createEmployeeFromUser(savedUser, request);
             }
 
+            // 5. Récupérer la réponse
             UserResponseDTO response = userService.getUserById(savedUser.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -156,6 +146,7 @@ public class UserManagementController {
      * Modifier un utilisateur
      */
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<?> updateUser(
             @PathVariable String id,
             @Valid @RequestBody UserUpdateRequest request) {
@@ -184,15 +175,53 @@ public class UserManagementController {
     }
 
     /**
+     * ✅ Supprimer un utilisateur avec ses entités associées
+     */
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        log.info("🗑️ Suppression de l'utilisateur: {}", id);
+        try {
+            User user = userService.getUserEntityById(id);
+
+            // Supprimer l'entité associée selon le rôle
+            if (user.getRole() == UserRole.CLIENT) {
+                clientService.deleteClientByUserId(id);
+                log.info("✅ Client supprimé pour l'utilisateur: {}", id);
+            } else {
+                employeeService.deleteEmployeeByUserId(id);
+                log.info("✅ Employé supprimé pour l'utilisateur: {}", id);
+            }
+
+            // Supprimer l'utilisateur
+            userService.deleteUser(id);
+            log.info("✅ Utilisateur supprimé avec succès: {}", id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de la suppression: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Désactiver un utilisateur
      */
     @PatchMapping("/{id}/deactivate")
+    @Transactional
     public ResponseEntity<Void> deactivateUser(@PathVariable String id) {
         log.info("🔒 Désactivation de l'utilisateur: {}", id);
         try {
             User user = userService.getUserEntityById(id);
             user.setActive(false);
             userService.createUser(user);
+
+            // Désactiver également l'entité associée
+            if (user.getRole() == UserRole.CLIENT) {
+                clientService.deactivateClientByUserId(id);
+            } else {
+                employeeService.deactivateEmployeeByUserId(id);
+            }
+
             log.info("✅ Utilisateur désactivé: {}", id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -205,12 +234,21 @@ public class UserManagementController {
      * Activer un utilisateur
      */
     @PatchMapping("/{id}/activate")
+    @Transactional
     public ResponseEntity<Void> activateUser(@PathVariable String id) {
         log.info("🔓 Activation de l'utilisateur: {}", id);
         try {
             User user = userService.getUserEntityById(id);
             user.setActive(true);
             userService.createUser(user);
+
+            // Activer également l'entité associée
+            if (user.getRole() == UserRole.CLIENT) {
+                clientService.activateClientByUserId(id);
+            } else {
+                employeeService.activateEmployeeByUserId(id);
+            }
+
             log.info("✅ Utilisateur activé: {}", id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -285,10 +323,7 @@ public class UserManagementController {
         return "CLT-" + System.currentTimeMillis() + "-" + String.format("%04d", (int)(Math.random() * 10000));
     }
 
-    /**
-     * ✅ Convertir UserCreateRequest en ClientRegisterRequest
-     */
-    private ClientRegisterRequest convertToClientRegisterRequest(UserCreateRequest request) {
+    private ClientRegisterRequest convertToClientRegisterRequest(UserCreateRequest request, String clientNumber) {
         return ClientRegisterRequest.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -302,14 +337,11 @@ public class UserManagementController {
                 .build();
     }
 
-    /**
-     * ✅ Convertir UserCreateRequest en EmployeeRegisterRequest avec numéro d'employé
-     */
     private EmployeeRegisterRequest convertToEmployeeRegisterRequest(UserCreateRequest request, String employeeNumber) {
         log.info("📝 Conversion en EmployeeRegisterRequest avec numéro: {}", employeeNumber);
 
         return EmployeeRegisterRequest.builder()
-                .employeeNumber(employeeNumber) // ✅ NUMÉRO D'EMPLOYÉ GÉNÉRÉ
+                .employeeNumber(employeeNumber)
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(request.getPassword())

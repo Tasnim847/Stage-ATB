@@ -94,4 +94,25 @@ export class CreditRequestService {
       `${this.apiUrl}/credit-requests/${id}/can-transmit`
     );
   }
+
+  /**
+ * ✅ Récupérer les demandes de crédit pour l'analyste connecté
+ */
+getCreditRequestsForAnalyst(): Observable<CreditResponseDTO[]> {
+  return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients`);
+}
+
+/**
+ * ✅ Récupérer les demandes de crédit pour l'analyste par statut
+ */
+getCreditRequestsForAnalystByStatus(status: CreditStatus): Observable<CreditResponseDTO[]> {
+  return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients/status/${status}`);
+}
+
+/**
+ * ✅ Compter les demandes de crédit pour l'analyste
+ */
+countCreditRequestsForAnalyst(): Observable<number> {
+  return this.http.get<number>(`${this.apiUrl}/credit-requests/analyst/my-clients/count`);
+}
 }

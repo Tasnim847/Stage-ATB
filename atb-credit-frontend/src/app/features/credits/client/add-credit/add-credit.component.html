@@ -588,154 +588,178 @@
         </mat-step>
 
         <!-- Étape 4: Validation -->
-        <mat-step>
-          <ng-template matStepLabel>
-            <span class="step-label">
-              <mat-icon>check_circle</mat-icon>
-              Validation
-            </span>
-          </ng-template>
-          <div class="form-section">
-            <h3>Résumé de votre demande</h3>
+<mat-step>
+  <ng-template matStepLabel>
+    <span class="step-label">
+      <mat-icon>check_circle</mat-icon>
+      Validation
+    </span>
+  </ng-template>
+  <div class="form-section">
+    <h3>Résumé de votre demande</h3>
 
-            <!-- Type de crédit -->
-            <div class="summary-section">
-              <h4>Type de crédit</h4>
-              <div class="summary-grid">
-                <div class="summary-item full-width">
-                  <span class="label">Type</span>
-                  <span class="value">{{ getCreditTypeLabel() }}</span>
-                </div>
-              </div>
-            </div>
+    <!-- Type de crédit -->
+    <div class="summary-section">
+      <h4>Type de crédit</h4>
+      <div class="summary-grid">
+        <div class="summary-item full-width">
+          <span class="label">Type</span>
+          <span class="value">{{ getCreditTypeLabel() }}</span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Informations personnelles -->
-            <div class="summary-section">
-              <h4>Informations personnelles</h4>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">Nom complet</span>
-                  <span class="value">{{ personalForm.get('fullName')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Email</span>
-                  <span class="value">{{ personalForm.get('email')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Téléphone</span>
-                  <span class="value">{{ personalForm.get('phone')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Situation familiale</span>
-                  <span class="value">{{ personalForm.get('maritalStatus')?.value || '-' }}</span>
-                </div>
-              </div>
-            </div>
+    <!-- Informations personnelles -->
+    <div class="summary-section">
+      <h4>Informations personnelles</h4>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">Nom complet</span>
+          <span class="value">{{ personalForm.get('fullName')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Email</span>
+          <span class="value">{{ personalForm.get('email')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Téléphone</span>
+          <span class="value">{{ personalForm.get('phone')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Situation familiale</span>
+          <span class="value">{{ personalForm.get('maritalStatus')?.value || '-' }}</span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Informations professionnelles -->
-            <div class="summary-section">
-              <h4>Informations professionnelles</h4>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">Catégorie</span>
-                  <span class="value">{{ professionalForm.get('professionalCategory')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Secteur</span>
-                  <span class="value">{{ professionalForm.get('businessSector')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Profession</span>
-                  <span class="value">{{ professionalForm.get('profession')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Employeur</span>
-                  <span class="value">{{ professionalForm.get('employer')?.value || '-' }}</span>
-                </div>
-              </div>
-            </div>
+    <!-- Informations professionnelles -->
+    <div class="summary-section">
+      <h4>Informations professionnelles</h4>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">Catégorie</span>
+          <span class="value">{{ professionalForm.get('professionalCategory')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Secteur</span>
+          <span class="value">{{ professionalForm.get('businessSector')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Profession</span>
+          <span class="value">{{ professionalForm.get('profession')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Employeur</span>
+          <span class="value">{{ professionalForm.get('employer')?.value || '-' }}</span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Informations financières -->
-            <div class="summary-section">
-              <h4>Informations financières</h4>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">RIB</span>
-                  <span class="value">{{ financialForm.get('rib')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Banque</span>
-                  <span class="value">{{ financialForm.get('bankName')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item highlight">
-                  <span class="label">Montant demandé</span>
-                  <span class="value amount">{{ financialForm.get('amount')?.value | currency:'TND' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Durée</span>
-                  <span class="value">{{ financialForm.get('durationMonths')?.value }} mois</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Taux d'intérêt</span>
-                  <span class="value">{{ financialForm.get('interestRate')?.value }}%</span>
-                </div>
-                <div class="summary-item highlight">
-                  <span class="label">Mensualité estimée</span>
-                  <span class="value amount">{{ calculateMonthlyPaymentFromForms() | currency:'TND' }}</span>
-                </div>
-                <div class="summary-item full-width">
-                  <span class="label">Objectif du crédit</span>
-                  <span class="value">{{ financialForm.get('loanPurpose')?.value || '-' }}</span>
-                </div>
-              </div>
-            </div>
+    <!-- Informations financières -->
+    <div class="summary-section">
+      <h4>Informations financières</h4>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">RIB</span>
+          <span class="value">{{ financialForm.get('rib')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Banque</span>
+          <span class="value">{{ financialForm.get('bankName')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item highlight">
+          <span class="label">Montant demandé</span>
+          <span class="value amount">{{ financialForm.get('amount')?.value | currency:'TND' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Durée</span>
+          <span class="value">{{ financialForm.get('durationMonths')?.value }} mois</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Taux d'intérêt</span>
+          <span class="value">{{ financialForm.get('interestRate')?.value }}%</span>
+        </div>
+        <div class="summary-item highlight">
+          <span class="label">Mensualité estimée</span>
+          <span class="value amount">{{ calculateMonthlyPaymentFromForms() | currency:'TND' }}</span>
+        </div>
+        <div class="summary-item full-width">
+          <span class="label">Objectif du crédit</span>
+          <span class="value">{{ financialForm.get('loanPurpose')?.value || '-' }}</span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Rachat de crédit -->
-            <div class="summary-section" *ngIf="creditType === 'refinance'">
-              <h4>Rachat de crédit</h4>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="label">Montant à racheter</span>
-                  <span class="value">{{ financialForm.get('refinanceAmount')?.value | currency:'TND' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">Banque actuelle</span>
-                  <span class="value">{{ financialForm.get('refinanceBankName')?.value || '-' }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="label">N° Contrat</span>
-                  <span class="value">{{ financialForm.get('refinanceContractNumber')?.value || '-' }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Conditions -->
-            <div class="terms-section">
-              <div class="terms-content">
-                <h4>Informations importantes</h4>
-                <ul>
-                  <li>Tous les champs marqués d'un * sont obligatoires.</li>
-                  <li>Les informations fournies doivent être exactes et à jour.</li>
-                  <li>La demande sera analysée par notre système IA et nos experts.</li>
-                </ul>
-                <div class="security-info">
-                  <mat-icon>verified</mat-icon>
-                  <span>Vos données sont sécurisées. Nous garantissons la confidentialité et la sécurité de vos informations.</span>
-                </div>
-              </div>
+    <!-- ✅ OPTION DE SOUMISSION DANS LE RÉSUMÉ -->
+    <div class="summary-section submit-summary">
+      <h4>📤 Options de soumission</h4>
+      <div class="summary-grid">
+        <div class="summary-item full-width">
+          <div class="submit-choice" [class.submit]="financialForm.get('submitImmediately')?.value" [class.draft]="!financialForm.get('submitImmediately')?.value">
+            <mat-icon>{{ financialForm.get('submitImmediately')?.value ? 'send' : 'save' }}</mat-icon>
+            <div>
+              <span class="label">Mode de soumission</span>
+              <span class="value">
+                {{ financialForm.get('submitImmediately')?.value ? '✅ Soumettre immédiatement' : '📝 Enregistrer comme brouillon' }}
+              </span>
+              <span class="hint">
+                {{ financialForm.get('submitImmediately')?.value ? 'Votre demande sera envoyée directement pour analyse' : 'Vous pourrez modifier et soumettre plus tard' }}
+              </span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="step-actions">
-            <button mat-button matStepperPrevious>
-              <mat-icon>arrow_back</mat-icon> Précédent
-            </button>
-            <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitting || !isFormValid()" class="submit-btn">
-              <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
-              <span *ngIf="!isSubmitting">Soumettre la demande</span>
-            </button>
-          </div>
-        </mat-step>
+    <!-- Rachat de crédit -->
+    <div class="summary-section" *ngIf="creditType === 'refinance'">
+      <h4>Rachat de crédit</h4>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="label">Montant à racheter</span>
+          <span class="value">{{ financialForm.get('refinanceAmount')?.value | currency:'TND' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Banque actuelle</span>
+          <span class="value">{{ financialForm.get('refinanceBankName')?.value || '-' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">N° Contrat</span>
+          <span class="value">{{ financialForm.get('refinanceContractNumber')?.value || '-' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conditions -->
+    <div class="terms-section">
+      <div class="terms-content">
+        <h4>Informations importantes</h4>
+        <ul>
+          <li>Tous les champs marqués d'un * sont obligatoires.</li>
+          <li>Les informations fournies doivent être exactes et à jour.</li>
+          <li>La demande sera analysée par notre système IA et nos experts.</li>
+        </ul>
+        <div class="security-info">
+          <mat-icon>verified</mat-icon>
+          <span>Vos données sont sécurisées. Nous garantissons la confidentialité et la sécurité de vos informations.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button mat-button matStepperPrevious>
+      <mat-icon>arrow_back</mat-icon> Précédent
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isSubmitting || !isFormValid()" class="submit-btn">
+      <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+      <span *ngIf="!isSubmitting">
+        <mat-icon>{{ financialForm.get('submitImmediately')?.value ? 'send' : 'save' }}</mat-icon>
+        {{ financialForm.get('submitImmediately')?.value ? 'Soumettre la demande' : 'Enregistrer le brouillon' }}
+      </span>
+    </button>
+  </div>
+</mat-step>
 
       </mat-stepper>
     </mat-card-content>

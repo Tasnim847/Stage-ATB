@@ -207,7 +207,6 @@ export class AddCreditComponent implements OnInit {
       currency: ['TND', Validators.required],
       durationMonths: ['', [Validators.required, Validators.min(1), Validators.max(120)]],
       loanPurpose: ['', Validators.required],
-      // ✅ Le taux d'intérêt est maintenant automatique et non modifiable par le client
       interestRate: [{ value: 0, disabled: true }],
       collateralType: [''],
       collateralValue: [''],
@@ -220,7 +219,9 @@ export class AddCreditComponent implements OnInit {
       rentAmount: [0],
       refinanceAmount: [0],
       refinanceBankName: [''],
-      refinanceContractNumber: ['']
+      refinanceContractNumber: [''],
+      // ✅ AJOUTER CE CHAMP
+      submitImmediately: [true, Validators.required]
     });
 
     this.creditTypeForm.get('creditType')?.valueChanges.subscribe((type) => {
@@ -518,6 +519,9 @@ export class AddCreditComponent implements OnInit {
     const professional = this.professionalForm.value;
     const financial = this.financialForm.value;
 
+    // ✅ Récupérer la valeur de submitImmediately
+    const submitImmediately = financial.submitImmediately;
+
     const creditData: CreditRequestDTO = {
       clientId: this.clientId,
       userId: this.currentUser?.id || '',
@@ -525,23 +529,34 @@ export class AddCreditComponent implements OnInit {
       currency: financial.currency,
       durationMonths: financial.durationMonths,
       monthlyPayment: this.calculateMonthlyPaymentFromForms(),
-      interestRate: this.calculatedInterestRate, // ✅ Taux calculé automatiquement
+      interestRate: this.calculatedInterestRate,
       loanPurpose: financial.loanPurpose,
       collateralType: financial.collateralType || '',
       collateralValue: financial.collateralValue || 0,
       guarantorName: this.showSpouse ? personal.spouseName : '',
       guarantorPhone: this.showSpouse ? personal.spousePhone : '',
-      expectedDisbursementDate: financial.expectedDisbursementDate || ''
+      expectedDisbursementDate: financial.expectedDisbursementDate || '',
+      // ✅ AJOUTER CETTE LIGNE
+      submitImmediately: submitImmediately
     };
 
     this.creditService.createCreditRequest(creditData).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        this.toastr.success(
-          `Votre demande de crédit N°${response.requestNumber} a été créée avec succès`,
-          'Demande envoyée'
-        );
-        this.router.navigate(['/simulation-result', response.id]);
+        
+        if (submitImmediately) {
+          this.toastr.success(
+            `✅ Votre demande de crédit N°${response.requestNumber} a été soumise avec succès et est en cours d'analyse`,
+            'Demande soumise'
+          );
+          this.router.navigate(['/simulation-result', response.id]);
+        } else {
+          this.toastr.success(
+            `📝 Votre demande de crédit N°${response.requestNumber} a été sauvegardée comme brouillon. Vous pourrez la modifier et la soumettre plus tard.`,
+            'Brouillon enregistré'
+          );
+          this.router.navigate(['/my-credits']);
+        }
       },
       error: (error) => {
         this.isSubmitting = false;

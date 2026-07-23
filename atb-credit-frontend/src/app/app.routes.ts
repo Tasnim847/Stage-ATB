@@ -203,6 +203,18 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
       },
+      // ============================================
+        // CRÉDITS - ROUTES POUR ANALYSTE
+      // ============================================
+
+      // 📋 Liste des demandes de crédit (analyste)
+      {
+        path: 'analyst/credit-requests',
+        loadComponent: () => import('./features/credits/analyst/analyst-credit-requests/analyst-credit-requests.component')
+          .then(m => m.AnalystCreditRequestsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'ADMIN'] }
+      },
 
       // ============================================
       // KYC

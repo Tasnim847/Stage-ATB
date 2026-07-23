@@ -112,7 +112,7 @@ export class SidebarComponent {
     { path: '/dashboard', icon: 'dashboard', label: 'Tableau de bord', badge: 0 },
     
     // Demandes de crédit
-    { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
+    { path: '/analyst/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },    
     
     // Analyse documentaire
     { path: '/documents/analysis', icon: 'folder_open', label: 'Analyse documentaire', badge: 3 },

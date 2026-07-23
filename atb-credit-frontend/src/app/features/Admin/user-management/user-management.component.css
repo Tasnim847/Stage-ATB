@@ -1007,3 +1007,62 @@ mat-card-content {
     margin-right: 10px;
   }
 }
+
+/* features/admin/user-management/user-management.component.css - Ajouts */
+
+.user-card-actions {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 16px 16px;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+}
+
+.user-card-actions button {
+  transition: transform 0.2s ease;
+}
+
+.user-card-actions button:hover:not([disabled]) {
+  transform: scale(1.1);
+}
+
+.user-card-actions button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Style spécial pour le bouton supprimer */
+.delete-btn {
+  color: #d32f2f !important;
+}
+
+.delete-btn:hover:not([disabled]) {
+  background-color: rgba(211, 47, 47, 0.1) !important;
+}
+
+/* Animation pour le bouton supprimer */
+.delete-btn:active:not([disabled]) {
+  transform: scale(0.9);
+}
+
+/* Style pour l'utilisateur courant */
+.current-user-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+/* User card inactif */
+.user-card.inactive {
+  opacity: 0.7;
+  background: #fafafa;
+}
+
+.user-card.inactive .user-avatar {
+  filter: grayscale(1);
+}
+

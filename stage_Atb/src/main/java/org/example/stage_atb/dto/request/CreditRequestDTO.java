@@ -51,4 +51,7 @@ public class CreditRequestDTO {
     private String guarantorPhone;
 
     private LocalDate expectedDisbursementDate;
+
+    private boolean submitImmediately;
+
 }

@@ -443,4 +443,94 @@ public class ClientServiceImpl implements IClientService {
                 .map(clientMapper::toResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    // Service/impl/ClientServiceImpl.java - AJOUTER CES MÉTHODES
+
+    @Override
+    @Transactional
+    public Client createClientEntityFromUser(User user, ClientRegisterRequest request) {
+        log.info("Creating client entity from user: {}", user.getEmail());
+
+        if (clientRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Client already exists with email: " + user.getEmail());
+        }
+
+        Client client = Client.builder()
+                .clientNumber(generateClientNumber())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .dateOfBirth(request.getDateOfBirth())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .placeOfBirth(request.getPlaceOfBirth())
+                .nationality(request.getNationality())
+                .maritalStatus(request.getMaritalStatus())
+                .gender(request.getGender())
+                .identityNumber(request.getIdentityNumber())
+                .identityType(request.getIdentityType())
+                .profession(request.getProfession())
+                .employer(request.getEmployer())
+                .monthlyIncome(request.getMonthlyIncome())
+                .postalCode(request.getPostalCode())
+                .notes(request.getNotes())
+                .active(true)
+                .build();
+
+        Client savedClient = clientRepository.save(client);
+        log.info("Client entity created with id: {}", savedClient.getId());
+
+        return savedClient;
+    }
+
+    @Override
+    @Transactional
+    public void deleteClientByUserId(String userId) {
+        log.info("Deleting client by userId: {}", userId);
+
+        // Récupérer l'utilisateur
+        User user = userService.getUserEntityById(userId);
+
+        // Trouver le client par email
+        clientRepository.findByEmail(user.getEmail()).ifPresent(client -> {
+            clientRepository.delete(client);
+            log.info("Client deleted for userId: {}", userId);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void activateClientByUserId(String userId) {
+        log.info("Activating client by userId: {}", userId);
+
+        User user = userService.getUserEntityById(userId);
+        clientRepository.findByEmail(user.getEmail()).ifPresent(client -> {
+            client.setActive(true);
+            clientRepository.save(client);
+            log.info("Client activated for userId: {}", userId);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void deactivateClientByUserId(String userId) {
+        log.info("Deactivating client by userId: {}", userId);
+
+        User user = userService.getUserEntityById(userId);
+        clientRepository.findByEmail(user.getEmail()).ifPresent(client -> {
+            client.setActive(false);
+            clientRepository.save(client);
+            log.info("Client deactivated for userId: {}", userId);
+        });
+    }
+
+    @Override
+    public Client getClientByUserId(String userId) {
+        log.info("Getting client by userId: {}", userId);
+
+        User user = userService.getUserEntityById(userId);
+        return clientRepository.findByEmail(user.getEmail()).orElse(null);
+    }
 }

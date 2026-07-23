@@ -614,3 +614,201 @@ mat-card-content {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   OPTIONS DE SOUMISSION
+   ============================================ */
+
+.submit-section {
+  padding: 20px 0;
+}
+
+.submit-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-bottom: 16px;
+}
+
+.submit-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.submit-option-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.submit-option-card:hover {
+  border-color: #be5543;
+  background: #f5f5f5;
+}
+
+.submit-option-card.selected {
+  border-color: #be5543;
+  background: #fce4ec;
+  box-shadow: 0 4px 16px rgba(190, 85, 67, 0.15);
+}
+
+.submit-option-card ::ng-deep .mat-radio-label {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  align-items: flex-start;
+}
+
+.submit-option-card ::ng-deep .mat-radio-label-content {
+  width: 100%;
+  padding-left: 12px;
+}
+
+.option-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+.option-icon {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.option-icon mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.option-text {
+  flex: 1;
+}
+
+.option-text strong {
+  display: block;
+  font-size: 16px;
+  color: #2c2c2c;
+  margin-bottom: 4px;
+}
+
+.option-text p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #757575;
+  line-height: 1.5;
+}
+
+.option-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.option-badge.badge-success {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.option-badge.badge-warning {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Messages d'information */
+.submit-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 12px;
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+}
+
+.submit-info mat-icon {
+  color: #4caf50;
+}
+
+.submit-info.draft-info {
+  background: #fff3e0;
+  border-left-color: #ff9800;
+}
+
+.submit-info.draft-info mat-icon {
+  color: #ff9800;
+}
+
+.submit-info span {
+  font-size: 14px;
+  color: #424242;
+}
+
+/* Boutons d'action */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.action-buttons button {
+  min-width: 160px;
+  height: 48px;
+  font-weight: 600;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column-reverse;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+
+  .option-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .option-icon {
+    margin-top: 0;
+  }
+
+  .submit-option-card ::ng-deep .mat-radio-label-content {
+    padding-left: 0;
+  }
+
+  .submit-option-card {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .submit-options-container {
+    gap: 12px;
+  }
+
+  .submit-info {
+    flex-direction: column;
+    text-align: center;
+  }
+}

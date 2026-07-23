@@ -195,4 +195,87 @@ public class EmployeeServiceImpl implements IEmployeeService {
     private String generateEmployeeNumber() {
         return "EMP-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 1000);
     }
+
+    // Service/impl/EmployeeServiceImpl.java - AJOUTER CES MÉTHODES
+
+    @Override
+    @Transactional
+    public Employee createEmployeeEntityFromUser(User user, EmployeeRegisterRequest request) {
+        log.info("Creating employee entity from user: {}", user.getEmail());
+
+        if (employeeRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Employee already exists with email: " + user.getEmail());
+        }
+
+        // Vérifier si le numéro d'employé existe déjà
+        if (employeeRepository.findByEmployeeNumber(request.getEmployeeNumber()).isPresent()) {
+            throw new RuntimeException("Employee number already exists: " + request.getEmployeeNumber());
+        }
+
+        Employee employee = Employee.builder()
+                .employeeNumber(request.getEmployeeNumber())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .status(EmployeeStatus.ACTIVE)
+                .department(request.getDepartment())
+                .position(request.getPosition())
+                .address(request.getAddress())
+                .city(request.getCity())
+                .country(request.getCountry())
+                .hireDate(LocalDateTime.now().toLocalDate())
+                .user(user)
+                .active(true)
+                .build();
+
+        Employee savedEmployee = employeeRepository.save(employee);
+        log.info("Employee entity created with id: {} and number: {}", savedEmployee.getId(), savedEmployee.getEmployeeNumber());
+
+        return savedEmployee;
+    }
+
+    @Override
+    @Transactional
+    public void deleteEmployeeByUserId(String userId) {
+        log.info("Deleting employee by userId: {}", userId);
+
+        employeeRepository.findByUserId(userId).ifPresent(employee -> {
+            employeeRepository.delete(employee);
+            log.info("Employee deleted for userId: {}", userId);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void activateEmployeeByUserId(String userId) {
+        log.info("Activating employee by userId: {}", userId);
+
+        employeeRepository.findByUserId(userId).ifPresent(employee -> {
+            employee.setActive(true);
+            employee.setStatus(EmployeeStatus.ACTIVE);
+            employeeRepository.save(employee);
+            log.info("Employee activated for userId: {}", userId);
+        });
+    }
+
+    @Override
+    @Transactional
+    public void deactivateEmployeeByUserId(String userId) {
+        log.info("Deactivating employee by userId: {}", userId);
+
+        employeeRepository.findByUserId(userId).ifPresent(employee -> {
+            employee.setActive(false);
+            employee.setStatus(EmployeeStatus.INACTIVE);
+            employeeRepository.save(employee);
+            log.info("Employee deactivated for userId: {}", userId);
+        });
+    }
+
+    @Override
+    public Employee getEmployeeByUserId(String userId) {
+        log.info("Getting employee by userId: {}", userId);
+        return employeeRepository.findByUserId(userId).orElse(null);
+    }
 }

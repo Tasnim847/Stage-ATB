@@ -553,3 +553,55 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-light);
 }
+
+
+
+/* clients.component.css - Ajouts */
+
+/* Animation de chargement */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+}
+
+/* Style pour le bouton supprimer désactivé */
+.card-actions button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Menu item danger */
+::ng-deep .mat-menu-item.danger-item {
+  color: #f44336 !important;
+}
+
+::ng-deep .mat-menu-item.danger-item:hover {
+  background-color: rgba(244, 67, 54, 0.1) !important;
+}
+
+/* Toast personnalisé pour les erreurs */
+::ng-deep .toast-error {
+  background-color: #f44336 !important;
+}
+
+::ng-deep .toast-success {
+  background-color: #4caf50 !important;
+}
+
+/* Style pour le bouton Crédit */
+.credit-btn {
+  color: #1976d2 !important;
+}
+
+.credit-btn:hover {
+  background-color: rgba(25, 118, 210, 0.1) !important;
+}

@@ -9,6 +9,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { importProvidersFrom } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { MatDialogModule } from '@angular/material/dialog'; // ✅ AJOUTER
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +30,6 @@ export const appConfig: ApplicationConfig = {
       progressBar: true,
     }),
     // ✅ Important: Ajouter NgbModule pour les services
-    importProvidersFrom(NgbModule)
+    importProvidersFrom(NgbModule, MatDialogModule)
   ]
 };

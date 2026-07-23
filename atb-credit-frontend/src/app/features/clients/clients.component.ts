@@ -1,8 +1,6 @@
-// clients.component.ts - AJOUTER LA MÉTHODE
-
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router'; // ✅ AJOUTER Router
+import { RouterModule, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,11 +11,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog'; // ✅ AJOUTER
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { ClientService } from '@core/services/client.service';
 import { ClientResponseDTO } from '@core/models/client.model';
 import { AuthService } from '@core/services/auth.service';
+import { ConfirmDialogComponent } from './confirm-dialog.component';
 
 @Component({
   selector: 'app-clients',
@@ -35,7 +35,8 @@ import { AuthService } from '@core/services/auth.service';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule // ✅ AJOUTER
   ],
   templateUrl: './clients.component.html',
   styleUrls: ['./clients.component.css']
@@ -44,7 +45,8 @@ export class ClientsComponent implements OnInit {
   private clientService = inject(ClientService);
   private authService = inject(AuthService);
   private toastr = inject(ToastrService);
-  private router = inject(Router); // ✅ AJOUTER Router
+  private router = inject(Router);
+  private dialog = inject(MatDialog); // ✅ AJOUTER
 
   clients: ClientResponseDTO[] = [];
   filteredClients: ClientResponseDTO[] = [];
@@ -113,53 +115,105 @@ export class ClientsComponent implements OnInit {
     );
   }
 
-  // ✅ NOUVELLE MÉTHODE : Créer une demande de crédit pour un client
   createCreditForClient(clientId: string): void {
     const userRole = this.authService.getUserRole();
     
-    // Rediriger vers la page appropriée selon le rôle
     if (userRole === 'ADMIN' || userRole === 'MANAGER') {
-      // Pour l'admin, utiliser la page admin
       this.router.navigate(['/admin/credit-requests/new', clientId]);
     } else if (userRole === 'ADVISOR') {
-      // Pour le conseiller, utiliser la page conseiller
       this.router.navigate(['/credit-requests/new', clientId]);
     } else {
       this.toastr.warning('Vous n\'avez pas les droits pour créer une demande de crédit', 'Accès refusé');
     }
   }
 
+  // ✅ MÉTHODE deleteClient améliorée avec Dialog
   deleteClient(id: string, name: string): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le client ${name} ?`)) {
-      this.clientService.deleteClient(id).subscribe({
-        next: () => {
-          this.toastr.success('Client supprimé avec succès', 'Succès');
-          this.loadClients();
-        },
-        error: (error) => {
-          this.toastr.error('Erreur lors de la suppression', 'Erreur');
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirmer la suppression',
+        message: `Êtes-vous sûr de vouloir supprimer le client ${name} ?`,
+        confirmText: 'Supprimer',
+        cancelText: 'Annuler',
+        confirmColor: 'warn',
+        icon: 'delete_forever'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.performDeleteClient(id, name);
+      }
+    });
+  }
+
+  // ✅ Méthode privée pour effectuer la suppression
+  private performDeleteClient(id: string, name: string): void {
+    this.isLoading = true;
+    
+    this.clientService.deleteClient(id).subscribe({
+      next: () => {
+        this.toastr.success(`Le client ${name} a été supprimé avec succès`, 'Succès');
+        // Recharger la liste après suppression
+        this.loadClients();
+      },
+      error: (error) => {
+        console.error('Erreur lors de la suppression:', error);
+        
+        // Gestion des erreurs spécifiques
+        let errorMessage = 'Erreur lors de la suppression du client';
+        if (error.status === 409) {
+          errorMessage = 'Impossible de supprimer ce client car il a des demandes de crédit en cours';
+        } else if (error.status === 403) {
+          errorMessage = 'Vous n\'avez pas les droits pour supprimer ce client';
+        } else if (error.status === 404) {
+          errorMessage = 'Client non trouvé';
         }
-      });
-    }
+        
+        this.toastr.error(errorMessage, 'Erreur');
+        this.isLoading = false;
+      }
+    });
   }
 
   toggleClientStatus(id: string, currentStatus: boolean): void {
     const action = currentStatus ? 'désactiver' : 'activer';
-    if (confirm(`Voulez-vous ${action} ce client ?`)) {
-      const serviceCall = currentStatus 
-        ? this.clientService.deactivateClient(id)
-        : this.clientService.activateClient(id);
-      
-      serviceCall.subscribe({
-        next: () => {
-          this.toastr.success(`Client ${currentStatus ? 'désactivé' : 'activé'} avec succès`, 'Succès');
-          this.loadClients();
-        },
-        error: (error) => {
-          this.toastr.error('Erreur lors de l\'opération', 'Erreur');
-        }
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `Confirmer la ${action}`,
+        message: `Voulez-vous ${action} ce client ?`,
+        confirmText: action === 'désactiver' ? 'Désactiver' : 'Activer',
+        cancelText: 'Annuler',
+        confirmColor: action === 'désactiver' ? 'warn' : 'primary'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.performToggleStatus(id, currentStatus);
+      }
+    });
+  }
+
+  private performToggleStatus(id: string, currentStatus: boolean): void {
+    this.isLoading = true;
+    const serviceCall = currentStatus 
+      ? this.clientService.deactivateClient(id)
+      : this.clientService.activateClient(id);
+    
+    serviceCall.subscribe({
+      next: () => {
+        this.toastr.success(`Client ${currentStatus ? 'désactivé' : 'activé'} avec succès`, 'Succès');
+        this.loadClients();
+      },
+      error: (error) => {
+        console.error('Erreur lors de l\'opération:', error);
+        this.toastr.error('Erreur lors de l\'opération', 'Erreur');
+        this.isLoading = false;
+      }
+    });
   }
 
   getInitials(firstName: string, lastName: string): string {
