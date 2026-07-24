@@ -75,7 +75,7 @@ export class SidebarComponent {
     { path: '/clients', icon: 'people_outline', label: 'Clients', badge: 0 },
     
     // Demandes de crédit
-    { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
+    { path: '/admin/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     { path: '/admin/credit-requests/new', icon: 'add', label: 'Nouvelle demande (Admin)', badge: 0 },
 
     // Analyses

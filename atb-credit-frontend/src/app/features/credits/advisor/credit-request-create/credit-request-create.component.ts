@@ -668,11 +668,7 @@ export class CreditRequestCreateComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    if (this.clientId) {
-      this.router.navigate(['/clients', this.clientId]);
-    } else {
-      this.router.navigate(['/clients']);
-    }
+      window.history.back();
   }
 
   // ✅ Télécharger un document spécifique

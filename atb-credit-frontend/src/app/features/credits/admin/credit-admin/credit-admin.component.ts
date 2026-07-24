@@ -24,6 +24,7 @@ import { AuthService } from '@core/services/auth.service';
 import { CreditRequestDTO } from '@core/models';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-credit-admin',
@@ -57,6 +58,8 @@ export class CreditAdminComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private toastr = inject(ToastrService);
+  private location = inject(Location);
+
 
   // Formulaire
   creditForm!: FormGroup;
@@ -274,9 +277,9 @@ export class CreditAdminComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/clients']);
+    // Rediriger vers la liste des crédits admin
+    this.router.navigate(['/admin/credit-requests']);
   }
-
   // Getters pour les erreurs
   get f() { return this.creditForm.controls; }
 }
