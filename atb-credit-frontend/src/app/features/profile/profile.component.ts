@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,8 +14,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSelectModule } from '@angular/material/select'; // ✅ Ajouté
-import { MatTooltipModule } from '@angular/material/tooltip'; // ✅ Ajouté
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '@core/services/auth.service';
 import { ProfileService } from '@core/services/profile.service';
 
@@ -37,9 +37,10 @@ import { ProfileService } from '@core/services/profile.service';
     MatChipsModule,
     MatProgressBarModule,
     MatSlideToggleModule,
-    MatSelectModule,      // ✅ Ajouté
-    MatTooltipModule      // ✅ Ajouté
+    MatSelectModule,
+    MatTooltipModule
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush, // ✅ OPTIMISATION
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -82,11 +83,19 @@ export class ProfileComponent implements OnInit {
     private authService: AuthService,
     private profileService: ProfileService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef // ✅ AJOUTÉ
   ) {}
 
   ngOnInit() {
+    // ✅ OPTIMISATION: Initialiser immédiatement
     this.initializeForms();
+    
+    // ✅ OPTIMISATION: Récupérer les données locales immédiatement
+    this.userRole = this.authService.getUserRole() || 'CLIENT';
+    this.user = this.authService.getUserInfo();
+    
+    // Charger les données en arrière-plan
     this.loadProfile();
   }
 
@@ -123,19 +132,19 @@ export class ProfileComponent implements OnInit {
 
   loadProfile() {
     this.isLoading = true;
-    this.user = this.authService.getUserInfo();
-    this.userRole = this.authService.getUserRole() || '';
 
     this.profileService.getProfile().subscribe({
       next: (data) => {
         this.profile = data;
         this.patchFormValues(data);
         this.isLoading = false;
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       },
       error: (error) => {
         console.error('Error loading profile:', error);
         this.snackBar.open('Erreur lors du chargement du profil', 'Fermer', { duration: 3000 });
         this.isLoading = false;
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       }
     });
   }
@@ -152,6 +161,7 @@ export class ProfileComponent implements OnInit {
       country: data.country || '',
       postalCode: data.postalCode || ''
     });
+    this.cdr.markForCheck(); // ✅ OPTIMISATION
   }
 
   updateProfile() {
@@ -165,11 +175,13 @@ export class ProfileComponent implements OnInit {
         this.snackBar.open('Profil mis à jour avec succès', 'Fermer', { duration: 3000 });
         this.isUpdating = false;
         this.authService.updateUserInfo(data);
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       },
       error: (error) => {
         console.error('Error updating profile:', error);
         this.snackBar.open('Erreur lors de la mise à jour du profil', 'Fermer', { duration: 3000 });
         this.isUpdating = false;
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       }
     });
   }
@@ -187,11 +199,13 @@ export class ProfileComponent implements OnInit {
         this.passwordForm.reset();
         this.passwordForm.markAsPristine();
         this.passwordForm.markAsUntouched();
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       },
       error: (error) => {
         console.error('Error updating password:', error);
         this.snackBar.open(error.error?.message || 'Erreur lors de la mise à jour du mot de passe', 'Fermer', { duration: 3000 });
         this.isPasswordUpdating = false;
+        this.cdr.markForCheck(); // ✅ OPTIMISATION
       }
     });
   }
@@ -220,12 +234,14 @@ export class ProfileComponent implements OnInit {
       });
       
       this.snackBar.open('Compétence ajoutée avec succès', 'Fermer', { duration: 2000 });
+      this.cdr.markForCheck(); // ✅ OPTIMISATION
     }
   }
 
   removeSkill(index: number) {
     this.skills.splice(index, 1);
     this.snackBar.open('Compétence supprimée', 'Fermer', { duration: 2000 });
+    this.cdr.markForCheck(); // ✅ OPTIMISATION
   }
 
   getRoleLabel(role: string): string {
