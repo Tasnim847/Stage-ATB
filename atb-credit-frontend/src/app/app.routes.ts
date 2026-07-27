@@ -16,7 +16,8 @@ export const routes: Routes = [
   // Redirection pour compatibilité avec les anciennes routes
   {
     path: 'login',
-    redirectTo: '/auth'  },
+    redirectTo: '/auth'  
+  },
   {
     path: 'register',
     redirectTo: '/auth'
@@ -105,6 +106,28 @@ export const routes: Routes = [
       },
 
       // ============================================
+      // SIMULATIONS POUR CONSEILLER (AJOUTÉ)
+      // ============================================
+      
+      // 🧮 Simulation de crédit pour conseiller
+      {
+        path: 'simulation',
+        loadComponent: () => import('./features/credits/advisor/credit-simulation/credit-simulation.component')
+          .then(m => m.CreditSimulationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADVISOR', 'MANAGER', 'ADMIN'] }
+      },
+      
+      // 📊 Simulation avec client pré-sélectionné
+      {
+        path: 'simulation/:clientId',
+        loadComponent: () => import('./features/credits/advisor/credit-simulation/credit-simulation.component')
+          .then(m => m.CreditSimulationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADVISOR', 'MANAGER', 'ADMIN'] }
+      },
+
+      // ============================================
       // CRÉDITS - ROUTES POUR CLIENTS
       // ============================================
       
@@ -155,6 +178,7 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      
       // ============================================
       // SIMULATIONS - ROUTES POUR CLIENTS
       // ============================================
@@ -212,8 +236,9 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
       },
+      
       // ============================================
-        // CRÉDITS - ROUTES POUR ANALYSTE
+      // CRÉDITS - ROUTES POUR ANALYSTE
       // ============================================
 
       // 📋 Liste des demandes de crédit (analyste)

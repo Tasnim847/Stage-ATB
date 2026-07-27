@@ -1,0 +1,570 @@
+<!-- features/credits/advisor/credit-simulation/credit-simulation.component.html -->
+
+<div class="simulation-container">
+  
+  <!-- ========================================== -->
+  <!-- EN-TÊTE -->
+  <!-- ========================================== -->
+  <div class="header">
+    <div class="header-left">
+      <h1>💳 Simulation de Crédit</h1>
+      <p class="subtitle">
+        <mat-icon>person</mat-icon>
+        Conseiller : {{ getUserInfo()?.firstName }} {{ getUserInfo()?.lastName }}
+        <span class="separator">|</span>
+        <mat-icon>calendar_today</mat-icon>
+        {{ dateSimulation | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="sauvegarderSimulation()" [disabled]="!resultats">
+        <mat-icon>save</mat-icon> Sauvegarder
+      </button>
+      <button mat-raised-button color="accent" (click)="imprimerSimulation()" [disabled]="!resultats || isLoading">
+        <mat-icon>print</mat-icon> Imprimer
+      </button>
+      <button mat-raised-button color="primary" (click)="exporterVersPowerBI()" [disabled]="!resultats">
+        <mat-icon>insights</mat-icon> Power BI
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SÉLECTION DU CLIENT -->
+  <!-- ========================================== -->
+  <mat-card class="client-card">
+    <mat-card-content>
+      <div class="client-selector">
+        <mat-form-field appearance="outline" class="client-field">
+          <mat-label>👤 Sélectionner un client</mat-label>
+          <mat-select [(ngModel)]="simulation.clientId" (selectionChange)="chargerClient()">
+            <mat-option [value]="null">-- Aucun client sélectionné --</mat-option>
+            <mat-option *ngFor="let client of clients" [value]="client.id">
+              {{ client.firstName }} {{ client.lastName }} - {{ client.email }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" (click)="chargerClient()" [disabled]="!simulation.clientId">
+          <mat-icon>person</mat-icon> Charger le profil
+        </button>
+        
+        <button mat-raised-button color="accent" [routerLink]="['/clients/new']" class="new-client-btn">
+          <mat-icon>person_add</mat-icon> Nouveau client
+        </button>
+      </div>
+      
+      <!-- Informations client -->
+      <div class="client-info" *ngIf="selectedClient">
+        <div class="info-item">
+          <mat-icon>attach_money</mat-icon>
+          <span>Revenus : {{ selectedClient.monthlyIncome | currency:'EUR':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon>work</mat-icon>
+          <span>Profession : {{ selectedClient.profession || 'Non renseignée' }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon>business</mat-icon>
+          <span>Employeur : {{ selectedClient.employer || 'Non renseigné' }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon>score</mat-icon>
+          <span>Score : {{ selectedClient.overallScore || 'N/A' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ========================================== -->
+  <!-- PARAMÈTRES DE SIMULATION -->
+  <!-- ========================================== -->
+  <mat-card class="simulation-params">
+    <mat-card-header>
+      <mat-card-title>📝 Paramètres du crédit</mat-card-title>
+      <mat-card-subtitle>Ajustez les paramètres pour simuler le crédit</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="params-grid">
+        
+        <!-- Type de projet -->
+        <div class="param-item full-width">
+          <label>Type de projet</label>
+          <mat-form-field appearance="outline">
+            <mat-select [(ngModel)]="simulation.projet" (selectionChange)="recalculer()">
+              <mat-option *ngFor="let type of typesProjet" [value]="type">
+                {{ type }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Montant -->
+        <div class="param-item">
+          <label>Montant emprunté</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <span matPrefix>€ </span>
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.montant" 
+                   step="5000" min="5000" max="1000000"
+                   (change)="recalculer()">
+          </mat-form-field>
+          <div class="slider-container">
+            <input type="range" 
+                   [(ngModel)]="simulation.montant" 
+                   min="5000" max="1000000" step="5000"
+                   (input)="recalculer()">
+            <span class="valeur">{{ simulation.montant | number:' ' }} €</span>
+          </div>
+          <div class="quick-actions">
+            <button mat-button (click)="setMontant(50000)">50k€</button>
+            <button mat-button (click)="setMontant(100000)">100k€</button>
+            <button mat-button (click)="setMontant(150000)">150k€</button>
+            <button mat-button (click)="setMontant(200000)">200k€</button>
+            <button mat-button (click)="setMontant(250000)">250k€</button>
+          </div>
+        </div>
+
+        <!-- Durée -->
+        <div class="param-item">
+          <label>Durée</label>
+          <mat-form-field appearance="outline">
+            <mat-select [(ngModel)]="simulation.dureeMois" (selectionChange)="recalculer()">
+              <mat-option *ngFor="let d of durees" [value]="d.valeur">
+                {{ d.libelle }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Taux nominal -->
+        <div class="param-item">
+          <label>Taux nominal</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.tauxNominal" 
+                   step="0.01" min="0.5" max="8"
+                   (change)="recalculer()">
+            <span matSuffix>%</span>
+          </mat-form-field>
+        </div>
+
+        <!-- Taux assurance -->
+        <div class="param-item">
+          <label>Taux assurance</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.tauxAssurance" 
+                   step="0.01" min="0" max="1"
+                   (change)="recalculer()">
+            <span matSuffix>%</span>
+          </mat-form-field>
+        </div>
+
+        <!-- Apport personnel -->
+        <div class="param-item">
+          <label>Apport personnel</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <span matPrefix>€ </span>
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.apportPersonnel" 
+                   step="1000" min="0"
+                   (change)="recalculer()">
+          </mat-form-field>
+        </div>
+
+        <!-- Revenus mensuels -->
+        <div class="param-item">
+          <label>Revenus mensuels nets</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <span matPrefix>€ </span>
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.revenusMensuels" 
+                   step="100" min="0"
+                   (change)="recalculer()">
+          </mat-form-field>
+        </div>
+
+        <!-- Charges existantes -->
+        <div class="param-item">
+          <label>Charges existantes</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <span matPrefix>€ </span>
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.chargesExistantes" 
+                   step="50" min="0"
+                   (change)="recalculer()">
+          </mat-form-field>
+        </div>
+
+        <!-- Autres revenus -->
+        <div class="param-item">
+          <label>Autres revenus</label>
+          <mat-form-field appearance="outline" class="number-field">
+            <span matPrefix>€ </span>
+            <input matInput type="number" 
+                   [(ngModel)]="simulation.autresRevenus" 
+                   step="100" min="0"
+                   (change)="recalculer()">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button mat-raised-button color="primary" (click)="recalculer()" [disabled]="isLoading">
+          <mat-icon>calculate</mat-icon>
+          {{ isLoading ? 'Calcul en cours...' : 'Simuler' }}
+        </button>
+        <button mat-raised-button color="accent" (click)="comparerOffres()" 
+                [disabled]="!resultats || isComparing">
+          <mat-icon>compare_arrows</mat-icon>
+          {{ isComparing ? 'Comparaison...' : 'Comparer les offres' }}
+        </button>
+        <button mat-raised-button color="primary" (click)="toggleTableauAmortissement()" 
+                [disabled]="!resultats">
+          <mat-icon>table_chart</mat-icon>
+          {{ afficherTableau ? 'Masquer tableau' : 'Afficher tableau' }}
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ========================================== -->
+  <!-- CHARGEMENT -->
+  <!-- ========================================== -->
+  <div class="loading-spinner" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Calcul de la simulation en cours...</p>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- RÉSULTATS -->
+  <!-- ========================================== -->
+  <div class="results" *ngIf="resultats && !isLoading">
+    
+    <!-- Bannière d'alerte -->
+    <div class="alert-banner" *ngIf="afficherAlerteEndettement">
+      <mat-icon color="warn">warning</mat-icon>
+      <span>⚠️ Taux d'endettement élevé : {{ resultats.tauxEndettement | number:'1.1-1' }}% - Seuil recommandé : 35%</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- KPI PRINCIPAUX -->
+    <!-- ========================================== -->
+    <mat-card class="kpi-card">
+      <mat-card-content>
+        <div class="kpi-grid">
+          <div class="kpi-item" [class.positive]="resultats.mensualiteAvecAssurance < resultats.capaciteRemboursement">
+            <div class="kpi-label">Mensualité HC</div>
+            <div class="kpi-value">{{ resultats.mensualiteHC | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">Hors assurance</div>
+          </div>
+          
+          <div class="kpi-item" [class.positive]="resultats.mensualiteAvecAssurance < resultats.capaciteRemboursement">
+            <div class="kpi-label">Mensualité avec assurance</div>
+            <div class="kpi-value">{{ resultats.mensualiteAvecAssurance | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">Assurance incluse</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-label">Coût total du crédit</div>
+            <div class="kpi-value">{{ resultats.coutTotal | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">Intérêts + assurance</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-label">TAEG</div>
+            <div class="kpi-value">{{ resultats.taeg | number:'1.2-2' }}%</div>
+            <div class="kpi-sub">Taux effectif global</div>
+          </div>
+
+          <div class="kpi-item" [class]="getCouleurEndettement(resultats.tauxEndettement)">
+            <div class="kpi-label">Taux d'endettement</div>
+            <div class="kpi-value">{{ resultats.tauxEndettement | number:'1.1-1' }}%</div>
+            <div class="kpi-sub">{{ getStatutEndettement(resultats.tauxEndettement) }}</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-label">Capacité de remboursement</div>
+            <div class="kpi-value">{{ resultats.capaciteRemboursement | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">Max mensuel</div>
+          </div>
+
+          <div class="kpi-item" [class]="resultats.resteAVivre > 1000 ? 'positive' : 'negative'">
+            <div class="kpi-label">Reste à vivre</div>
+            <div class="kpi-value">{{ resultats.resteAVivre | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">{{ resultats.resteAVivre > 1000 ? '✅ Confortable' : '⚠️ Limite' }}</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-label">Apport nécessaire</div>
+            <div class="kpi-value">{{ resultats.apportNecessaire | currency:'EUR':'symbol':'1.0-0' }}</div>
+            <div class="kpi-sub">{{ resultats.apportNecessaire <= simulation.apportPersonnel ? '✅ Suffisant' : '⚠️ Insuffisant' }}</div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- JAUGE D'ENDETTEMENT -->
+    <!-- ========================================== -->
+    <mat-card class="gauge-card">
+      <mat-card-content>
+        <h3>📊 Taux d'endettement</h3>
+        <div class="gauge-container">
+          <div class="gauge-bar">
+            <div class="gauge-fill" [style.width.%]="Math.min(resultats.tauxEndettement, 100)"></div>
+          </div>
+          <div class="gauge-markers">
+            <span>0%</span>
+            <span class="marker-vert">30%</span>
+            <span class="marker-orange">35%</span>
+            <span class="marker-rouge">40%</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="gauge-info">
+          <span class="vert">✅ Optimal</span>
+          <span class="orange">⚠️ Acceptable</span>
+          <span class="rouge">🔴 Risque</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- ALERTES -->
+    <!-- ========================================== -->
+    <mat-card class="alerts-card" *ngIf="alertes.length > 0">
+      <mat-card-header>
+        <mat-card-title>📢 Alertes</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngFor="let alerte of alertes" class="alert-item" [class]="alerte.type">
+          <mat-icon>{{ alerte.type === 'ERROR' ? 'error' : alerte.type === 'WARNING' ? 'warning' : 'info' }}</mat-icon>
+          <span>{{ alerte.message }}</span>
+          <button mat-button color="primary" (click)="alertesActions[alerte.action]()">{{ alerte.action }}</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- RECOMMANDATION IA -->
+    <!-- ========================================== -->
+    <mat-card class="ia-card" *ngIf="recommandationIA">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>psychology</mat-icon>
+          🤖 Recommandation IA
+        </mat-card-title>
+        <mat-card-subtitle>Analyse intelligente du dossier</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="ia-recommandation">{{ recommandationIA }}</p>
+        <div class="ia-scores">
+          <div class="score-item">
+            <span class="score-label">Score de risque</span>
+            <mat-progress-bar mode="determinate" 
+                              [value]="resultats.scoreRisque" 
+                              [color]="resultats.scoreRisque > 60 ? 'warn' : resultats.scoreRisque > 30 ? 'accent' : 'primary'">
+            </mat-progress-bar>
+            <span class="score-value">{{ resultats.scoreRisque }}/100</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">Score de solvabilité</span>
+            <mat-progress-bar mode="determinate" 
+                              [value]="resultats.scoreSolvabilite" 
+                              [color]="resultats.scoreSolvabilite > 70 ? 'primary' : 'warn'">
+            </mat-progress-bar>
+            <span class="score-value">{{ resultats.scoreSolvabilite }}/100</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- COMPARAISON DES OFFRES -->
+    <!-- ========================================== -->
+    <mat-card class="comparison-card" *ngIf="modeComparaison">
+      <mat-card-header>
+        <mat-card-title>🏦 Comparaison des offres bancaires</mat-card-title>
+        <button mat-icon-button (click)="modeComparaison = false">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="offers-grid">
+          <div *ngFor="let offre of offresComparatives" class="offer-card" [class.recommended]="offre === offresComparatives[1]">
+            <div class="offer-header">
+              <img [src]="'assets/logos/' + offre.logo" alt="{{ offre.banque }}" class="offer-logo">
+              <h3>{{ offre.banque }}</h3>
+              <span class="recommended-badge" *ngIf="offre === offresComparatives[1]">⭐ Recommandé</span>
+            </div>
+            <div class="offer-details">
+              <div class="detail-item">
+                <span class="detail-label">Taux nominal</span>
+                <span class="detail-value">{{ offre.tauxNominal }}%</span>
+              </div>
+              <div class="detail-item highlight">
+                <span class="detail-label">Mensualité</span>
+                <span class="detail-value">{{ offre.mensualite | currency:'EUR':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Coût total</span>
+                <span class="detail-value">{{ offre.coutTotal | currency:'EUR':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="detail-item highlight">
+                <span class="detail-label">TAEG</span>
+                <span class="detail-value">{{ offre.taeg }}%</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Frais de dossier</span>
+                <span class="detail-value">{{ offre.fraisDossier | currency:'EUR':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Délai</span>
+                <span class="detail-value">{{ offre.delai }}</span>
+              </div>
+              <div class="offer-advantages">
+                <span *ngFor="let avantage of offre.avantages" class="advantage-chip">
+                  <mat-icon>check_circle</mat-icon> {{ avantage }}
+                </span>
+              </div>
+            </div>
+            <button mat-raised-button color="primary" class="select-offer-btn" (click)="selectionnerOffre(offre)">
+              Sélectionner cette offre
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- TABLEAU D'AMORTISSEMENT -->
+    <!-- ========================================== -->
+    <mat-card class="amortissement-card" *ngIf="afficherTableau">
+      <mat-card-header>
+        <mat-card-title>📊 Tableau d'amortissement</mat-card-title>
+        <span class="total-lines">{{ tableauAmortissement.length }} mois</span>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Capital restant</th>
+                <th>Intérêts</th>
+                <th>Assurance</th>
+                <th>Mensualité</th>
+                <th>Capital remboursé</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ligne of tableauAmortissement | slice:0:24; let i = index">
+                <td>{{ ligne.mois || i + 1 }}</td>
+                <td>{{ ligne.capitalRestant | currency:'EUR':'symbol':'1.0-0' }}</td>
+                <td>{{ ligne.interets | currency:'EUR':'symbol':'1.0-0' }}</td>
+                <td>{{ ligne.assurance | currency:'EUR':'symbol':'1.0-0' }}</td>
+                <td><strong>{{ ligne.mensualiteTotale | currency:'EUR':'symbol':'1.0-0' }}</strong></td>
+                <td>{{ ligne.capitalRembourse | currency:'EUR':'symbol':'1.0-0' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="table-footer" *ngIf="tableauAmortissement.length > 24">
+            <span>... et {{ tableauAmortissement.length - 24 }} lignes supplémentaires</span>
+            <button mat-button color="primary" (click)="afficherTableauComplet = !afficherTableauComplet">
+              {{ afficherTableauComplet ? 'Voir moins' : 'Voir tout' }}
+            </button>
+          </div>
+          <!-- Tableau complet -->
+          <div *ngIf="afficherTableauComplet">
+            <table>
+              <tbody>
+                <tr *ngFor="let ligne of tableauAmortissement | slice:24; let i = index">
+                  <td>{{ ligne.mois || i + 25 }}</td>
+                  <td>{{ ligne.capitalRestant | currency:'EUR':'symbol':'1.0-0' }}</td>
+                  <td>{{ ligne.interets | currency:'EUR':'symbol':'1.0-0' }}</td>
+                  <td>{{ ligne.assurance | currency:'EUR':'symbol':'1.0-0' }}</td>
+                  <td><strong>{{ ligne.mensualiteTotale | currency:'EUR':'symbol':'1.0-0' }}</strong></td>
+                  <td>{{ ligne.capitalRembourse | currency:'EUR':'symbol':'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ========================================== -->
+    <!-- ACTIONS FINALES -->
+    <!-- ========================================== -->
+    <div class="final-actions">
+      <button mat-raised-button color="primary" (click)="creerDemandeCredit()" 
+              [disabled]="!resultats || !simulation.clientId">
+        <mat-icon>assignment</mat-icon> Créer une demande de crédit
+      </button>
+      <button mat-raised-button color="accent" (click)="envoyerEmailSimulation()" 
+              [disabled]="!resultats || !simulation.clientId">
+        <mat-icon>email</mat-icon> Envoyer par email
+      </button>
+      <button mat-raised-button color="primary" (click)="imprimerSimulation()" [disabled]="!resultats">
+        <mat-icon>print</mat-icon> Imprimer / PDF
+      </button>
+      <button mat-raised-button color="primary" (click)="exporterVersPowerBI()" [disabled]="!resultats">
+        <mat-icon>insights</mat-icon> Exporter vers Power BI
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- RÉCAPITULATIF CLIENT -->
+    <!-- ========================================== -->
+    <mat-card class="recap-card" *ngIf="selectedClient">
+      <mat-card-header>
+        <mat-card-title>📋 Récapitulatif client</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="recap-grid">
+          <div class="recap-item">
+            <span class="recap-label">Client</span>
+            <span class="recap-value">{{ selectedClient.firstName }} {{ selectedClient.lastName }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Email</span>
+            <span class="recap-value">{{ selectedClient.email }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Revenus</span>
+            <span class="recap-value">{{ selectedClient.monthlyIncome | currency:'EUR':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Profession</span>
+            <span class="recap-value">{{ selectedClient.profession || 'Non renseignée' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Score</span>
+            <span class="recap-value">{{ selectedClient.overallScore || 'N/A' }}</span>
+          </div>
+          <div class="recap-item">
+            <span class="recap-label">Taux d'endettement</span>
+            <span class="recap-value" [class]="getCouleurEndettement(resultats.tauxEndettement)">
+              {{ resultats.tauxEndettement | number:'1.1-1' }}%
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- AUCUN RÉSULTAT -->
+  <!-- ========================================== -->
+  <div class="no-results" *ngIf="!resultats && !isLoading">
+    <mat-icon>calculate</mat-icon>
+    <h2>Aucune simulation</h2>
+    <p>Remplissez les paramètres ci-dessus et cliquez sur "Simuler"</p>
+  </div>
+
+</div>

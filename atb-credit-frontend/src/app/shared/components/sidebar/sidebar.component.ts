@@ -159,9 +159,9 @@ export class SidebarComponent {
     // ✅ Gestion des demandes de crédit - CORRIGÉ
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
   
-    // ✅ Simulation (accessible aussi pour le conseiller)
+    // Simulation
     { path: '/simulation', icon: 'calculate', label: 'Simulation de crédit', badge: 0 },
-  
+    
     // KYC
     { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 3 },
   
