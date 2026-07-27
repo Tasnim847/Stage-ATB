@@ -1,0 +1,400 @@
+/* features/auth/auth-page/auth-page.component.css */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+  padding: 20px;
+}
+
+/* auth-page.component.css - CORRECTION FINALE */
+.auth-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Utiliser le chemin absolu avec / au début */
+  background: url('/assets/images/bank-bg.png') center/cover no-repeat;
+  z-index: 0;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.auth-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 40px;
+  max-width: 1200px;
+  width: 100%;
+  align-items: center;
+}
+
+/* Brand Section */
+.brand-section {
+  color: white;
+  padding: 20px;
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.brand-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.brand-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #fff 0%, #90caf9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-tagline {
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin: 0 0 8px 0;
+  opacity: 0.9;
+  letter-spacing: 1px;
+}
+
+.brand-description {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-bottom: 30px;
+}
+
+.brand-features {
+  display: flex;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.9;
+}
+
+.feature mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.feature span {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Form Section */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.card-header {
+  text-align: center;
+  padding: 30px 30px 20px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8eaf6 100%);
+}
+
+.header-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a237e, #0d47a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.header-icon mat-icon {
+  color: white;
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a237e;
+}
+
+.header-subtitle {
+  margin: 6px 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+mat-card-content {
+  padding: 24px 30px 30px;
+}
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex;
+  background: #f0f0f0;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.mode-toggle button {
+  flex: 1;
+  border-radius: 10px;
+  padding: 8px 16px;
+  color: #666;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mode-toggle button.active {
+  background: white;
+  color: #1a237e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mode-toggle button mat-icon {
+  font-size: 20px;
+}
+
+/* Register Mode Toggle */
+.register-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.register-mode-toggle button {
+  flex: 1;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  padding: 6px 12px;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.register-mode-toggle button.active {
+  border-color: #1a237e;
+  background: rgba(26, 35, 126, 0.05);
+  color: #1a237e;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.half-width {
+  width: calc(50% - 6px);
+}
+
+/* Login Options */
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.forgot-link {
+  color: #1a237e;
+  text-decoration: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 12px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #1a237e, #0d47a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.submit-btn mat-spinner {
+  display: inline-block;
+}
+
+/* Switch Link */
+.switch-link {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.switch-link a {
+  color: #1a237e;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.switch-link a:hover {
+  text-decoration: underline;
+}
+
+/* Error */
+.error-global {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.error-global mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Footer */
+.auth-footer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .auth-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-content {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+  
+  .brand-section {
+    text-align: center;
+  }
+  
+  .brand-header {
+    justify-content: center;
+  }
+  
+  .brand-features {
+    justify-content: center;
+  }
+  
+  .row {
+    flex-direction: column;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+  
+  .auth-card {
+    padding: 0;
+  }
+  
+  mat-card-content {
+    padding: 16px 20px 24px;
+  }
+  
+  .card-header {
+    padding: 20px 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 10px;
+  }
+  
+  .auth-card {
+    border-radius: 16px;
+  }
+  
+  .brand-name {
+    font-size: 2rem;
+  }
+  
+  .brand-features {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .mode-toggle {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .mode-toggle button {
+    padding: 10px;
+  }
+}

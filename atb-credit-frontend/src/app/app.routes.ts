@@ -5,18 +5,21 @@ import { roleGuard } from './core/guards/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/login',
+    redirectTo: '/auth',
     pathMatch: 'full'
   },
   {
-    path: 'login',
-    loadComponent: () => import('./features/auth/login/login.component')
-      .then(m => m.LoginComponent)
+    path: 'auth',
+    loadComponent: () => import('./features/auth/auth-page/auth-page.component')
+      .then(m => m.AuthPageComponent)
   },
+  // Redirection pour compatibilité avec les anciennes routes
+  {
+    path: 'login',
+    redirectTo: '/auth'  },
   {
     path: 'register',
-    loadComponent: () => import('./features/auth/register/register.component')
-      .then(m => m.RegisterComponent)
+    redirectTo: '/auth'
   },
   {
     path: '',
