@@ -329,6 +329,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      // Dans app.routes.ts
+      {
+        path: 'admin/parametrage',
+        loadChildren: () => import('./features/Admin/parametrage/parametrage.module')
+          .then(m => m.ParametrageModule),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
 
       // ============================================
       // GESTION DES DOCUMENTS

@@ -1,0 +1,83 @@
+<!-- components/interest-rates-dialog/interest-rates-dialog.component.html -->
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="dialog-grid">
+      <!-- Type de crédit -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Type de crédit</mat-label>
+        <mat-select formControlName="creditTypeId">
+          <mat-option *ngFor="let type of creditTypes" [value]="type.id">
+            {{ type.name }} ({{ type.code }})
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('creditTypeId')?.hasError('required')">Type de crédit requis</mat-error>
+      </mat-form-field>
+
+      <!-- Taux -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Taux d'intérêt (%)</mat-label>
+        <input matInput type="number" formControlName="rate" step="0.1" min="0" max="100">
+        <mat-error *ngIf="form.get('rate')?.hasError('required')">Taux requis</mat-error>
+        <mat-error *ngIf="form.get('rate')?.hasError('min')">Taux minimum 0%</mat-error>
+        <mat-error *ngIf="form.get('rate')?.hasError('max')">Taux maximum 100%</mat-error>
+      </mat-form-field>
+
+      <!-- Taux min et max -->
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Taux minimum (%)</mat-label>
+          <input matInput type="number" formControlName="minRate" step="0.1" min="0">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Taux maximum (%)</mat-label>
+          <input matInput type="number" formControlName="maxRate" step="0.1" min="0">
+        </mat-form-field>
+      </div>
+
+      <!-- Catégorie client -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Catégorie client</mat-label>
+        <mat-select formControlName="clientCategory">
+          <mat-option *ngFor="let cat of clientCategories" [value]="cat.value">
+            {{ cat.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Ajustement -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Ajustement (%)</mat-label>
+        <input matInput type="number" formControlName="rateAdjustment" step="0.1" readonly>
+        <mat-hint>Ajustement automatique selon la catégorie client</mat-hint>
+      </mat-form-field>
+
+      <!-- Par défaut -->
+      <mat-checkbox formControlName="isDefault">Taux par défaut</mat-checkbox>
+
+      <!-- Dates -->
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Date d'effet</mat-label>
+          <input matInput type="date" formControlName="effectiveDate">
+          <mat-error *ngIf="form.get('effectiveDate')?.hasError('required')">Date requise</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date d'expiration</mat-label>
+          <input matInput type="date" formControlName="expiryDate">
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
+      <mat-icon *ngIf="loading" class="spinner-icon">refresh</mat-icon>
+      {{ submitLabel }}
+    </button>
+  </mat-dialog-actions>
+</form>

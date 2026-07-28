@@ -1,0 +1,78 @@
+<!-- components/durations-dialog/durations-dialog.component.html -->
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="dialog-grid">
+      <!-- Type de crédit -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Type de crédit</mat-label>
+        <mat-select formControlName="creditTypeId">
+          <mat-option *ngFor="let type of creditTypes" [value]="type.id">
+            {{ type.name }} ({{ type.code }})
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('creditTypeId')?.hasError('required')">Type de crédit requis</mat-error>
+      </mat-form-field>
+
+      <!-- Durée en mois -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Durée (en mois)</mat-label>
+        <input matInput type="number" formControlName="durationMonths" min="1" step="1">
+        <span matSuffix> mois</span>
+        <mat-hint>Entrez le nombre de mois (ex: 12, 24, 36...)</mat-hint>
+        <mat-error *ngIf="form.get('durationMonths')?.hasError('required')">Durée requise</mat-error>
+        <mat-error *ngIf="form.get('durationMonths')?.hasError('min')">Minimum 1 mois</mat-error>
+      </mat-form-field>
+
+      <!-- Label -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Label</mat-label>
+        <input matInput formControlName="label" placeholder="ex: 24 mois, 2 ans...">
+        <mat-hint>Nom affiché pour cette durée</mat-hint>
+        <mat-error *ngIf="form.get('label')?.hasError('required')">Label requis</mat-error>
+        <mat-error *ngIf="form.get('label')?.hasError('minlength')">Minimum 2 caractères</mat-error>
+      </mat-form-field>
+
+      <!-- Par défaut -->
+      <div class="checkbox-row">
+        <mat-checkbox formControlName="isDefault">
+          Durée par défaut
+        </mat-checkbox>
+        <span class="hint-text" *ngIf="form.get('isDefault')?.value">
+          Cette durée sera sélectionnée par défaut pour ce type de crédit
+        </span>
+      </div>
+
+      <!-- Montants optionnels -->
+      <div class="section-divider">
+        <span class="section-label">Montants optionnels</span>
+        <span class="section-hint">Laissez vide pour aucun plafond</span>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Montant minimum</mat-label>
+          <input matInput type="number" formControlName="minAmount" step="1000" min="0">
+          <span matSuffix> DT</span>
+          <mat-hint>Optionnel</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Montant maximum</mat-label>
+          <input matInput type="number" formControlName="maxAmount" step="1000" min="0">
+          <span matSuffix> DT</span>
+          <mat-hint>Optionnel</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
+      <mat-icon *ngIf="loading" class="spinner-icon">refresh</mat-icon>
+      {{ submitLabel }}
+    </button>
+  </mat-dialog-actions>
+</form>

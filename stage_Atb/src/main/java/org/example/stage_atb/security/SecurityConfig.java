@@ -113,6 +113,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/audit-logs").hasRole("ADMIN")
                         .requestMatchers("/api/admin/audit-logs/recent").hasRole("ADMIN")
                         .requestMatchers("/api/admin/audit-logs/statistics").hasRole("ADMIN")
+                                .requestMatchers("/api/parametrage/**").hasRole("ADMIN")
+                                .requestMatchers("/api/parametrage/credit-types/active").permitAll() // Si vous voulez que les clients puissent voir les types actifs
 
                         // ============================================
                         // ✅ ROUTES ANALYSTE

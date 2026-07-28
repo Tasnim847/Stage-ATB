@@ -1,0 +1,122 @@
+<!-- components/credit-types-dialog/credit-types-dialog.component.html -->
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="dialog-grid">
+      <!-- Code -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Code</mat-label>
+        <input matInput formControlName="code" placeholder="ex: PERS" maxlength="10">
+        <mat-hint>Code unique du produit (3-10 caractères)</mat-hint>
+        <mat-error *ngIf="form.get('code')?.hasError('required')">Code requis</mat-error>
+        <mat-error *ngIf="form.get('code')?.hasError('minlength')">Minimum 3 caractères</mat-error>
+      </mat-form-field>
+
+      <!-- Nom -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nom du crédit</mat-label>
+        <input matInput formControlName="name" placeholder="ex: Crédit Personnel">
+        <mat-error *ngIf="form.get('name')?.hasError('required')">Nom requis</mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="2" placeholder="Description du produit..."></textarea>
+        <mat-error *ngIf="form.get('description')?.hasError('required')">Description requise</mat-error>
+      </mat-form-field>
+
+      <!-- Catégorie -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Catégorie</mat-label>
+        <mat-select formControlName="category">
+          <mat-option *ngFor="let cat of categories" [value]="cat.value">
+            {{ cat.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.get('category')?.hasError('required')">Catégorie requise</mat-error>
+      </mat-form-field>
+
+      <!-- Durées -->
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Durée min (mois)</mat-label>
+          <input matInput type="number" formControlName="minDurationMonths" min="1">
+          <mat-error *ngIf="form.get('minDurationMonths')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('minDurationMonths')?.hasError('min')">Min 1 mois</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Durée max (mois)</mat-label>
+          <input matInput type="number" formControlName="maxDurationMonths" min="1">
+          <mat-error *ngIf="form.get('maxDurationMonths')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('maxDurationMonths')?.hasError('min')">Doit être >= durée min</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Montants -->
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Montant min (DT)</mat-label>
+          <input matInput type="number" formControlName="minAmount" min="0">
+          <mat-error *ngIf="form.get('minAmount')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('minAmount')?.hasError('min')">Min 0</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Montant max (DT)</mat-label>
+          <input matInput type="number" formControlName="maxAmount" min="0">
+          <mat-error *ngIf="form.get('maxAmount')?.hasError('required')">Requis</mat-error>
+          <mat-error *ngIf="form.get('maxAmount')?.hasError('min')">Doit être >= montant min</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Taux de base -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Taux d'intérêt de base (%)</mat-label>
+        <input matInput type="number" formControlName="baseInterestRate" min="0" max="100" step="0.1">
+        <mat-hint>Taux par défaut appliqué</mat-hint>
+        <mat-error *ngIf="form.get('baseInterestRate')?.hasError('required')">Taux requis</mat-error>
+        <mat-error *ngIf="form.get('baseInterestRate')?.hasError('min')">Min 0%</mat-error>
+        <mat-error *ngIf="form.get('baseInterestRate')?.hasError('max')">Max 100%</mat-error>
+      </mat-form-field>
+
+      <!-- Options -->
+      <div class="options-row">
+        <mat-checkbox formControlName="requiresCollateral">Nécessite une garantie</mat-checkbox>
+        <mat-checkbox formControlName="requiresGuarantor">Nécessite un garant</mat-checkbox>
+      </div>
+
+      <!-- Documents requis -->
+      <div class="documents-section">
+        <label class="section-label">Documents requis</label>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ajouter un document</mat-label>
+          <mat-select (selectionChange)="addDocument($event.value)">
+            <mat-option *ngFor="let doc of documentTypes" [value]="doc.value">
+              {{ doc.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="chips-container">
+          <mat-chip *ngFor="let doc of selectedDocuments" (removed)="removeDocument(doc)">
+            {{ getDocumentLabel(doc) }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="loading || form.invalid">
+      <mat-icon *ngIf="loading" class="spinner-icon">refresh</mat-icon>
+      {{ submitLabel }}
+    </button>
+  </mat-dialog-actions>
+</form>

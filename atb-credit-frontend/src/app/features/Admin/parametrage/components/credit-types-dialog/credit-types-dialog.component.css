@@ -1,0 +1,67 @@
+/* components/credit-types-dialog/credit-types-dialog.component.css */
+.dialog-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.options-row {
+  display: flex;
+  gap: 24px;
+  padding: 8px 0;
+}
+
+.documents-section {
+  margin-top: 8px;
+}
+
+.section-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.chips-container mat-chip {
+  background: #e8eaf6;
+  color: #1a237e;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .options-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

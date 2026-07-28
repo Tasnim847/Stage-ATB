@@ -77,6 +77,19 @@ export class SidebarComponent {
     // Demandes de crédit
     { path: '/admin/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     { path: '/admin/credit-requests/new', icon: 'add', label: 'Nouvelle demande (Admin)', badge: 0 },
+    // sidebar.component.ts - Dans adminMenuItems
+    {
+      path: '/admin/parametrage',
+      icon: 'settings',
+      label: 'Paramétrage',
+      badge: 0,
+      children: [
+        { path: '/admin/parametrage/credit-types', icon: 'credit_card', label: 'Types de crédit', badge: 0 },
+        { path: '/admin/parametrage/interest-rates', icon: 'percent', label: 'Taux d\'intérêt', badge: 0 },
+        { path: '/admin/parametrage/durations', icon: 'schedule', label: 'Durées', badge: 0 },
+        { path: '/admin/parametrage/ceilings', icon: 'euro_symbol', label: 'Plafonds', badge: 0 }
+      ]
+    },
 
     // Analyses
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },

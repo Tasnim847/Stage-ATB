@@ -1,0 +1,138 @@
+/* components/interest-rates/interest-rates.component.css */
+.interest-rates-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #1a237e;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  width: 200px;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 200px;
+}
+
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.rate-value {
+  font-weight: 600;
+  color: #1a237e;
+  font-size: 15px;
+}
+
+.category-badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.category-badge.premium {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.category-badge.risk {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* Ajouter dans chaque fichier .css (credit-types, interest-rates, durations, ceilings) */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #1a237e;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.back-button {
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  color: #1a237e;
+  transform: translateX(-2px);
+  background: rgba(26, 35, 126, 0.08);
+}
+
+/* Pour les écrans mobiles */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-left {
+    width: 100%;
+  }
+  
+  .header-left h1 {
+    font-size: 20px;
+  }
+}
