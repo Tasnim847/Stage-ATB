@@ -90,16 +90,28 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
 
                         // ============================================
+                        // ✅ ROUTES PARAMETRAGE - CORRIGÉ
+                        // ============================================
+                        // Règles spécifiques d'abord
+                        .requestMatchers("/api/parametrage/credit-types/active").permitAll()
+                        .requestMatchers("/api/parametrage/credit-types/{id}").hasAnyRole("ADMIN", "CLIENT", "ADVISOR", "ANALYST")
+                        .requestMatchers("/api/parametrage/durations/credit-type/{creditTypeId}").hasAnyRole("ADMIN", "CLIENT", "ADVISOR", "ANALYST")
+                        // Règle générale ensuite
+                        .requestMatchers("/api/parametrage/**").hasRole("ADMIN")
+
+                        // ============================================
                         // ✅ ROUTES CLIENTS
                         // ============================================
                         .requestMatchers("/api/clients/me").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/my-credits/**").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/my-credits").hasRole("CLIENT")
                         .requestMatchers("/api/credit-requests/*/simulation").hasRole("CLIENT")
-// ============================================
-// ✅ ROUTES ANALYSTE - AJOUTER CES LIGNES
-// ============================================
-                                .requestMatchers("/api/credit-requests/analyst/**").hasAnyRole("ANALYST", "ADMIN")
+
+                        // ============================================
+                        // ✅ ROUTES ANALYSTE
+                        // ============================================
+                        .requestMatchers("/api/credit-requests/analyst/**").hasAnyRole("ANALYST", "ADMIN")
+
                         // ============================================
                         // ✅ ROUTES ADMIN
                         // ============================================
@@ -113,8 +125,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/audit-logs").hasRole("ADMIN")
                         .requestMatchers("/api/admin/audit-logs/recent").hasRole("ADMIN")
                         .requestMatchers("/api/admin/audit-logs/statistics").hasRole("ADMIN")
-                                .requestMatchers("/api/parametrage/**").hasRole("ADMIN")
-                                .requestMatchers("/api/parametrage/credit-types/active").permitAll() // Si vous voulez que les clients puissent voir les types actifs
 
                         // ============================================
                         // ✅ ROUTES ANALYSTE
@@ -133,23 +143,19 @@ public class SecurityConfig {
                         // ============================================
                         // ✅ ROUTES CREDIT REQUESTS
                         // ============================================
-                        // ✅ GET - Lecture des demandes
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/{id}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER", "CLIENT")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/client/{clientId}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/status/{status}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/credit-requests/**").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
 
-                        // ✅ POST - Création de demande (TOUS LES RÔLES CONCERNÉS)
                         .requestMatchers(HttpMethod.POST, "/api/credit-requests").hasAnyRole("CLIENT", "ADVISOR", "ANALYST", "ADMIN", "MANAGER")
 
-                        // ✅ PUT/PATCH - Mise à jour
                         .requestMatchers(HttpMethod.PUT, "/api/credit-requests/{id}").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/status").hasAnyRole("ADVISOR", "ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/cancel").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER", "CLIENT")
                         .requestMatchers(HttpMethod.PATCH, "/api/credit-requests/{id}/transmit-to-analyst").hasAnyRole("ADVISOR", "ANALYST", "ADMIN", "MANAGER")
 
-                        // ✅ DELETE
                         .requestMatchers(HttpMethod.DELETE, "/api/credit-requests/{id}").hasAnyRole("ADMIN")
 
                         // ============================================

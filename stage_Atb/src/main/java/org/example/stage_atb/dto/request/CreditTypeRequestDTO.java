@@ -54,4 +54,8 @@ public class CreditTypeRequestDTO {
     private Boolean requiresCollateral = false;
     private Boolean requiresGuarantor = false;
     private List<String> requiredDocuments;
+
+    // ✅ AJOUTER CES CHAMPS
+    private List<Integer> availableDurations; // Durées disponibles pour ce type
+    private Double defaultInterestRate; // Taux par défaut
 }

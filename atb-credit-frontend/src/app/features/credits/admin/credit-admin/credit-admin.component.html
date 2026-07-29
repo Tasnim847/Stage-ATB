@@ -154,6 +154,27 @@
             </mat-error>
           </mat-form-field>
 
+          <!-- Ajouter après le champ "Durée" -->
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>Type de crédit</mat-label>
+  <mat-select formControlName="creditTypeId" required>
+    <mat-option *ngFor="let type of creditTypes" [value]="type.id">
+      <div class="credit-type-option">
+        <span class="type-name">{{ type.name }}</span>
+        <span class="type-details">
+          {{ type.minAmount | number:'1.0-0' }} - {{ type.maxAmount | number:'1.0-0' }} DT
+          | {{ type.minDurationMonths }} - {{ type.maxDurationMonths }} mois
+          | {{ type.baseInterestRate }}%
+        </span>
+      </div>
+    </mat-option>
+  </mat-select>
+  <mat-icon matSuffix>credit_card</mat-icon>
+  <mat-error *ngIf="creditForm.get('creditTypeId')?.hasError('required')">
+    Le type de crédit est requis
+  </mat-error>
+</mat-form-field>
+
           <!-- Objectif et Garantie -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Objectif du crédit</mat-label>

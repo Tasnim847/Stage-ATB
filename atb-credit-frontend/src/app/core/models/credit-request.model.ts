@@ -18,6 +18,7 @@ export enum CreditStatus {
 export interface CreditRequestDTO {
   clientId: string;
   userId: string;
+  creditTypeId: string; // ✅ AJOUTER
   amount: number;
   currency: string;
   durationMonths: number;
@@ -29,7 +30,6 @@ export interface CreditRequestDTO {
   guarantorName?: string;
   guarantorPhone?: string;
   expectedDisbursementDate?: string;
-  // ✅ AJOUTER CETTE LIGNE
   submitImmediately?: boolean;
 }
 
@@ -42,6 +42,8 @@ export interface CreditResponseDTO {
   clientId: string;
   clientName: string;
   clientEmail: string;
+  creditTypeId: string; // ✅ AJOUTER
+  creditTypeName: string; // ✅ AJOUTER
   amount: number;
   currency: string;
   durationMonths: number;

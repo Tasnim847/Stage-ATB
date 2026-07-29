@@ -1,5 +1,5 @@
+// dto/response/CreditTypeResponseDTO.java
 package org.example.stage_atb.dto.response;
-
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +28,11 @@ public class CreditTypeResponseDTO {
     private Boolean requiresCollateral;
     private Boolean requiresGuarantor;
     private List<String> requiredDocuments;
+
+    // ✅ AJOUTER CES CHAMPS DANS LE RESPONSE DTO
+    private List<Integer> availableDurations;
+    private Double defaultInterestRate;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

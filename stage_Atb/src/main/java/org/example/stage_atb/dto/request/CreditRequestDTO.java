@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+// dto/request/CreditRequestDTO.java
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,7 +24,10 @@ public class CreditRequestDTO {
     private String clientId;
 
     @NotBlank(message = "User ID is required")
-    private String userId;  // AJOUTEZ CETTE LIGNE
+    private String userId;
+
+    @NotBlank(message = "Credit Type ID is required") // ✅ AJOUTER
+    private String creditTypeId;
 
     @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
@@ -42,16 +46,32 @@ public class CreditRequestDTO {
 
     private String loanPurpose;
 
+    // Champs spécifiques selon le type de crédit
+    // Personnel
+    private String salary;
+    private String employer;
+
+    // Auto
+    private String vehicleBrand;
+    private String vehicleModel;
+    private BigDecimal vehiclePrice;
+    private BigDecimal personalContribution;
+
+    // Immobilier
+    private String propertyType;
+    private BigDecimal propertyValue;
+    private String propertyAddress;
+
+    // Professionnel
+    private String companyName;
+    private BigDecimal turnover;
+    private String businessSector;
+
     private String collateralType;
-
     private BigDecimal collateralValue;
-
     private String guarantorName;
-
     private String guarantorPhone;
 
     private LocalDate expectedDisbursementDate;
-
     private boolean submitImmediately;
-
 }

@@ -6,15 +6,24 @@ import { tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 
 // ============================================
-// MODELS (à déplacer dans core/models si nécessaire)
+// MODELS
 // ============================================
+
+export interface CreditCategory {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+  description: string;
+  type: 'NEW' | 'REFINANCE';
+}
 
 export interface CreditType {
   id: string;
   code: string;
   name: string;
   description: string;
-  category: 'PERSONAL' | 'AUTO' | 'MORTGAGE' | 'BUSINESS' | 'STUDENT' | 'CONSUMER' | 'BRIDGE' | 'REVOLVING';
+  category: 'PERSONAL' | 'AUTO' | 'MORTGAGE' | 'BUSINESS' | 'STUDENT' | 'CONSUMER' | 'BRIDGE' | 'REVOLVING' | 'REFINANCE'; // ✅ AJOUTER 'REFINANCE'
   isActive: boolean;
   minDurationMonths: number;
   maxDurationMonths: number;
@@ -161,44 +170,92 @@ export class ParametrageService {
   ceilings$ = this.ceilingsSubject.asObservable();
 
   // ============================================
-  // TYPES DE CRÉDIT
+  // ENDPOINTS PUBLICS (pour tous les utilisateurs)
+  // Utilisent /api/credit-types/ (public)
   // ============================================
-  
+
+  /**
+   * Récupérer les types de crédit actifs (public)
+   */
+  getActiveCreditTypes(): Observable<CreditType[]> {
+    return this.http.get<CreditType[]>(`${this.apiUrl}/credit-types/active`);
+  }
+
+  /**
+   * Récupérer un type de crédit par son ID (public)
+   */
+  getCreditTypeById(id: string): Observable<CreditType> {
+    return this.http.get<CreditType>(`${this.apiUrl}/credit-types/${id}`);
+  }
+
+  /**
+   * Récupérer les durées disponibles pour un type de crédit (public)
+   */
+  getDurationConfigsByCreditType(creditTypeId: string): Observable<DurationConfig[]> {
+    return this.http.get<DurationConfig[]>(`${this.apiUrl}/credit-types/${creditTypeId}/durations`);
+  }
+
+  /**
+   * Récupérer les documents requis pour un type de crédit (public)
+   */
+  getRequiredDocuments(creditTypeId: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/credit-types/${creditTypeId}/documents`);
+  }
+
+  /**
+   * Valider un montant pour un type de crédit (public)
+   */
+  validateAmount(creditTypeId: string, amount: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/credit-types/${creditTypeId}/validate/amount/${amount}`);
+  }
+
+  // ============================================
+  // ENDPOINTS ADMIN (protégés)
+  // Utilisent /api/parametrage/ (admin uniquement)
+  // ============================================
+
+  /**
+   * Récupérer tous les types de crédit (admin)
+   */
   getAllCreditTypes(): Observable<CreditType[]> {
     return this.http.get<CreditType[]>(`${this.apiUrl}/parametrage/credit-types`)
       .pipe(tap(data => this.creditTypesSubject.next(data)));
   }
 
-  getActiveCreditTypes(): Observable<CreditType[]> {
-    return this.http.get<CreditType[]>(`${this.apiUrl}/parametrage/credit-types/active`);
-  }
-
-  getCreditTypeById(id: string): Observable<CreditType> {
-    return this.http.get<CreditType>(`${this.apiUrl}/parametrage/credit-types/${id}`);
-  }
-
+  /**
+   * Créer un type de crédit (admin)
+   */
   createCreditType(data: CreateCreditTypeDTO): Observable<CreditType> {
     return this.http.post<CreditType>(`${this.apiUrl}/parametrage/credit-types`, data)
       .pipe(tap(() => this.getAllCreditTypes().subscribe()));
   }
 
+  /**
+   * Modifier un type de crédit (admin)
+   */
   updateCreditType(id: string, data: UpdateCreditTypeDTO): Observable<CreditType> {
     return this.http.patch<CreditType>(`${this.apiUrl}/parametrage/credit-types/${id}`, data)
       .pipe(tap(() => this.getAllCreditTypes().subscribe()));
   }
 
+  /**
+   * Supprimer un type de crédit (admin)
+   */
   deleteCreditType(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/parametrage/credit-types/${id}`)
       .pipe(tap(() => this.getAllCreditTypes().subscribe()));
   }
 
+  /**
+   * Activer/Désactiver un type de crédit (admin)
+   */
   toggleCreditTypeStatus(id: string): Observable<CreditType> {
     return this.http.patch<CreditType>(`${this.apiUrl}/parametrage/credit-types/${id}/toggle`, {})
       .pipe(tap(() => this.getAllCreditTypes().subscribe()));
   }
 
   // ============================================
-  // TAUX D'INTÉRÊT
+  // TAUX D'INTÉRÊT (admin)
   // ============================================
   
   getInterestRates(): Observable<InterestRate[]> {
@@ -239,16 +296,12 @@ export class ParametrageService {
   }
 
   // ============================================
-  // DURÉES
+  // DURÉES (admin)
   // ============================================
   
   getDurationConfigs(): Observable<DurationConfig[]> {
     return this.http.get<DurationConfig[]>(`${this.apiUrl}/parametrage/durations`)
       .pipe(tap(data => this.durationsSubject.next(data)));
-  }
-
-  getDurationConfigsByCreditType(creditTypeId: string): Observable<DurationConfig[]> {
-    return this.http.get<DurationConfig[]>(`${this.apiUrl}/parametrage/durations/credit-type/${creditTypeId}`);
   }
 
   getDurationConfigById(id: string): Observable<DurationConfig> {
@@ -280,7 +333,7 @@ export class ParametrageService {
   }
 
   // ============================================
-  // PLAFONDS
+  // PLAFONDS (admin)
   // ============================================
   
   getCeilingConfigs(): Observable<CeilingConfig[]> {
@@ -375,13 +428,21 @@ export class ParametrageService {
     ];
   }
 
-  // ✅ Ajouter cette méthode pour récupérer les types de crédit (utilisée dans les composants)
+  // ============================================
+  // MÉTHODES DÉPRÉCIÉES (à ne plus utiliser)
+  // ============================================
+
+  /**
+   * @deprecated Utiliser getActiveCreditTypes() à la place
+   */
   getCreditTypes(): Observable<CreditType[]> {
-    return this.http.get<CreditType[]>(`${this.apiUrl}/parametrage/credit-types`);
+    return this.getActiveCreditTypes();
   }
 
-  // ✅ Méthode pour valider un montant
-  validateAmount(creditTypeId: string, amount: number): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/parametrage/validate/amount/${creditTypeId}/${amount}`);
+  /**
+   * @deprecated Utiliser validateAmount() à la place
+   */
+  validateAmountOld(creditTypeId: string, amount: number): Observable<boolean> {
+    return this.validateAmount(creditTypeId, amount);
   }
 }

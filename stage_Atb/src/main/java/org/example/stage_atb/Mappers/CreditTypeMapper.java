@@ -1,5 +1,5 @@
+// Mappers/CreditTypeMapper.java
 package org.example.stage_atb.Mappers;
-
 
 import org.example.stage_atb.dto.request.CreditTypeRequestDTO;
 import org.example.stage_atb.dto.response.CreditTypeResponseDTO;
@@ -33,6 +33,8 @@ public interface CreditTypeMapper {
     @Mapping(target = "requiresCollateral", source = "requiresCollateral")
     @Mapping(target = "requiresGuarantor", source = "requiresGuarantor")
     @Mapping(target = "requiredDocuments", source = "requiredDocuments", qualifiedByName = "emptyListIfNull")
+    @Mapping(target = "availableDurations", ignore = true) // Ignoré car calculé séparément
+    @Mapping(target = "defaultInterestRate", ignore = true) // Ignoré car calculé séparément
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")
     CreditTypeResponseDTO toResponseDTO(CreditType creditType);

@@ -10,17 +10,21 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+// dto/response/CreditResponseDTO.java
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreditResponseDTO {
-
     private String id;
     private String requestNumber;
     private String clientId;
     private String clientName;
     private String clientEmail;
+
+    private String creditTypeId; // ✅ AJOUTER
+    private String creditTypeName; // ✅ AJOUTER
+
     private BigDecimal amount;
     private String currency;
     private Integer durationMonths;

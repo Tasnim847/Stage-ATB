@@ -2,16 +2,14 @@ package org.example.stage_atb.Service.impl;
 
 import org.example.stage_atb.Repositories.ClientRepository;
 import org.example.stage_atb.Repositories.CreditRequestRepository;
+import org.example.stage_atb.Repositories.CreditTypeRepository;
 import org.example.stage_atb.Repositories.UserRepository;
 import org.example.stage_atb.Service.ICreditRequestService;
 import org.example.stage_atb.Service.ICreditSimulationService;
 import org.example.stage_atb.Service.IUserService;
 import org.example.stage_atb.dto.request.CreditRequestDTO;
 import org.example.stage_atb.dto.response.CreditResponseDTO;
-import org.example.stage_atb.entity.Client;
-import org.example.stage_atb.entity.CreditRequest;
-import org.example.stage_atb.entity.CreditSimulation;
-import org.example.stage_atb.entity.User;
+import org.example.stage_atb.entity.*;
 import org.example.stage_atb.enums.CreditStatus;
 import org.example.stage_atb.enums.UserRole;
 import org.example.stage_atb.Mappers.CreditRequestMapper;
@@ -39,14 +37,33 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
     private final ICreditSimulationService creditSimulationService;
-
+    private final CreditTypeRepository creditTypeRepository;
     // ============================================
     // CRUD DE BASE
     // ============================================
 
+    // Service/impl/CreditRequestServiceImpl.java - Méthode createCreditRequest mise à jour
     @Override
     public CreditResponseDTO createCreditRequest(CreditRequestDTO creditRequestDTO) {
         log.info("Creating credit request for client: {}", creditRequestDTO.getClientId());
+
+        // ✅ Vérifier que le type de crédit existe
+        CreditType creditType = creditTypeRepository.findById(creditRequestDTO.getCreditTypeId())
+                .orElseThrow(() -> new RuntimeException("Credit type not found with id: " + creditRequestDTO.getCreditTypeId()));
+
+        // ✅ Valider le montant
+        if (creditRequestDTO.getAmount().compareTo(BigDecimal.valueOf(creditType.getMinAmount())) < 0 ||
+                creditRequestDTO.getAmount().compareTo(BigDecimal.valueOf(creditType.getMaxAmount())) > 0) {
+            throw new RuntimeException("Le montant doit être entre " + creditType.getMinAmount() +
+                    " et " + creditType.getMaxAmount() + " DT");
+        }
+
+        // ✅ Valider la durée
+        if (creditRequestDTO.getDurationMonths() < creditType.getMinDurationMonths() ||
+                creditRequestDTO.getDurationMonths() > creditType.getMaxDurationMonths()) {
+            throw new RuntimeException("La durée doit être entre " + creditType.getMinDurationMonths() +
+                    " et " + creditType.getMaxDurationMonths() + " mois");
+        }
 
         User currentUser = userService.getCurrentUser();
 
@@ -57,12 +74,11 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         );
         creditRequest.setUser(currentUser);
 
-        // ✅ Si submitImmediately est true, mettre PENDING_ANALYSIS, sinon DRAFT
+        // Si submitImmediately est true, mettre PENDING_ANALYSIS, sinon DRAFT
         if (creditRequestDTO.isSubmitImmediately()) {
             creditRequest.setStatus(CreditStatus.PENDING_ANALYSIS);
             log.info("✅ Credit request submitted immediately - status: PENDING_ANALYSIS");
         } else {
-            // Le mapper a déjà mis DRAFT, mais on le force au cas où
             creditRequest.setStatus(CreditStatus.DRAFT);
             log.info("📝 Credit request saved as draft - status: DRAFT");
         }
@@ -70,7 +86,7 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         CreditRequest savedRequest = creditRequestRepository.save(creditRequest);
         log.info("Credit request created with number: {}", savedRequest.getRequestNumber());
 
-        // ✅ Créer automatiquement la simulation seulement si soumis immédiatement
+        // Créer automatiquement la simulation seulement si soumis immédiatement
         if (creditRequestDTO.isSubmitImmediately()) {
             try {
                 CreditSimulation simulation = creditSimulationService.createSimulationFromCreditRequest(savedRequest, currentUser);
@@ -82,7 +98,6 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
         return creditRequestMapper.toResponseDTO(savedRequest);
     }
-    
     @Override
     public CreditResponseDTO getCreditRequestById(String id) {
         CreditRequest creditRequest = creditRequestRepository.findById(id)

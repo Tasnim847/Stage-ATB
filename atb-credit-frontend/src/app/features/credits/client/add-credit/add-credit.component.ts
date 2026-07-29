@@ -20,7 +20,16 @@ import { ToastrService } from 'ngx-toastr';
 import { CreditRequestService } from '@core/services/credit-request.service';
 import { AuthService } from '@core/services/auth.service';
 import { ClientService } from '@core/services/client.service';
+import { ParametrageService, CreditType } from '@core/services/parametrage.service';
 import { CreditRequestDTO } from '@core/models';
+
+interface CreditCategory {
+  id: 'NEW' | 'REFINANCE';
+  label: string;
+  icon: string;
+  description: string;
+  color: string;
+}
 
 @Component({
   selector: 'app-add-credit',
@@ -54,13 +63,40 @@ export class AddCreditComponent implements OnInit {
   private creditService = inject(CreditRequestService);
   private clientService = inject(ClientService);
   private authService = inject(AuthService);
+  private parametrageService = inject(ParametrageService);
   private router = inject(Router);
   private toastr = inject(ToastrService);
 
-  // Type de crédit
-  creditType: string = 'new';
+  // ✅ Catégories de crédit
+  categories: CreditCategory[] = [
+    {
+      id: 'NEW',
+      label: 'Nouveau crédit',
+      icon: 'add_circle',
+      description: 'Obtenez un nouveau crédit pour votre projet (immobilier, véhicule, etc.)',
+      color: '#1a237e'
+    },
+    {
+      id: 'REFINANCE',
+      label: 'Rachat de crédit',
+      icon: 'sync_alt',
+      description: 'Regroupez et rachetez vos crédits en cours pour une meilleure gestion',
+      color: '#c62828'
+    }
+  ];
+
+  // ✅ Types de crédit par catégorie
+  creditTypes: CreditType[] = [];
+  filteredCreditTypes: CreditType[] = [];
+  selectedCreditType: CreditType | null = null;
+  availableDurations: number[] = [];
+
+  // Sélection
+  selectedCategory: 'NEW' | 'REFINANCE' | null = null;
+  selectedCategoryLabel: string = '';
 
   // Forms
+  categoryForm!: FormGroup;
   creditTypeForm!: FormGroup;
   personalForm!: FormGroup;
   professionalForm!: FormGroup;
@@ -72,7 +108,7 @@ export class AddCreditComponent implements OnInit {
   clientId: string | null = null;
   showSpouse = false;
 
-  // Taux d'intérêt calculé automatiquement
+  // Taux d'intérêt
   calculatedInterestRate: number = 0;
   riskLevel: string = '';
   rateAdjustments: string[] = [];
@@ -127,48 +163,97 @@ export class AddCreditComponent implements OnInit {
     'Autre'
   ];
 
-  creditTypes = [
-    { 
-      id: 'new', 
-      label: 'Obtenir un nouveau crédit', 
-      icon: 'add_circle',
-      description: 'Vous envisagez de rénover votre maison, changer de voiture ou vous avez juste besoin d\'un petit montant pour faire face à un imprévu ?',
-      color: '#1a237e'
-    },
-    { 
-      id: 'refinance', 
-      label: 'Rachat de crédit(s)', 
-      icon: 'sync_alt',
-      description: 'Que vous soyez client de Attijari bank ou d\'une autre banque, faites racheter vos encours crédit pour vous remettre à flot et financer un nouveau projet',
-      color: '#be5543'
-    }
-  ];
+  // ✅ ICÔNES PAR CATÉGORIE DE CRÉDIT
+  creditTypeIcons: Record<string, string> = {
+    'PERSONAL': 'person',
+    'AUTO': 'directions_car',
+    'MORTGAGE': 'home',
+    'BUSINESS': 'business',
+    'STUDENT': 'school',
+    'CONSUMER': 'shopping_cart',
+    'BRIDGE': 'swap_horiz',
+    'REVOLVING': 'autorenew'
+  };
 
-  // Taux de base par type de crédit
-  baseRates: Record<string, number> = {
-    'Achat immobilier': 6.20,
-    'Achat véhicule': 7.50,
-    'Travaux rénovation': 7.80,
-    'Création d\'entreprise': 8.50,
-    'Études': 6.80,
-    'Consommation': 9.00,
-    'Autre': 7.00
+  creditTypeColors: Record<string, string> = {
+    'PERSONAL': '#1976d2',
+    'AUTO': '#2e7d32',
+    'MORTGAGE': '#e65100',
+    'BUSINESS': '#c62828',
+    'STUDENT': '#6a1b9a',
+    'CONSUMER': '#bf360c',
+    'BRIDGE': '#00695c',
+    'REVOLVING': '#f57f17'
   };
 
   ngOnInit(): void {
     this.currentUser = this.authService.getUserInfo();
     this.loadClientInfo();
+    this.loadCreditTypes();
     this.initForms();
-    
-    // Écouter les changements pour recalculer le taux
-    this.financialForm.valueChanges.subscribe(() => {
-      this.calculateInterestRate();
+  }
+
+  loadCreditTypes(): void {
+    this.isLoading = true;
+    this.parametrageService.getActiveCreditTypes().subscribe({
+      next: (types) => {
+        this.creditTypes = types;
+        this.filterCreditTypes();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erreur chargement types de crédit:', error);
+        this.toastr.error('Impossible de charger les types de crédit', 'Erreur');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  filterCreditTypes(): void {
+    if (!this.selectedCategory) {
+      this.filteredCreditTypes = [];
+      return;
+    }
+    // Pour l'instant, on affiche tous les types
+    // On pourrait filtrer selon la catégorie plus tard
+    this.filteredCreditTypes = this.creditTypes;
+  }
+
+  loadCreditTypeParams(creditTypeId: string): void {
+    this.isLoading = true;
+    this.parametrageService.getCreditTypeById(creditTypeId).subscribe({
+      next: (type) => {
+        this.selectedCreditType = type;
+        this.parametrageService.getDurationConfigsByCreditType(creditTypeId).subscribe({
+          next: (durations) => {
+            this.availableDurations = durations.map(d => d.durationMonths);
+            this.isLoading = false;
+            this.updateFinancialValidations(type);
+            this.calculateInterestRate();
+          },
+          error: (error) => {
+            console.error('Erreur chargement durées:', error);
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Erreur chargement type:', error);
+        this.toastr.error('Impossible de charger les paramètres du crédit', 'Erreur');
+        this.isLoading = false;
+      }
     });
   }
 
   initForms(): void {
+    // ✅ Formulaire de catégorie
+    this.categoryForm = this.fb.group({
+      category: ['', Validators.required]
+    });
+
+    // ✅ Formulaire de type de crédit
     this.creditTypeForm = this.fb.group({
-      creditType: ['new', Validators.required]
+      creditType: ['', Validators.required]
     });
 
     this.personalForm = this.fb.group({
@@ -183,7 +268,11 @@ export class AddCreditComponent implements OnInit {
       maritalStatus: [''],
       dependents: [0],
       phone: [''],
-      email: ['', [Validators.email]]
+      email: ['', [Validators.email]],
+      spouseName: [''],
+      spousePhone: [''],
+      spouseProfession: [''],
+      spouseIncome: ['']
     });
 
     this.professionalForm = this.fb.group({
@@ -201,13 +290,12 @@ export class AddCreditComponent implements OnInit {
     });
 
     this.financialForm = this.fb.group({
-      rib: ['', [Validators.required, Validators.pattern('^[0-9]{20}$')]],
-      bankName: ['', Validators.required],
+      creditTypeId: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(100)]],
       currency: ['TND', Validators.required],
-      durationMonths: ['', [Validators.required, Validators.min(1), Validators.max(120)]],
-      loanPurpose: ['', Validators.required],
+      durationMonths: ['', [Validators.required, Validators.min(1)]],
       interestRate: [{ value: 0, disabled: true }],
+      loanPurpose: ['', Validators.required],
       collateralType: [''],
       collateralValue: [''],
       expectedDisbursementDate: [''],
@@ -220,40 +308,97 @@ export class AddCreditComponent implements OnInit {
       refinanceAmount: [0],
       refinanceBankName: [''],
       refinanceContractNumber: [''],
-      // ✅ AJOUTER CE CHAMP
       submitImmediately: [true, Validators.required]
     });
 
-    this.creditTypeForm.get('creditType')?.valueChanges.subscribe((type) => {
-      this.creditType = type;
-      this.updateFinancialValidations(type);
+    // ✅ Écouter les changements de catégorie
+    this.categoryForm.get('category')?.valueChanges.subscribe((categoryId) => {
+      if (categoryId) {
+        this.selectedCategory = categoryId;
+        const category = this.categories.find(c => c.id === categoryId);
+        this.selectedCategoryLabel = category ? category.label : '';
+        this.filterCreditTypes();
+        // Réinitialiser la sélection de type
+        this.creditTypeForm.patchValue({ creditType: '' });
+        this.selectedCreditType = null;
+        this.financialForm.patchValue({ creditTypeId: '' });
+      }
+    });
+
+    // ✅ Écouter les changements de type de crédit
+    this.creditTypeForm.get('creditType')?.valueChanges.subscribe((creditTypeId) => {
+      if (creditTypeId) {
+        this.financialForm.patchValue({ creditTypeId: creditTypeId }, { emitEvent: false });
+        this.loadCreditTypeParams(creditTypeId);
+      }
+    });
+
+    this.financialForm.get('creditTypeId')?.valueChanges.subscribe((creditTypeId) => {
+      if (creditTypeId) {
+        this.creditTypeForm.patchValue({ creditType: creditTypeId }, { emitEvent: false });
+        this.loadCreditTypeParams(creditTypeId);
+      }
+    });
+
+    this.financialForm.valueChanges.subscribe(() => {
       this.calculateInterestRate();
     });
   }
 
-  updateFinancialValidations(type: string): void {
-    const refinanceAmount = this.financialForm.get('refinanceAmount');
-    const refinanceBankName = this.financialForm.get('refinanceBankName');
-    const refinanceContractNumber = this.financialForm.get('refinanceContractNumber');
+  updateFinancialValidations(creditType: CreditType): void {
+    const amountControl = this.financialForm.get('amount');
+    const durationControl = this.financialForm.get('durationMonths');
 
-    if (type === 'refinance') {
-      refinanceAmount?.setValidators([Validators.required, Validators.min(100)]);
-      refinanceBankName?.setValidators([Validators.required]);
-      refinanceContractNumber?.setValidators([Validators.required]);
-    } else {
-      refinanceAmount?.clearValidators();
-      refinanceBankName?.clearValidators();
-      refinanceContractNumber?.clearValidators();
+    if (creditType) {
+      amountControl?.setValidators([
+        Validators.required,
+        Validators.min(creditType.minAmount),
+        Validators.max(creditType.maxAmount)
+      ]);
+      
+      durationControl?.setValidators([
+        Validators.required,
+        Validators.min(creditType.minDurationMonths),
+        Validators.max(creditType.maxDurationMonths)
+      ]);
     }
-    refinanceAmount?.updateValueAndValidity();
-    refinanceBankName?.updateValueAndValidity();
-    refinanceContractNumber?.updateValueAndValidity();
+
+    amountControl?.updateValueAndValidity();
+    durationControl?.updateValueAndValidity();
   }
 
-  // ============================================
-  // CALCUL AUTOMATIQUE DU TAUX D'INTÉRÊT
-  // ============================================
+  getCreditTypeIcon(creditType: CreditType): string {
+    return this.creditTypeIcons[creditType.category] || 'credit_card';
+  }
+
+  getCreditTypeColor(creditType: CreditType): string {
+    return this.creditTypeColors[creditType.category] || '#1a237e';
+  }
+
+  getCreditTypeName(id: string): string {
+    const type = this.creditTypes.find(t => t.id === id);
+    return type ? type.name : 'Non défini';
+  }
+
+  getCategoryLabel(): string {
+    const category = this.categories.find(c => c.id === this.selectedCategory);
+    return category ? category.label : 'Non défini';
+  }
+
+  selectCategory(categoryId: 'NEW' | 'REFINANCE'): void {
+    this.categoryForm.get('category')?.setValue(categoryId);
+  }
+
+  selectCreditType(creditTypeId: string): void {
+    this.creditTypeForm.get('creditType')?.setValue(creditTypeId);
+  }
+
   calculateInterestRate(): void {
+    if (!this.selectedCreditType) {
+      this.calculatedInterestRate = 0;
+      return;
+    }
+
     const loanPurpose = this.financialForm.get('loanPurpose')?.value;
     const monthlySalary = this.financialForm.get('monthlySalary')?.value || 0;
     const durationMonths = this.financialForm.get('durationMonths')?.value || 0;
@@ -263,14 +408,10 @@ export class AddCreditComponent implements OnInit {
     const employmentContract = this.professionalForm.get('employmentContract')?.value;
     const yearsOfExperience = this.professionalForm.get('yearsOfExperience')?.value || 0;
 
-    // 1. Taux de base selon l'objectif du crédit
-    let baseRate = this.baseRates[loanPurpose] || 7.0;
-    
-    // 2. Ajustements selon le profil
+    let baseRate = this.selectedCreditType.baseInterestRate;
     let adjustments: string[] = [];
     let totalAdjustment = 0;
 
-    // Facteur: Score de solvabilité (estimé)
     const score = this.estimateSolvencyScore();
     
     if (score >= 90) {
@@ -281,7 +422,6 @@ export class AddCreditComponent implements OnInit {
       adjustments.push('✅ Bon score (-0.25%)');
     }
 
-    // Facteur: Salaire
     if (monthlySalary >= 5000) {
       totalAdjustment -= 0.15;
       adjustments.push('✅ Salaire élevé (-0.15%)');
@@ -290,28 +430,19 @@ export class AddCreditComponent implements OnInit {
       adjustments.push('⚠️ Salaire modeste (+0.30%)');
     }
 
-    // Facteur: Type de contrat
     if (employmentContract === 'CDI' || employmentContract === 'Fonctionnaire') {
       totalAdjustment -= 0.20;
       adjustments.push('✅ Contrat stable (-0.20%)');
     } else if (employmentContract === 'CDD' || employmentContract === 'Intérim') {
       totalAdjustment += 0.50;
       adjustments.push('⚠️ Contrat précaire (+0.50%)');
-    } else if (employmentContract === 'Freelance') {
-      totalAdjustment += 0.30;
-      adjustments.push('⚠️ Freelance (+0.30%)');
     }
 
-    // Facteur: Ancienneté
     if (yearsOfExperience >= 5) {
       totalAdjustment -= 0.20;
       adjustments.push('✅ Ancienneté > 5 ans (-0.20%)');
-    } else if (yearsOfExperience >= 2) {
-      totalAdjustment -= 0.10;
-      adjustments.push('✅ Ancienneté > 2 ans (-0.10%)');
     }
 
-    // Facteur: Autres crédits
     if (hasOtherCredits && otherCreditsAmount > 0) {
       if (otherCreditsAmount > 1000) {
         totalAdjustment += 0.50;
@@ -322,13 +453,11 @@ export class AddCreditComponent implements OnInit {
       }
     }
 
-    // Facteur: Durée du crédit
     if (durationMonths > 60) {
       totalAdjustment += 0.20;
       adjustments.push('⚠️ Longue durée > 60 mois (+0.20%)');
     }
 
-    // Facteur: Catégorie professionnelle
     if (professionalCategory === 'Cadre' || professionalCategory === 'Fonctionnaire') {
       totalAdjustment -= 0.15;
       adjustments.push('✅ Cadre/Fonctionnaire (-0.15%)');
@@ -337,37 +466,24 @@ export class AddCreditComponent implements OnInit {
       adjustments.push('⚠️ Sans emploi/Étudiant (+0.80%)');
     }
 
-    // Facteur: Taux d'endettement estimé
     const debtRatio = this.calculateDebtRatio();
     if (debtRatio > 40) {
       totalAdjustment += 0.50;
       adjustments.push('⚠️ Taux d\'endettement > 40% (+0.50%)');
     }
 
-    // 3. Calcul du taux final
     let finalRate = Math.round((baseRate + totalAdjustment) * 100) / 100;
-    
-    // Limiter le taux entre 3% et 15%
     finalRate = Math.max(3.0, Math.min(15.0, finalRate));
 
     this.calculatedInterestRate = finalRate;
     this.rateAdjustments = adjustments;
-
-    // Mettre à jour le champ désactivé
     this.financialForm.get('interestRate')?.setValue(finalRate, { emitEvent: false });
 
-    // Déterminer le niveau de risque
-    if (finalRate <= 5.5) {
-      this.riskLevel = 'Très faible';
-    } else if (finalRate <= 6.5) {
-      this.riskLevel = 'Faible';
-    } else if (finalRate <= 8.0) {
-      this.riskLevel = 'Moyen';
-    } else if (finalRate <= 10.0) {
-      this.riskLevel = 'Élevé';
-    } else {
-      this.riskLevel = 'Très élevé';
-    }
+    if (finalRate <= 5.5) this.riskLevel = 'Très faible';
+    else if (finalRate <= 6.5) this.riskLevel = 'Faible';
+    else if (finalRate <= 8.0) this.riskLevel = 'Moyen';
+    else if (finalRate <= 10.0) this.riskLevel = 'Élevé';
+    else this.riskLevel = 'Très élevé';
   }
 
   estimateSolvencyScore(): number {
@@ -377,35 +493,65 @@ export class AddCreditComponent implements OnInit {
     const contract = this.professionalForm.get('employmentContract')?.value;
     const yearsOfExperience = this.professionalForm.get('yearsOfExperience')?.value || 0;
 
-    // Revenus
     if (monthlySalary >= 5000) score += 20;
     else if (monthlySalary >= 3000) score += 15;
     else if (monthlySalary >= 2000) score += 10;
     else if (monthlySalary >= 1000) score += 5;
 
-    // Contrat
     if (contract === 'CDI' || contract === 'Fonctionnaire') score += 15;
     else if (contract === 'CDD') score += 8;
     else score += 3;
 
-    // Ancienneté
     if (yearsOfExperience >= 5) score += 10;
     else if (yearsOfExperience >= 2) score += 5;
 
-    // Taux d'endettement
     if (debtRatio < 35) score += 25;
     else if (debtRatio < 45) score += 15;
     else score += 5;
 
-    // Autres crédits
     if (!this.financialForm.get('hasOtherCredits')?.value) score += 15;
 
-    // Reste à vivre estimé
     const resteAVivre = monthlySalary - (this.financialForm.get('rentAmount')?.value || 0);
     if (resteAVivre > 2000) score += 10;
     else if (resteAVivre > 1000) score += 5;
 
     return Math.min(score, 100);
+  }
+
+  calculateMonthlyPaymentFromForms(): number {
+    const amount = this.financialForm.get('amount')?.value || 0;
+    const rate = this.calculatedInterestRate || 0;
+    const months = this.financialForm.get('durationMonths')?.value || 1;
+    
+    if (amount <= 0 || rate < 0 || months <= 0) return 0;
+    
+    const monthlyRate = rate / 100 / 12;
+    if (monthlyRate === 0) return amount / months;
+    
+    const factor = Math.pow(1 + monthlyRate, months);
+    return (amount * monthlyRate * factor) / (factor - 1);
+  }
+
+  calculateDebtRatio(): number {
+    const salary = this.financialForm.get('monthlySalary')?.value || 0;
+    const otherIncome = this.financialForm.get('otherMonthlyIncome')?.value || 0;
+    const totalIncome = salary + otherIncome;
+    
+    if (totalIncome === 0) return 0;
+    
+    const monthlyPayment = this.calculateMonthlyPaymentFromForms();
+    const otherCredits = this.financialForm.get('otherCreditsAmount')?.value || 0;
+    const rent = this.financialForm.get('rentAmount')?.value || 0;
+    const totalMonthlyPayments = monthlyPayment + otherCredits + rent;
+    
+    return Math.round((totalMonthlyPayments / totalIncome) * 100);
+  }
+
+  calculateBorrowingCapacity(): number {
+    const salary = this.financialForm.get('monthlySalary')?.value || 0;
+    const otherIncome = this.financialForm.get('otherMonthlyIncome')?.value || 0;
+    const totalIncome = salary + otherIncome;
+    return Math.round(totalIncome * 0.33);
   }
 
   loadClientInfo(): void {
@@ -442,56 +588,16 @@ export class AddCreditComponent implements OnInit {
   }
 
   getCreditTypeLabel(): string {
-    const type = this.creditTypes.find(t => t.id === this.creditType);
-    return type ? type.label : 'Non défini';
-  }
-
-  selectCreditType(typeId: string): void {
-    this.creditTypeForm.get('creditType')?.setValue(typeId);
+    const type = this.creditTypes.find(t => t.id === this.creditTypeForm.get('creditType')?.value);
+    return type ? type.name : 'Non défini';
   }
 
   isFormValid(): boolean {
-    return this.creditTypeForm.valid && 
+    return this.categoryForm.valid && 
+           this.creditTypeForm.valid && 
            this.personalForm.valid && 
            this.professionalForm.valid && 
            this.financialForm.valid;
-  }
-
-  calculateMonthlyPaymentFromForms(): number {
-    const amount = this.financialForm.get('amount')?.value || 0;
-    const rate = this.calculatedInterestRate || 0;
-    const months = this.financialForm.get('durationMonths')?.value || 1;
-    
-    if (amount <= 0 || rate < 0 || months <= 0) return 0;
-    
-    const monthlyRate = rate / 100 / 12;
-    if (monthlyRate === 0) return amount / months;
-    
-    const factor = Math.pow(1 + monthlyRate, months);
-    return (amount * monthlyRate * factor) / (factor - 1);
-  }
-
-  calculateDebtRatio(): number {
-    const salary = this.financialForm.get('monthlySalary')?.value || 0;
-    const otherIncome = this.financialForm.get('otherMonthlyIncome')?.value || 0;
-    const totalIncome = salary + otherIncome;
-    
-    if (totalIncome === 0) return 0;
-    
-    const monthlyPayment = this.calculateMonthlyPaymentFromForms();
-    const otherCredits = this.financialForm.get('otherCreditsAmount')?.value || 0;
-    const rent = this.financialForm.get('rentAmount')?.value || 0;
-    const totalMonthlyPayments = monthlyPayment + otherCredits + rent;
-    
-    return Math.round((totalMonthlyPayments / totalIncome) * 100);
-  }
-
-  calculateBorrowingCapacity(): number {
-    const salary = this.financialForm.get('monthlySalary')?.value || 0;
-    const otherIncome = this.financialForm.get('otherMonthlyIncome')?.value || 0;
-    const totalIncome = salary + otherIncome;
-    
-    return Math.round(totalIncome * 0.33);
   }
 
   onSubmit(): void {
@@ -502,6 +608,11 @@ export class AddCreditComponent implements OnInit {
 
     if (!this.clientId) {
       this.toastr.error('Impossible de créer la demande: client non identifié', 'Erreur');
+      return;
+    }
+
+    if (!this.selectedCreditType) {
+      this.toastr.error('Veuillez sélectionner un type de crédit', 'Erreur');
       return;
     }
 
@@ -516,15 +627,13 @@ export class AddCreditComponent implements OnInit {
     this.isSubmitting = true;
 
     const personal = this.personalForm.value;
-    const professional = this.professionalForm.value;
     const financial = this.financialForm.value;
-
-    // ✅ Récupérer la valeur de submitImmediately
     const submitImmediately = financial.submitImmediately;
 
     const creditData: CreditRequestDTO = {
       clientId: this.clientId,
       userId: this.currentUser?.id || '',
+      creditTypeId: this.selectedCreditType.id,
       amount: financial.amount,
       currency: financial.currency,
       durationMonths: financial.durationMonths,
@@ -536,7 +645,6 @@ export class AddCreditComponent implements OnInit {
       guarantorName: this.showSpouse ? personal.spouseName : '',
       guarantorPhone: this.showSpouse ? personal.spousePhone : '',
       expectedDisbursementDate: financial.expectedDisbursementDate || '',
-      // ✅ AJOUTER CETTE LIGNE
       submitImmediately: submitImmediately
     };
 
@@ -546,13 +654,13 @@ export class AddCreditComponent implements OnInit {
         
         if (submitImmediately) {
           this.toastr.success(
-            `✅ Votre demande de crédit N°${response.requestNumber} a été soumise avec succès et est en cours d'analyse`,
+            `✅ Votre demande de crédit N°${response.requestNumber} a été soumise avec succès`,
             'Demande soumise'
           );
           this.router.navigate(['/simulation-result', response.id]);
         } else {
           this.toastr.success(
-            `📝 Votre demande de crédit N°${response.requestNumber} a été sauvegardée comme brouillon. Vous pourrez la modifier et la soumettre plus tard.`,
+            `📝 Votre demande de crédit N°${response.requestNumber} a été sauvegardée comme brouillon.`,
             'Brouillon enregistré'
           );
           this.router.navigate(['/my-credits']);
@@ -571,4 +679,6 @@ export class AddCreditComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/my-credits']);
   }
+
+  get f() { return this.financialForm.controls; }
 }

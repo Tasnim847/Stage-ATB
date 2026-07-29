@@ -25,6 +25,7 @@ import { CreditRequestDTO } from '@core/models';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Location } from '@angular/common';
+import { ParametrageService, CreditType } from '@core/services/parametrage.service';
 
 @Component({
   selector: 'app-credit-admin',
@@ -60,7 +61,9 @@ export class CreditAdminComponent implements OnInit {
   private toastr = inject(ToastrService);
   private location = inject(Location);
 
-
+  private parametrageService = inject(ParametrageService);
+  creditTypes: CreditType[] = [];
+  selectedCreditType: CreditType | null = null;
   // Formulaire
   creditForm!: FormGroup;
   
@@ -110,8 +113,26 @@ export class CreditAdminComponent implements OnInit {
       }
     });
 
+    this.loadCreditTypes(); // ✅ AJOUTER
+
     this.initForm();
   }
+
+  loadCreditTypes(): void {
+  this.parametrageService.getActiveCreditTypes().subscribe({
+    next: (types) => {
+      this.creditTypes = types;
+      if (types.length > 0) {
+        this.selectedCreditType = types[0];
+        this.creditForm.patchValue({ creditTypeId: types[0].id });
+      }
+    },
+    error: (error) => {
+      console.error('Erreur chargement types de crédit:', error);
+      this.toastr.error('Impossible de charger les types de crédit', 'Erreur');
+    }
+  });
+}
 
   initForm(): void {
     this.creditForm = this.fb.group({
@@ -130,6 +151,7 @@ export class CreditAdminComponent implements OnInit {
       collateralType: [''],
       collateralValue: [''],
       guarantorName: [''],
+      creditTypeId: ['', Validators.required], // ✅ AJOUTER
       guarantorPhone: [''],
       expectedDisbursementDate: [''],
       notes: ['']
@@ -252,6 +274,8 @@ export class CreditAdminComponent implements OnInit {
       collateralValue: formValue.collateralValue || 0,
       guarantorName: formValue.guarantorName || '',
       guarantorPhone: formValue.guarantorPhone || '',
+      creditTypeId: formValue.creditTypeId, // ✅ AJOUTER
+
       expectedDisbursementDate: formValue.expectedDisbursementDate || ''
     };
 

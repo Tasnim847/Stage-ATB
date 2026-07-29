@@ -18,10 +18,32 @@ import java.math.RoundingMode;
 @Mapper(componentModel = "spring")
 public interface CreditRequestMapper {
 
+    // ============================================
+    // ENTITY -> RESPONSE DTO
+    // ============================================
+
+    @Mapping(target = "clientId", expression = "java(creditRequest.getClient().getId())")
+    @Mapping(target = "clientName", expression = "java(creditRequest.getClient().getFirstName() + \" \" + creditRequest.getClient().getLastName())")
+    @Mapping(target = "clientEmail", expression = "java(creditRequest.getClient().getEmail())")
+    @Mapping(target = "creditTypeId", source = "creditTypeId") // ✅ AJOUTER
+    @Mapping(target = "creditTypeName", expression = "java(getCreditTypeName(creditRequest))") // ✅ AJOUTER
+    @Mapping(target = "analystName", expression = "java(getAnalystName(creditRequest))")
+    @Mapping(target = "riskLevel", expression = "java(getRiskLevel(creditRequest))")
+    @Mapping(target = "riskScore", expression = "java(getRiskScore(creditRequest))")
+    @Mapping(target = "decisionRecommendation", expression = "java(getDecisionRecommendation(creditRequest))")
+    @Mapping(target = "financialHealthScore", expression = "java(getFinancialHealthScore(creditRequest))")
+    @Mapping(target = "debtRatio", expression = "java(getDebtRatio(creditRequest))")
+    CreditResponseDTO toResponseDTO(CreditRequest creditRequest);
+
+    // ============================================
+    // REQUEST DTO -> ENTITY
+    // ============================================
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "requestNumber", expression = "java(generateRequestNumber())")
     @Mapping(target = "client", expression = "java(resolveClient(creditRequestDTO.getClientId(), clientRepository))")
     @Mapping(target = "user", expression = "java(resolveUser(creditRequestDTO.getUserId(), userRepository))")
+    @Mapping(target = "creditTypeId", source = "creditTypeId") // ✅ AJOUTER
     @Mapping(target = "status", constant = "DRAFT")
     @Mapping(target = "monthlyPayment", expression = "java(calculateMonthlyPayment(creditRequestDTO))")
     @Mapping(target = "documents", ignore = true)
@@ -35,25 +57,42 @@ public interface CreditRequestMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "rejectionReason", ignore = true)
     @Mapping(target = "approvalDate", ignore = true)
-    @Mapping(target = "creditSimulation", ignore = true)  // ✅ AJOUTER CETTE LIGNE
+    @Mapping(target = "creditSimulation", ignore = true)
+    @Mapping(target = "creditType", ignore = true) // ✅ AJOUTER (relation ManyToOne)
     CreditRequest toEntity(CreditRequestDTO creditRequestDTO,
                            @Context ClientRepository clientRepository,
                            @Context UserRepository userRepository);
 
-    @Mapping(target = "clientId", expression = "java(creditRequest.getClient().getId())")
-    @Mapping(target = "clientName", expression = "java(creditRequest.getClient().getFirstName() + \" \" + creditRequest.getClient().getLastName())")
-    @Mapping(target = "clientEmail", expression = "java(creditRequest.getClient().getEmail())")
-    @Mapping(target = "analystName", expression = "java(getAnalystName(creditRequest))")
-    @Mapping(target = "riskLevel", expression = "java(getRiskLevel(creditRequest))")
-    @Mapping(target = "riskScore", expression = "java(getRiskScore(creditRequest))")
-    @Mapping(target = "decisionRecommendation", expression = "java(getDecisionRecommendation(creditRequest))")
-    @Mapping(target = "financialHealthScore", expression = "java(getFinancialHealthScore(creditRequest))")
-    @Mapping(target = "debtRatio", expression = "java(getDebtRatio(creditRequest))")
-    CreditResponseDTO toResponseDTO(CreditRequest creditRequest);
+    // ============================================
+    // UPDATE ENTITY
+    // ============================================
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "requestNumber", ignore = true)
+    @Mapping(target = "client", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "creditTypeId", source = "creditTypeId") // ✅ AJOUTER
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "monthlyPayment", expression = "java(calculateMonthlyPayment(creditRequestDTO))")
+    @Mapping(target = "documents", ignore = true)
+    @Mapping(target = "financialAnalysis", ignore = true)
+    @Mapping(target = "riskAnalysis", ignore = true)
+    @Mapping(target = "creditScore", ignore = true)
+    @Mapping(target = "decisionRecommendation", ignore = true)
+    @Mapping(target = "auditLogs", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "rejectionReason", ignore = true)
+    @Mapping(target = "approvalDate", ignore = true)
+    @Mapping(target = "creditSimulation", ignore = true)
+    @Mapping(target = "creditType", ignore = true)
     void updateEntity(@MappingTarget CreditRequest creditRequest, CreditRequestDTO creditRequestDTO);
 
-    // Helper methods
+    // ============================================
+    // HELPER METHODS
+    // ============================================
+
     default String generateRequestNumber() {
         return "CR-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000);
     }
@@ -74,6 +113,12 @@ public interface CreditRequestMapper {
         if (dto.getAmount() == null || dto.getInterestRate() == null || dto.getDurationMonths() == null) {
             return BigDecimal.ZERO;
         }
+
+        // Si le taux est 0, mensualité = montant / durée
+        if (dto.getInterestRate().compareTo(BigDecimal.ZERO) == 0) {
+            return dto.getAmount().divide(new BigDecimal(dto.getDurationMonths()), 2, RoundingMode.HALF_UP);
+        }
+
         BigDecimal monthlyRate = dto.getInterestRate().divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP);
         BigDecimal power = BigDecimal.ONE;
         for (int i = 0; i < dto.getDurationMonths(); i++) {
@@ -81,9 +126,7 @@ public interface CreditRequestMapper {
         }
         BigDecimal numerator = dto.getAmount().multiply(monthlyRate).multiply(power);
         BigDecimal denominator = power.subtract(BigDecimal.ONE);
-        if (denominator.compareTo(BigDecimal.ZERO) == 0) {
-            return dto.getAmount().divide(new BigDecimal(dto.getDurationMonths()), 2, RoundingMode.HALF_UP);
-        }
+
         return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
     }
 
@@ -96,7 +139,7 @@ public interface CreditRequestMapper {
     }
 
     default String getRiskLevel(CreditRequest creditRequest) {
-        if (creditRequest.getRiskAnalysis() != null) {
+        if (creditRequest.getRiskAnalysis() != null && creditRequest.getRiskAnalysis().getOverallRisk() != null) {
             return creditRequest.getRiskAnalysis().getOverallRisk().toString();
         }
         return null;
@@ -126,6 +169,14 @@ public interface CreditRequestMapper {
     default BigDecimal getDebtRatio(CreditRequest creditRequest) {
         if (creditRequest.getFinancialAnalysis() != null) {
             return creditRequest.getFinancialAnalysis().getDebtRatio();
+        }
+        return null;
+    }
+
+    // ✅ AJOUTER CETTE MÉTHODE HELPER
+    default String getCreditTypeName(CreditRequest creditRequest) {
+        if (creditRequest.getCreditType() != null) {
+            return creditRequest.getCreditType().getName();
         }
         return null;
     }
