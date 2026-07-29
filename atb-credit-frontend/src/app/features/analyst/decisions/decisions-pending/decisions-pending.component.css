@@ -1,0 +1,604 @@
+/* src/app/features/analyst/decisions/decisions-pending/decisions-pending.component.css */
+
+/* ============================================
+   DECISIONS PENDING - STYLE PROFESSIONNEL
+   ============================================ */
+
+.decisions-pending-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeInUp 0.5s ease;
+  background: #f8f6f5;
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-content h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin: 0 0 4px;
+  letter-spacing: -0.5px;
+}
+
+.header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #be5543;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #757575;
+  margin: 0 0 0 44px;
+}
+
+.header-actions button {
+  background: linear-gradient(135deg, #c9614c, #be5543) !important;
+  color: white !important;
+  padding: 0 28px;
+  height: 44px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(190, 85, 67, 0.3);
+}
+
+.header-actions button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(190, 85, 67, 0.4);
+}
+
+.header-actions button:disabled {
+  opacity: 0.6;
+}
+
+/* ===== STATISTIQUES ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon mat-icon {
+  font-size: 24px;
+  color: white;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #757575;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #2c2c2c;
+}
+
+/* Couleurs des stats - Dégradé de rouge */
+.stat-total .stat-icon {
+  background: linear-gradient(135deg, #c9614c, #be5543);
+}
+.stat-total .stat-value {
+  color: #be5543;
+}
+
+.stat-priority .stat-icon {
+  background: linear-gradient(135deg, #f5a623, #f59a1a);
+}
+.stat-priority .stat-value {
+  color: #f59a1a;
+}
+
+.stat-overdue .stat-icon {
+  background: linear-gradient(135deg, #e57373, #c62828);
+}
+.stat-overdue .stat-value {
+  color: #c62828;
+}
+
+.stat-risk .stat-icon {
+  background: linear-gradient(135deg, #d9776b, #c9614c);
+}
+.stat-risk .stat-value {
+  color: #c9614c;
+}
+
+/* ===== FILTRES ===== */
+.filters-container {
+  border-radius: 14px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.filters-container mat-card-content {
+  padding: 16px 20px;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-field {
+  width: 100%;
+}
+
+.reset-btn {
+  border-color: #be5543 !important;
+  color: #be5543 !important;
+  height: 56px;
+  padding: 0 24px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #c9614c, #be5543) !important;
+  color: white !important;
+  border-color: #be5543 !important;
+}
+
+/* ===== LOADING ===== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #757575;
+  font-size: 15px;
+}
+
+/* ===== CARDS GRID ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* ===== DECISION CARD ===== */
+.decision-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border-top: 4px solid #e0e0e0;
+}
+
+.decision-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* Bordures colorées par priorité */
+.decision-card.card-high {
+  border-top-color: #f44336;
+}
+.decision-card.card-medium {
+  border-top-color: #ff9800;
+}
+.decision-card.card-low {
+  border-top-color: #4caf50;
+}
+.decision-card.card-overdue {
+  border-top-color: #c62828;
+  border-top-width: 6px;
+}
+
+/* En-tête de la carte */
+.decision-card mat-card-header {
+  padding: 20px 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.client-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.client-info .client-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.client-info .client-id {
+  font-size: 12px;
+  color: #9e9e9e;
+}
+
+.card-header-right .priority-chip {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 14px;
+}
+
+/* Corps de la carte */
+.decision-card mat-card-content {
+  padding: 16px 20px 8px;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.detail-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-top: 2px;
+}
+
+.detail-value.amount {
+  color: #be5543;
+  font-size: 18px;
+}
+
+.detail-value.due-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overdue-icon {
+  font-size: 18px;
+  color: #f44336;
+}
+
+/* Score de risque */
+.risk-score-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.risk-score-value {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 50px;
+}
+
+.risk-progress {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Progression */
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+/* Actions */
+.decision-card mat-card-actions {
+  padding: 8px 16px 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.decision-card mat-card-actions .btn-analyze {
+  background: linear-gradient(135deg, #c9614c, #be5543) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.decision-card mat-card-actions .btn-analyze:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(190, 85, 67, 0.3);
+}
+
+.decision-card mat-card-actions button[color="primary"] {
+  color: #be5543;
+}
+
+.decision-card mat-card-actions button[color="primary"]:hover {
+  background: linear-gradient(135deg, #c9614c, #be5543);
+  color: white;
+}
+
+.more-btn {
+  color: #9e9e9e !important;
+}
+
+.more-btn:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 12px;
+  text-align: center;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state mat-icon {
+  font-size: 72px;
+  width: 72px;
+  height: 72px;
+  color: #e0e0e0;
+}
+
+.empty-state h3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #424242;
+  margin: 0;
+}
+
+.empty-state p {
+  color: #757575;
+  margin: 0;
+}
+
+/* ===== PAGINATION ===== */
+.pagination-container {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  padding: 8px 0;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.decision-card {
+  animation: fadeInUp 0.4s ease;
+}
+
+.decision-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.decision-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.decision-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .decisions-pending-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-content h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    margin-left: 0;
+  }
+
+  .header-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card mat-card-content {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-icon mat-icon {
+    font-size: 20px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .reset-btn {
+    grid-column: 1 / -1;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .decisions-pending-container {
+    padding: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card mat-card-content {
+    padding: 12px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-details {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .decision-card mat-card-actions {
+    flex-direction: column;
+  }
+
+  .decision-card mat-card-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card-header-left .client-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .risk-score-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

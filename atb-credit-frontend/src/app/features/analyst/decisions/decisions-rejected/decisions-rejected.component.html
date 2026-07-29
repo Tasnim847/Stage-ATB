@@ -1,0 +1,246 @@
+<!-- decisions-rejected.component.html -->
+<div class="decisions-rejected-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon class="header-icon">cancel</mat-icon>
+        Décisions refusées
+      </h1>
+      <p class="subtitle">Consultez les décisions de crédit refusées et gérez les appels</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="loadRejectedDecisions()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card stat-total">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total refusées</span>
+          <span class="stat-value">{{ stats.total }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-amount">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>euro_symbol</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Montant total</span>
+          <span class="stat-value">{{ stats.totalAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-appeal">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>gavel</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Possibilité d'appel</span>
+          <span class="stat-value">{{ stats.canAppeal }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-risk">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>analytics</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Score de risque moyen</span>
+          <span class="stat-value">{{ stats.averageRisk | number:'1.0-0' }}%</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-container">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="filters.search" (ngModelChange)="applyFilters()" placeholder="Nom du client...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Raison du refus</mat-label>
+          <mat-select [(ngModel)]="filters.reason" (ngModelChange)="applyFilters()">
+            <mat-option value="">Toutes</mat-option>
+            <mat-option value="risk_too_high">Risque trop élevé</mat-option>
+            <mat-option value="insufficient_income">Revenus insuffisants</mat-option>
+            <mat-option value="poor_credit_history">Mauvais historique</mat-option>
+            <mat-option value="debt_ratio">Taux d'endettement</mat-option>
+            <mat-option value="document_missing">Documents manquants</mat-option>
+            <mat-option value="fraud_suspicion">Suspicion de fraude</mat-option>
+            <mat-option value="policy_violation">Violation de politique</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.dateFrom" (ngModelChange)="applyFilters()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.dateTo" (ngModelChange)="applyFilters()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <div class="filter-actions">
+          <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
+            <mat-icon>clear</mat-icon>
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des décisions refusées...</p>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!isLoading && filteredDecisions.length > 0" class="cards-grid">
+    <mat-card *ngFor="let decision of filteredDecisions" 
+              class="decision-card"
+              [class.card-appeal]="decision.canAppeal"
+              [class.card-no-appeal]="!decision.canAppeal">
+      
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div class="card-header-left">
+          <div class="client-avatar rejected" [style.background]="getAvatarColor(decision.clientName)">
+            {{ decision.clientName.charAt(0) }}
+          </div>
+          <div class="client-info">
+            <div class="client-name">{{ decision.clientName }}</div>
+            <div class="client-id">#{{ decision.creditRequestId }}</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <mat-chip [color]="getReasonColor(decision.reason)" selected class="reason-chip">
+            {{ getReasonLabel(decision.reason) }}
+          </mat-chip>
+        </div>
+      </mat-card-header>
+
+      <!-- Corps de la carte -->
+      <mat-card-content>
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">💰 Montant</span>
+            <span class="detail-value amount">{{ decision.amount | currency:'EUR':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">⏱️ Durée</span>
+            <span class="detail-value">{{ decision.duration }} mois</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">🏷️ Type</span>
+            <span class="detail-value">{{ decision.type }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">📅 Refusé le</span>
+            <span class="detail-value">{{ decision.rejectionDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">📊 Score de risque</span>
+            <div class="risk-score-container">
+              <span class="risk-score-value" [style.color]="getRiskColor(decision.riskScore)">
+                {{ decision.riskScore }}%
+              </span>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="decision.riskScore"
+                [color]="decision.riskScore >= 70 ? 'primary' : decision.riskScore >= 40 ? 'accent' : 'warn'"
+                class="risk-progress">
+              </mat-progress-bar>
+            </div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">⚖️ Appel</span>
+            <div class="appeal-status">
+              <mat-icon *ngIf="decision.canAppeal" color="primary" class="appeal-icon">check_circle</mat-icon>
+              <mat-icon *ngIf="!decision.canAppeal" color="warn" class="appeal-icon">block</mat-icon>
+              <span class="appeal-text" [class.appeal-available]="decision.canAppeal" [class.appeal-unavailable]="!decision.canAppeal">
+                {{ decision.canAppeal ? 'Disponible' : 'Indisponible' }}
+              </span>
+              <span *ngIf="decision.canAppeal" class="appeal-deadline">
+                ({{ decision.appealDeadline | date:'dd/MM/yyyy' }})
+              </span>
+            </div>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">👤 Refusé par</span>
+            <span class="detail-value">{{ decision.rejectedBy }}</span>
+          </div>
+          <div class="detail-item full-width" *ngIf="decision.notes">
+            <span class="detail-label">📝 Notes</span>
+            <span class="detail-value notes">{{ decision.notes }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions -->
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="viewDetails(decision)">
+          <mat-icon>visibility</mat-icon>
+          Détails
+        </button>
+        <button mat-button color="primary" (click)="viewAnalystNotes(decision)">
+          <mat-icon>note</mat-icon>
+          Notes
+        </button>
+        <button *ngIf="decision.canAppeal" mat-raised-button color="accent" class="btn-appeal" (click)="initiateAppeal(decision)">
+          <mat-icon>gavel</mat-icon>
+          Déclencher l'appel
+        </button>
+        <button mat-raised-button color="warn" class="btn-review" (click)="reviewDecision(decision)">
+          <mat-icon>edit</mat-icon>
+          Réviser
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && filteredDecisions.length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h3>Aucune décision refusée</h3>
+    <p>Aucune décision de crédit refusée n'est disponible pour le moment.</p>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!isLoading && filteredDecisions.length > 0" class="pagination-container">
+    <mat-paginator
+      [length]="totalItems"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[6, 12, 24, 48]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

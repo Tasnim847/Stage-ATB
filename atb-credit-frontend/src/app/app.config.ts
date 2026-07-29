@@ -10,6 +10,7 @@ import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { importProvidersFrom } from '@angular/core';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { MatDialogModule } from '@angular/material/dialog'; // ✅ AJOUTER
+import { provideNativeDateAdapter } from '@angular/material/core'; // ✅ AJOUTER CET IMPORT
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,6 +30,9 @@ export const appConfig: ApplicationConfig = {
       closeButton: true,
       progressBar: true,
     }),
+    
+    provideNativeDateAdapter(), // ✅ SOLUTION 1: Utiliser le DateAdapter natif
+
     // ✅ Important: Ajouter NgbModule pour les services
     importProvidersFrom(NgbModule, MatDialogModule)
   ]

@@ -1,0 +1,230 @@
+<!-- decisions-approved.component.html -->
+<div class="decisions-approved-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>
+        <mat-icon class="header-icon">check_circle</mat-icon>
+        Décisions approuvées
+      </h1>
+      <p class="subtitle">Consultez et gérez les décisions de crédit déjà approuvées</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="loadApprovedDecisions()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <mat-card class="stat-card stat-total">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Total approuvées</span>
+          <span class="stat-value">{{ stats.total }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-amount">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>euro_symbol</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Montant total</span>
+          <span class="stat-value">{{ stats.totalAmount | currency:'EUR':'symbol':'1.0-0' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-rate">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>percent</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Taux moyen</span>
+          <span class="stat-value">{{ stats.averageRate | number:'1.1-2' }}%</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-pending">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>pending</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">En attente client</span>
+          <span class="stat-value">{{ stats.pendingClient }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-manager">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>assignment_turned_in</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">En attente manager</span>
+          <span class="stat-value">{{ stats.pendingManager }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-container">
+    <mat-card-content>
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Rechercher</mat-label>
+          <input matInput [(ngModel)]="filters.search" (ngModelChange)="applyFilters()" placeholder="Nom du client...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Statut</mat-label>
+          <mat-select [(ngModel)]="filters.status" (ngModelChange)="applyFilters()">
+            <mat-option value="">Tous</mat-option>
+            <mat-option value="approved">Approuvé</mat-option>
+            <mat-option value="pending_client">En attente client</mat-option>
+            <mat-option value="pending_manager">En attente manager</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de début</mat-label>
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="filters.dateFrom" (ngModelChange)="applyFilters()">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date de fin</mat-label>
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="filters.dateTo" (ngModelChange)="applyFilters()">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
+          <mat-icon>clear</mat-icon>
+          Réinitialiser
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des décisions...</p>
+  </div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!isLoading && filteredDecisions.length > 0" class="cards-grid">
+    <mat-card *ngFor="let decision of filteredDecisions" 
+              class="decision-card" 
+              [class.card-approved]="decision.status === 'approved'" 
+              [class.card-pending]="decision.status === 'pending_client'" 
+              [class.card-manager]="decision.status === 'pending_manager'">
+      
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div class="card-header-left">
+          <div class="client-avatar" [style.background]="getAvatarColor(decision.clientName)">
+            {{ decision.clientName.charAt(0) }}
+          </div>
+          <div class="client-info">
+            <div class="client-name">{{ decision.clientName }}</div>
+            <div class="client-id">#{{ decision.creditRequestId }}</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <mat-chip [color]="getStatusColor(decision.status)" selected class="status-chip">
+            {{ getStatusLabel(decision.status) }}
+          </mat-chip>
+        </div>
+      </mat-card-header>
+
+      <!-- Contenu de la carte -->
+      <mat-card-content>
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">Montant demandé</span>
+            <span class="detail-value">{{ decision.amount | currency:'EUR':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Montant approuvé</span>
+            <span class="detail-value approved-amount">{{ decision.amountApproved | currency:'EUR':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Taux d'intérêt</span>
+            <span class="detail-value">{{ decision.interestRate }}%</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Mensualité</span>
+            <span class="detail-value">{{ decision.monthlyPayment | currency:'EUR':'symbol':'1.0-0' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Durée</span>
+            <span class="detail-value">{{ decision.duration }} mois</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date d'approbation</span>
+            <span class="detail-value">{{ decision.approvalDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">Type de crédit</span>
+            <span class="detail-value"><mat-chip>{{ decision.type }}</mat-chip></span>
+          </div>
+          <div class="detail-item full-width" *ngIf="decision.observations">
+            <span class="detail-label">Observations</span>
+            <span class="detail-value observations">{{ decision.observations }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions -->
+      <mat-card-actions align="end">
+        <button mat-button color="primary" (click)="viewDetails(decision)">
+          <mat-icon>visibility</mat-icon>
+          Détails
+        </button>
+        <button mat-button color="primary" (click)="generateContract(decision)">
+          <mat-icon>description</mat-icon>
+          Contrat
+        </button>
+        <button *ngIf="decision.status === 'approved'" mat-raised-button color="accent" class="btn-send" (click)="sendToClient(decision)">
+          <mat-icon>send</mat-icon>
+          Envoyer au client
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && filteredDecisions.length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h3>Aucune décision approuvée</h3>
+    <p>Aucune décision de crédit approuvée n'est disponible pour le moment.</p>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!isLoading && filteredDecisions.length > 0" class="pagination-container">
+    <mat-paginator
+      [length]="totalItems"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[6, 12, 24, 48]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+</div>

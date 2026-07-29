@@ -375,6 +375,39 @@ export const routes: Routes = [
           .then(m => m.DocumentManagementComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
+      },
+     
+      // ============================================
+      // DÉCISIONS - ROUTES POUR ANALYSTE
+      // ============================================
+
+      {
+        path: 'decisions/pending',
+        loadComponent: () => import('./features/analyst/decisions/decisions-pending/decisions-pending.component')
+          .then(m => m.DecisionsPendingComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'ADMIN'] }
+      },
+      {
+        path: 'decisions/approved',
+        loadComponent: () => import('./features/analyst/decisions/decisions-approved/decisions-approved.component')
+          .then(m => m.DecisionsApprovedComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'ADMIN'] }
+      },
+      {
+        path: 'decisions/rejected',
+        loadComponent: () => import('./features/analyst/decisions/decisions-rejected/decisions-rejected.component')
+          .then(m => m.DecisionsRejectedComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'ADMIN'] }
+      },
+      {
+        path: 'decisions/analyze/:id',
+        loadComponent: () => import('./features/analyst/decisions/decision-analyze/decision-analyze.component')
+          .then(m => m.DecisionAnalyzeComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'ADMIN'] }
       }
     ]
   },

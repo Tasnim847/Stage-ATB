@@ -1,0 +1,217 @@
+<!-- decision-analyze.component.html -->
+<div class="decision-analyze-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Retour aux décisions en attente">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-content">
+      <h1>
+        <mat-icon class="header-icon">analytics</mat-icon>
+        Analyse de la décision
+      </h1>
+      <p class="subtitle">#{{ decisionId }} - Analysez et prenez une décision</p>
+    </div>
+    <div class="header-status" *ngIf="!isLoading && decision">
+      <mat-chip [color]="getStatusColor(decision.status)" selected>
+        {{ decision.status }}
+      </mat-chip>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement de la décision...</p>
+  </div>
+
+  <!-- Contenu -->
+  <div *ngIf="!isLoading && decision" class="content-grid">
+    <!-- Informations de la demande -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Informations de la demande
+        </mat-card-title>
+        <mat-card-subtitle>Détails de la demande de crédit</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">👤 Client</span>
+            <span class="value">{{ decision.clientName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">💰 Montant demandé</span>
+            <span class="value amount">{{ formatCurrency(decision.amount) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">⏱️ Durée</span>
+            <span class="value">{{ decision.duration }} mois</span>
+          </div>
+          <div class="info-item">
+            <span class="label">🏷️ Type de crédit</span>
+            <span class="value">{{ decision.type }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">📅 Date de soumission</span>
+            <span class="value">{{ decision.submissionDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">📊 Score de risque</span>
+            <div class="risk-score-display">
+              <span class="value risk-score" [style.color]="getRiskColor(decision.riskScore)">
+                {{ decision.riskScore }}%
+              </span>
+              <mat-progress-bar
+                mode="determinate"
+                [value]="decision.riskScore"
+                [color]="decision.riskScore >= 70 ? 'primary' : decision.riskScore >= 40 ? 'accent' : 'warn'"
+                class="risk-progress">
+              </mat-progress-bar>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Analyse IA -->
+    <mat-card class="analysis-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>smart_toy</mat-icon>
+          Analyse IA
+        </mat-card-title>
+        <mat-card-subtitle>Résultats de l'analyse automatique</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="analysis-result">
+          <div class="score-container">
+            <div class="score-circle" [style.border-color]="getRiskColor(analysisResult.score)">
+              <span class="score-number">{{ analysisResult.score }}%</span>
+            </div>
+            <div class="score-label">Score de confiance</div>
+          </div>
+
+          <div class="analysis-details">
+            <div class="analysis-section">
+              <h4>✅ Forces</h4>
+              <div class="chips-container">
+                <mat-chip *ngFor="let strength of analysisResult.strengths" color="primary" selected>
+                  {{ strength }}
+                </mat-chip>
+                <mat-chip *ngIf="analysisResult.strengths.length === 0" color="primary" selected>
+                  Aucune force identifiée
+                </mat-chip>
+              </div>
+            </div>
+
+            <div class="analysis-section">
+              <h4>⚠️ Facteurs de risque</h4>
+              <div class="chips-container">
+                <mat-chip *ngFor="let risk of analysisResult.riskFactors" color="warn" selected>
+                  {{ risk }}
+                </mat-chip>
+                <mat-chip *ngIf="analysisResult.riskFactors.length === 0" color="warn" selected>
+                  Aucun facteur de risque majeur
+                </mat-chip>
+              </div>
+            </div>
+
+            <div class="analysis-section">
+              <h4>💡 Recommandation</h4>
+              <p class="recommendation-text">{{ analysisResult.recommendation }}</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Formulaire de décision -->
+    <mat-card class="decision-form-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>gavel</mat-icon>
+          Prendre une décision
+        </mat-card-title>
+        <mat-card-subtitle>Analysez et validez votre décision</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="analysisForm">
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Recommandation</mat-label>
+              <mat-select formControlName="recommendation">
+                <mat-option value="approve">✅ Approuver</mat-option>
+                <mat-option value="reject">❌ Refuser</mat-option>
+                <mat-option value="pending">⏳ En attente d'informations</mat-option>
+              </mat-select>
+              <mat-error *ngIf="analysisForm.get('recommendation')?.hasError('required')">
+                La recommandation est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Niveau de risque</mat-label>
+              <mat-select formControlName="riskLevel">
+                <mat-option value="low">🟢 Faible</mat-option>
+                <mat-option value="medium">🟡 Moyen</mat-option>
+                <mat-option value="high">🟠 Élevé</mat-option>
+                <mat-option value="critical">🔴 Critique</mat-option>
+              </mat-select>
+              <mat-error *ngIf="analysisForm.get('riskLevel')?.hasError('required')">
+                Le niveau de risque est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Montant approuvé</mat-label>
+              <input matInput type="number" formControlName="amountApproved" placeholder="0">
+              <span matSuffix>€</span>
+              <mat-error *ngIf="analysisForm.get('amountApproved')?.hasError('required')">
+                Le montant approuvé est obligatoire
+              </mat-error>
+              <mat-error *ngIf="analysisForm.get('amountApproved')?.hasError('min')">
+                Le montant doit être supérieur à 0
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Taux d'intérêt</mat-label>
+              <input matInput type="number" formControlName="interestRate" placeholder="0" step="0.1">
+              <span matSuffix>%</span>
+              <mat-error *ngIf="analysisForm.get('interestRate')?.hasError('required')">
+                Le taux d'intérêt est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Durée (mois)</mat-label>
+              <input matInput type="number" formControlName="duration" placeholder="12">
+              <mat-error *ngIf="analysisForm.get('duration')?.hasError('required')">
+                La durée est obligatoire
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes de l'analyste</mat-label>
+              <textarea matInput formControlName="notes" rows="4" placeholder="Ajoutez vos commentaires..."></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="action-buttons">
+            <button mat-stroked-button color="warn" (click)="submitRejection()" [disabled]="isSubmitting" class="btn-reject">
+              <mat-icon>cancel</mat-icon>
+              Refuser
+            </button>
+            <button mat-raised-button color="primary" (click)="submitApproval()" [disabled]="isSubmitting" class="btn-approve">
+              <mat-icon>check_circle</mat-icon>
+              Approuver
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
