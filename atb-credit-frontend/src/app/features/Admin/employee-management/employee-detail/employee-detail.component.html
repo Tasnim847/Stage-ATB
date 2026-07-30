@@ -1,0 +1,209 @@
+<!-- features/admin/employee-management/employee-detail/employee-detail.component.html -->
+<div class="employee-detail-container">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement des informations de l'employé...</p>
+  </div>
+
+  <!-- Contenu -->
+  <ng-container *ngIf="!loading && employee">
+    <!-- En-tête -->
+    <div class="header">
+      <div class="header-left">
+        <button mat-icon-button (click)="goBack()" matTooltip="Retour à la liste">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="employee-avatar" [style.background-color]="getAvatarColor()">
+          {{ getInitials() }}
+        </div>
+        <div class="employee-title">
+          <h1>{{ getFullName() }}</h1>
+          <div class="employee-meta">
+            <mat-chip [class]="getRoleClass(employee.role)">
+              {{ getRoleLabel(employee.role) }}
+            </mat-chip>
+            <mat-chip [class]="getStatusClass(employee.status)">
+              <mat-icon>{{ getStatusIcon(employee.status) }}</mat-icon>
+              {{ getStatusLabel(employee.status) }}
+            </mat-chip>
+            <span class="employee-number">N° {{ employee.employeeNumber }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button mat-stroked-button (click)="toggleStatus()" [color]="employee.active ? 'warn' : 'primary'">
+          <mat-icon>{{ employee.active ? 'block' : 'check_circle' }}</mat-icon>
+          {{ employee.active ? 'Désactiver' : 'Activer' }}
+        </button>
+        <button mat-raised-button color="primary" (click)="editEmployee()">
+          <mat-icon>edit</mat-icon>
+          Modifier
+        </button>
+        <button mat-raised-button color="warn" (click)="deleteEmployee()">
+          <mat-icon>delete</mat-icon>
+          Supprimer
+        </button>
+      </div>
+    </div>
+
+    <!-- Informations générales -->
+    <div class="info-grid">
+      <!-- Carte: Informations personnelles -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person</mat-icon>
+            Informations personnelles
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <div class="info-item">
+            <span class="label">Prénom</span>
+            <span class="value">{{ employee.firstName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Nom</span>
+            <span class="value">{{ employee.lastName }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Email</span>
+            <span class="value">{{ employee.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Téléphone</span>
+            <span class="value">{{ employee.phoneNumber || 'Non renseigné' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Carte: Informations professionnelles -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>work</mat-icon>
+            Informations professionnelles
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <div class="info-item">
+            <span class="label">Rôle</span>
+            <span class="value">
+              <mat-chip [class]="getRoleClass(employee.role)">
+                {{ getRoleLabel(employee.role) }}
+              </mat-chip>
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Statut</span>
+            <span class="value">
+              <mat-chip [class]="getStatusClass(employee.status)">
+                <mat-icon>{{ getStatusIcon(employee.status) }}</mat-icon>
+                {{ getStatusLabel(employee.status) }}
+              </mat-chip>
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Département</span>
+            <span class="value">{{ employee.department || 'Non défini' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Poste</span>
+            <span class="value">{{ employee.position || 'Non défini' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Date d'embauche</span>
+            <span class="value">{{ employee.hireDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Manager</span>
+            <span class="value">{{ employee.managerName || employee.managerId || 'Non assigné' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Carte: Adresse -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>location_on</mat-icon>
+            Adresse
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <div class="info-item">
+            <span class="label">Adresse</span>
+            <span class="value">{{ employee.address || 'Non renseignée' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Ville</span>
+            <span class="value">{{ employee.city || 'Non renseignée' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Code postal</span>
+            <span class="value">{{ employee.postalCode || 'Non renseigné' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Pays</span>
+            <span class="value">{{ employee.country || 'Non renseigné' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Carte: Informations système -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>settings</mat-icon>
+            Informations système
+          </mat-card-title>
+        </mat-card-header>
+        <mat-divider></mat-divider>
+        <mat-card-content>
+          <div class="info-item">
+            <span class="label">ID Employé</span>
+            <span class="value">{{ employee.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Numéro employé</span>
+            <span class="value">{{ employee.employeeNumber }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Actif</span>
+            <span class="value">
+              <mat-icon [color]="employee.active ? 'primary' : 'warn'">
+                {{ employee.active ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              {{ employee.active ? 'Oui' : 'Non' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">ID Utilisateur</span>
+            <span class="value">{{ employee.userId || 'Non lié' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Créé le</span>
+            <span class="value">{{ employee.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Notes -->
+    <mat-card class="notes-card" *ngIf="employee.notes">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>note</mat-icon>
+          Notes
+        </mat-card-title>
+      </mat-card-header>
+      <mat-divider></mat-divider>
+      <mat-card-content>
+        <p class="notes-content">{{ employee.notes }}</p>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+</div>

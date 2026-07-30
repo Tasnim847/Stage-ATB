@@ -1,4 +1,5 @@
-import { User } from "./user.model";
+// core/models/employee.model.ts
+import { User, UserRole } from "./user.model";
 
 /**
  * Statut de l'employé
@@ -23,7 +24,7 @@ export interface EmployeeRequestDTO {
   city?: string;
   country?: string;
   postalCode?: string;
-  role: User;
+  role: UserRole | string;  // ✅ Accepter UserRole ou string
   status?: EmployeeStatus;
   department?: string;
   position?: string;
@@ -46,7 +47,7 @@ export interface EmployeeResponseDTO {
   city: string;
   country: string;
   postalCode: string;
-  role: User;
+  role: UserRole | string;  // ✅ Accepter UserRole ou string
   status: EmployeeStatus;
   department: string;
   position: string;

@@ -1,0 +1,636 @@
+/* features/admin/employee-management/employee-detail/employee-detail.component.css */
+
+/* ============================================
+   STYLES PRINCIPAUX - ROUGE CLAIR ÉLÉGANT
+   ============================================ */
+
+.employee-detail-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  color: #888;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+}
+
+.loading-container mat-spinner ::ng-deep circle {
+  stroke: #C62828 !important;
+}
+
+/* ============================================
+   EN-TÊTE
+   ============================================ */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: white;
+  padding: 24px 28px;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(198, 40, 40, 0.06);
+  border: 1px solid #FFEBEE;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #C62828, #EF5350, #FF8A80);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left button {
+  color: #888 !important;
+  transition: all 0.2s ease;
+}
+
+.header-left button:hover {
+  color: #C62828 !important;
+  background: #FFEBEE !important;
+}
+
+.employee-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.employee-title h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.employee-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.employee-meta mat-chip {
+  font-size: 12px;
+  padding: 4px 14px;
+  min-height: 28px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+.employee-meta mat-chip mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.employee-number {
+  font-size: 13px;
+  color: #999;
+  font-weight: 500;
+  background: #FFF5F5;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid #FFEBEE;
+}
+
+.header-right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-right button {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  padding: 0 20px !important;
+}
+
+.header-right button[color="primary"] {
+  background: linear-gradient(135deg, #C62828, #E53935) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.3) !important;
+}
+
+.header-right button[color="primary"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(198, 40, 40, 0.4) !important;
+}
+
+.header-right button[color="warn"] {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+}
+
+.header-right button[color="warn"]:hover {
+  background: #FFCDD2 !important;
+}
+
+.header-right button mat-icon {
+  margin-right: 6px;
+}
+
+/* ============================================
+   RÔLES - CHIPS
+   ============================================ */
+
+.role-admin {
+  background: #E3F2FD !important;
+  color: #0D47A1 !important;
+}
+
+.role-analyst {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+}
+
+.role-advisor {
+  background: #F3E5F5 !important;
+  color: #7B1FA2 !important;
+}
+
+.role-manager {
+  background: #FFF3E0 !important;
+  color: #E65100 !important;
+}
+
+.role-client {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+}
+
+/* ============================================
+   STATUTS - CHIPS
+   ============================================ */
+
+.status-active {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+}
+
+.status-inactive {
+  background: #F5F5F5 !important;
+  color: #757575 !important;
+}
+
+.status-suspended {
+  background: #FFF3E0 !important;
+  color: #E65100 !important;
+}
+
+.status-on-leave {
+  background: #E3F2FD !important;
+  color: #0D47A1 !important;
+}
+
+.status-terminated {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+}
+
+/* ============================================
+   GRILLE D'INFORMATIONS
+   ============================================ */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   CARTES D'INFORMATIONS
+   ============================================ */
+
+.info-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(198, 40, 40, 0.06);
+  border: 1px solid #FFEBEE;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  box-shadow: 0 6px 25px rgba(198, 40, 40, 0.1);
+}
+
+.info-card .mat-mdc-card-header {
+  padding: 18px 20px 0 20px;
+}
+
+.info-card .mat-mdc-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #8B1A1A;
+}
+
+.info-card .mat-mdc-card-title mat-icon {
+  color: #C62828;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.info-card .mat-mdc-divider {
+  margin: 12px 20px 0 20px;
+  border-top-color: #FFEBEE;
+}
+
+.info-card .mat-mdc-card-content {
+  padding: 16px 20px 20px 20px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #FFF5F5;
+  align-items: center;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .label {
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.info-item .value {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-align: right;
+  word-break: break-word;
+  max-width: 60%;
+}
+
+.info-item .value mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.info-item .value mat-icon[color="primary"] {
+  color: #1B5E20;
+}
+
+.info-item .value mat-icon[color="warn"] {
+  color: #B71C1C;
+}
+
+/* ============================================
+   CARTE NOTES
+   ============================================ */
+
+.notes-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(198, 40, 40, 0.06);
+  border: 1px solid #FFEBEE;
+  margin-bottom: 24px;
+}
+
+.notes-card .mat-mdc-card-header {
+  padding: 18px 20px 0 20px;
+}
+
+.notes-card .mat-mdc-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #8B1A1A;
+}
+
+.notes-card .mat-mdc-card-title mat-icon {
+  color: #C62828;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.notes-card .mat-mdc-divider {
+  margin: 12px 20px 0 20px;
+  border-top-color: #FFEBEE;
+}
+
+.notes-card .mat-mdc-card-content {
+  padding: 16px 20px 20px 20px;
+}
+
+.notes-content {
+  margin: 0;
+  color: #333;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-size: 14px;
+  background: #FFF8F8;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #FFEBEE;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+/* Tablette */
+@media (max-width: 1024px) {
+  .info-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .employee-detail-container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .header-left {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .employee-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .employee-title h1 {
+    font-size: 20px;
+  }
+
+  .employee-meta {
+    gap: 6px;
+  }
+
+  .employee-meta mat-chip {
+    font-size: 11px;
+    padding: 3px 10px;
+    min-height: 24px;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .header-right button {
+    flex: 1;
+    justify-content: center;
+    font-size: 13px !important;
+    padding: 0 12px !important;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .info-card .mat-mdc-card-content {
+    padding: 12px 16px 16px 16px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 6px 0;
+  }
+
+  .info-item .value {
+    max-width: 100%;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  .info-item .label {
+    font-size: 12px;
+  }
+
+  .notes-card .mat-mdc-card-content {
+    padding: 12px 16px 16px 16px;
+  }
+
+  .notes-content {
+    font-size: 13px;
+    padding: 12px;
+  }
+}
+
+/* Très petit mobile */
+@media (max-width: 480px) {
+  .employee-detail-container {
+    padding: 12px;
+  }
+
+  .header {
+    padding: 16px;
+  }
+
+  .header-left {
+    gap: 12px;
+  }
+
+  .employee-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .employee-title h1 {
+    font-size: 17px;
+  }
+
+  .employee-meta mat-chip {
+    font-size: 10px;
+    padding: 2px 8px;
+    min-height: 20px;
+  }
+
+  .employee-number {
+    font-size: 11px;
+    padding: 2px 10px;
+  }
+
+  .header-right button {
+    font-size: 12px !important;
+    padding: 0 8px !important;
+    min-width: 60px;
+  }
+
+  .header-right button mat-icon {
+    font-size: 16px;
+    margin-right: 4px;
+  }
+
+  .info-card .mat-mdc-card-header {
+    padding: 14px 16px 0 16px;
+  }
+
+  .info-card .mat-mdc-card-title {
+    font-size: 14px;
+  }
+
+  .info-card .mat-mdc-card-title mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .info-card .mat-mdc-divider {
+    margin: 8px 16px 0 16px;
+  }
+
+  .info-card .mat-mdc-card-content {
+    padding: 10px 16px 14px 16px;
+  }
+
+  .info-item .value {
+    font-size: 12px;
+  }
+
+  .notes-card .mat-mdc-card-header {
+    padding: 14px 16px 0 16px;
+  }
+
+  .notes-card .mat-mdc-card-title {
+    font-size: 14px;
+  }
+
+  .notes-card .mat-mdc-card-title mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .notes-card .mat-mdc-divider {
+    margin: 8px 16px 0 16px;
+  }
+
+  .notes-card .mat-mdc-card-content {
+    padding: 10px 16px 14px 16px;
+  }
+
+  .notes-content {
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.info-card {
+  animation: slideUp 0.4s ease forwards;
+}
+
+.info-card:nth-child(1) { animation-delay: 0.05s; }
+.info-card:nth-child(2) { animation-delay: 0.10s; }
+.info-card:nth-child(3) { animation-delay: 0.15s; }
+.info-card:nth-child(4) { animation-delay: 0.20s; }
+
+.notes-card {
+  animation: slideUp 0.4s ease forwards;
+  animation-delay: 0.25s;
+  opacity: 0;
+}
+
+/* ============================================
+   SCROLLBAR PERSONNALISÉE
+   ============================================ */
+
+.employee-detail-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.employee-detail-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+  border-radius: 10px;
+}
+
+.employee-detail-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
+}
+
+.employee-detail-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
+}
