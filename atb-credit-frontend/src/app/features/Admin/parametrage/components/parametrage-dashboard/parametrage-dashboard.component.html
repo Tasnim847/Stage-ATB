@@ -3,49 +3,63 @@
   <!-- En-tête -->
   <div class="header">
     <div class="header-content">
-      <h1>⚙️ Paramétrage du système</h1>
+      <h1>
+        <mat-icon class="header-icon">settings</mat-icon>
+        Paramétrage du système
+      </h1>
       <p class="subtitle">Gestion centralisée des configurations bancaires</p>
     </div>
   </div>
 
   <!-- Statistiques -->
   <div class="stats-row" *ngIf="!loading">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
-        <mat-icon>credit_card</mat-icon>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.creditTypes }}</span>
-        <span class="stat-label">Types de crédit</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
-        <mat-icon>percent</mat-icon>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.interestRates }}</span>
-        <span class="stat-label">Taux d'intérêt</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #fff3e0; color: #e65100;">
-        <mat-icon>schedule</mat-icon>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.durations }}</span>
-        <span class="stat-label">Durées configurées</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #fce4ec; color: #c62828;">
-        <mat-icon>euro_symbol</mat-icon>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ stats.ceilings }}</span>
-        <span class="stat-label">Plafonds définis</span>
-      </div>
-    </div>
+    <mat-card class="stat-card stat-credit-types">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>credit_card</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.creditTypes }}</span>
+          <span class="stat-label">Types de crédit</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-interest-rates">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>percent</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.interestRates }}</span>
+          <span class="stat-label">Taux d'intérêt</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-durations">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.durations }}</span>
+          <span class="stat-label">Durées configurées</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-ceilings">
+      <mat-card-content>
+        <div class="stat-icon">
+          <mat-icon>euro_symbol</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stats.ceilings }}</span>
+          <span class="stat-label">Plafonds définis</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <!-- Grille des modules -->
@@ -53,6 +67,10 @@
     <mat-card
       *ngFor="let module of modules"
       class="module-card"
+      [class.card-credit-types]="module.countKey === 'creditTypes'"
+      [class.card-interest-rates]="module.countKey === 'interestRates'"
+      [class.card-durations]="module.countKey === 'durations'"
+      [class.card-ceilings]="module.countKey === 'ceilings'"
       (click)="navigateTo(module.path)"
     >
       <mat-card-content>
@@ -70,5 +88,11 @@
         </div>
       </mat-card-content>
     </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des configurations...</p>
   </div>
 </div>

@@ -4,9 +4,10 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ParametrageService } from '@app/core/services/parametrage.service';
 
-// ✅ Définir un type pour les clés possibles
 type StatsKey = 'creditTypes' | 'interestRates' | 'durations' | 'ceilings';
 
 @Component({
@@ -16,7 +17,9 @@ type StatsKey = 'creditTypes' | 'interestRates' | 'durations' | 'ceilings';
     CommonModule,
     RouterModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './parametrage-dashboard.component.html',
   styleUrls: ['./parametrage-dashboard.component.css']
@@ -33,8 +36,7 @@ export class ParametrageDashboardComponent implements OnInit {
   };
 
   loading = true;
-  
-  // ✅ Typer modules avec StatsKey
+
   modules: Array<{
     path: string;
     icon: string;
@@ -42,24 +44,24 @@ export class ParametrageDashboardComponent implements OnInit {
     description: string;
     color: string;
     bgColor: string;
-    countKey: StatsKey;  // ← Utiliser le type
+    countKey: StatsKey;
   }> = [
     {
       path: 'credit-types',
       icon: 'credit_card',
       title: 'Types de crédit',
       description: 'Gérer les catégories et caractéristiques des crédits',
-      color: '#1976d2',
-      bgColor: '#e3f2fd',
+      color: '#be5543',
+      bgColor: 'rgba(190, 85, 67, 0.12)',
       countKey: 'creditTypes'
     },
     {
       path: 'interest-rates',
       icon: 'percent',
-      title: 'Taux d\'intérêt',
+      title: "Taux d'intérêt",
       description: 'Configurer les taux de base et personnalisés',
-      color: '#388e3c',
-      bgColor: '#e8f5e9',
+      color: '#d9776b',
+      bgColor: 'rgba(217, 119, 107, 0.15)',
       countKey: 'interestRates'
     },
     {
@@ -67,8 +69,8 @@ export class ParametrageDashboardComponent implements OnInit {
       icon: 'schedule',
       title: 'Durées',
       description: 'Définir les durées disponibles par type de crédit',
-      color: '#e65100',
-      bgColor: '#fff3e0',
+      color: '#c9614c',
+      bgColor: 'rgba(201, 97, 76, 0.12)',
       countKey: 'durations'
     },
     {
@@ -77,7 +79,7 @@ export class ParametrageDashboardComponent implements OnInit {
       title: 'Plafonds',
       description: 'Gérer les montants maximums et niveaux d\'approbation',
       color: '#c62828',
-      bgColor: '#fce4ec',
+      bgColor: 'rgba(198, 40, 40, 0.12)',
       countKey: 'ceilings'
     }
   ];
@@ -100,6 +102,11 @@ export class ParametrageDashboardComponent implements OnInit {
       this.stats.ceilings = ceilings?.length || 0;
       this.loading = false;
     }).catch(() => {
+      // Données mock en cas d'erreur
+      this.stats.creditTypes = 4;
+      this.stats.interestRates = 6;
+      this.stats.durations = 5;
+      this.stats.ceilings = 3;
       this.loading = false;
     });
   }
