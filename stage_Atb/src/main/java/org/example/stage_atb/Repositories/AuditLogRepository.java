@@ -1,8 +1,8 @@
-// repository/AuditLogRepository.java - Version corrigée avec CAST
 package org.example.stage_atb.Repositories;
 
 import org.example.stage_atb.entity.AuditLog;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,11 +15,11 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, String> {
 
-    // ✅ Version corrigée : Utiliser CAST pour convertir les paramètres
+    // ✅ Version NATIVE avec conversion explicite pour TOUTES les colonnes
     @Query(value = "SELECT a.* FROM audit_logs a " +
             "LEFT JOIN users u ON u.id = a.user_id " +
-            "WHERE (CAST(:userId AS text) IS NULL OR a.user_id = CAST(:userId AS UUID)) " +
-            "AND (CAST(:username AS text) IS NULL OR u.username ILIKE CONCAT('%', CAST(:username AS text), '%')) " +
+            "WHERE (CAST(:userId AS text) IS NULL OR CAST(a.user_id AS text) = CAST(:userId AS text)) " +
+            "AND (CAST(:username AS text) IS NULL OR CAST(u.username AS text) ILIKE CONCAT('%', CAST(:username AS text), '%')) " +
             "AND (CAST(:actionType AS text) IS NULL OR CAST(a.action AS text) ILIKE CONCAT('%', CAST(:actionType AS text), '%')) " +
             "AND (CAST(:status AS text) IS NULL OR CAST(a.details AS text) ILIKE CONCAT('%', CAST(:status AS text), '%')) " +
             "AND (CAST(:module AS text) IS NULL OR CAST(a.entity_type AS text) ILIKE CONCAT('%', CAST(:module AS text), '%')) " +
@@ -28,12 +28,12 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, String> {
             "AND (CAST(:searchTerm AS text) IS NULL OR " +
             "CAST(a.action AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%') OR " +
             "CAST(a.details AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%') OR " +
-            "u.email ILIKE CONCAT('%', CAST(:searchTerm AS text), '%')) " +
+            "CAST(u.email AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%')) " +
             "ORDER BY a.timestamp DESC",
             countQuery = "SELECT COUNT(*) FROM audit_logs a " +
                     "LEFT JOIN users u ON u.id = a.user_id " +
-                    "WHERE (CAST(:userId AS text) IS NULL OR a.user_id = CAST(:userId AS UUID)) " +
-                    "AND (CAST(:username AS text) IS NULL OR u.username ILIKE CONCAT('%', CAST(:username AS text), '%')) " +
+                    "WHERE (CAST(:userId AS text) IS NULL OR CAST(a.user_id AS text) = CAST(:userId AS text)) " +
+                    "AND (CAST(:username AS text) IS NULL OR CAST(u.username AS text) ILIKE CONCAT('%', CAST(:username AS text), '%')) " +
                     "AND (CAST(:actionType AS text) IS NULL OR CAST(a.action AS text) ILIKE CONCAT('%', CAST(:actionType AS text), '%')) " +
                     "AND (CAST(:status AS text) IS NULL OR CAST(a.details AS text) ILIKE CONCAT('%', CAST(:status AS text), '%')) " +
                     "AND (CAST(:module AS text) IS NULL OR CAST(a.entity_type AS text) ILIKE CONCAT('%', CAST(:module AS text), '%')) " +
@@ -42,7 +42,7 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, String> {
                     "AND (CAST(:searchTerm AS text) IS NULL OR " +
                     "CAST(a.action AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%') OR " +
                     "CAST(a.details AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%') OR " +
-                    "u.email ILIKE CONCAT('%', CAST(:searchTerm AS text), '%'))",
+                    "CAST(u.email AS text) ILIKE CONCAT('%', CAST(:searchTerm AS text), '%'))",
             nativeQuery = true)
     Page<AuditLog> findWithFilters(
             @Param("userId") String userId,
@@ -56,15 +56,20 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, String> {
             Pageable pageable
     );
 
-    @Query("SELECT COUNT(a) FROM AuditLog a WHERE a.action LIKE '%LOGIN%' AND a.details NOT LIKE '%ERROR%'")
+    // ✅ Statistiques en NATIVE
+    @Query(value = "SELECT COUNT(*) FROM audit_logs a " +
+            "WHERE CAST(a.action AS text) ILIKE '%LOGIN%' " +
+            "AND (a.details IS NULL OR CAST(a.details AS text) NOT ILIKE '%ERROR%')",
+            nativeQuery = true)
     long countSuccessfulLogins();
 
-    @Query("SELECT COUNT(a) FROM AuditLog a WHERE a.action LIKE '%LOGIN%' AND a.details LIKE '%ERROR%'")
+    @Query(value = "SELECT COUNT(*) FROM audit_logs a " +
+            "WHERE CAST(a.action AS text) ILIKE '%LOGIN%' " +
+            "AND CAST(a.details AS text) ILIKE '%ERROR%'",
+            nativeQuery = true)
     long countFailedLogins();
 
-    @Query("SELECT COUNT(a) FROM AuditLog a WHERE a.timestamp >= :startDate")
+    @Query(value = "SELECT COUNT(*) FROM audit_logs a WHERE a.timestamp >= CAST(:startDate AS timestamp)",
+            nativeQuery = true)
     long countSince(@Param("startDate") LocalDateTime startDate);
-
-    @Query("SELECT a.user.id, COUNT(a) as count FROM AuditLog a GROUP BY a.user.id ORDER BY count DESC")
-    List<Object[]> findMostActiveUsers(Pageable pageable);
 }

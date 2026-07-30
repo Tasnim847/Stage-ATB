@@ -1,0 +1,156 @@
+<!-- features/admin/employee-management/employee-management.component.html -->
+<div class="employee-management-container">
+  <!-- En-tête -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Gestion des employés</h1>
+      <p class="subtitle">Gérez les employés de la banque</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button class="btn-primary" routerLink="/admin/employees/new">
+        <mat-icon>person_add</mat-icon>
+        Nouvel employé
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid" *ngIf="employees.length > 0">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>people</mat-icon>
+      </div>
+      <div class="stat-value">{{ totalEmployees }}</div>
+      <div class="stat-label">Total employés</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-value">{{ activeEmployees }}</div>
+      <div class="stat-label">Actifs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>admin_panel_settings</mat-icon>
+      </div>
+      <div class="stat-value">{{ adminCount }}</div>
+      <div class="stat-label">Administrateurs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>analytics</mat-icon>
+      </div>
+      <div class="stat-value">{{ analystCount }}</div>
+      <div class="stat-label">Analystes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>support_agent</mat-icon>
+      </div>
+      <div class="stat-value">{{ advisorCount }}</div>
+      <div class="stat-label">Conseillers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>manager</mat-icon>
+      </div>
+      <div class="stat-value">{{ managerCount }}</div>
+      <div class="stat-label">Managers</div>
+    </div>
+  </div>
+
+  <!-- Grille de cartes -->
+  <div class="cards-grid">
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Chargement des employés...</p>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && employees.length === 0" class="empty-container">
+      <mat-icon>people_outline</mat-icon>
+      <h3>Aucun employé trouvé</h3>
+      <p>Commencez par ajouter un nouvel employé</p>
+      <button mat-raised-button class="btn-primary" routerLink="/admin/employees/new">
+        <mat-icon>person_add</mat-icon>
+        Ajouter un employé
+      </button>
+    </div>
+
+    <!-- Cartes employés -->
+    <mat-card *ngFor="let employee of employees" class="employee-card" [class.inactive]="!employee.active">
+      <!-- Badge de statut -->
+      <div class="status-badge" [class]="getStatusClass(employee.status)">
+        <mat-icon>{{ getStatusIcon(employee.status) }}</mat-icon>
+        {{ getStatusLabel(employee.status) }}
+      </div>
+
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div mat-card-avatar class="employee-avatar" [style.background-color]="getAvatarColor(employee)">
+          {{ getInitials(employee) }}
+        </div>
+        <mat-card-title>{{ employee.firstName }} {{ employee.lastName }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-chip [class]="getRoleClass(employee.role)" size="small">
+            {{ getRoleLabel(employee.role) }}
+          </mat-chip>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <!-- Contenu de la carte -->
+      <mat-card-content>
+        <div class="employee-info">
+          <div class="info-item">
+            <mat-icon>badge</mat-icon>
+            <span class="info-label">N° Employé</span>
+            <span class="info-value">{{ employee.employeeNumber }}</span>
+          </div>
+          <div class="info-item">
+            <mat-icon>email</mat-icon>
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ employee.email }}</span>
+          </div>
+          <div class="info-item" *ngIf="employee.phoneNumber">
+            <mat-icon>phone</mat-icon>
+            <span class="info-label">Téléphone</span>
+            <span class="info-value">{{ employee.phoneNumber }}</span>
+          </div>
+          <div class="info-item" *ngIf="employee.department">
+            <mat-icon>business</mat-icon>
+            <span class="info-label">Département</span>
+            <span class="info-value">{{ employee.department }}</span>
+          </div>
+          <div class="info-item" *ngIf="employee.position">
+            <mat-icon>work</mat-icon>
+            <span class="info-label">Poste</span>
+            <span class="info-value">{{ employee.position }}</span>
+          </div>
+          <div class="info-item" *ngIf="employee.hireDate">
+            <mat-icon>event</mat-icon>
+            <span class="info-label">Date d'embauche</span>
+            <span class="info-value">{{ employee.hireDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions de la carte -->
+      <mat-card-actions align="end">
+        <button mat-icon-button color="primary" [routerLink]="['/admin/employees', employee.id]" matTooltip="Voir">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button mat-icon-button color="accent" [routerLink]="['/admin/employees', employee.id, 'edit']" matTooltip="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button [color]="employee.active ? 'warn' : 'primary'" (click)="toggleStatus(employee)" [matTooltip]="employee.active ? 'Désactiver' : 'Activer'">
+          <mat-icon>{{ employee.active ? 'block' : 'check_circle' }}</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteEmployee(employee.id)" matTooltip="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

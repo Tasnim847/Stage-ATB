@@ -338,6 +338,40 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
 
+
+      // ============================================
+      // GESTION DES EMPLOYÉS - CORRIGÉ
+      // ============================================
+      {
+        path: 'admin/employees',
+        loadComponent: () => import('./features/Admin/employee-management/employee-management.component')
+          .then(m => m.EmployeeManagementComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/employees/new',
+        loadComponent: () => import('./features/Admin/employee-management/employee-form/employee-form.component')
+          .then(m => m.EmployeeFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/employees/:id',
+        loadComponent: () => import('./features/Admin/employee-management/employee-detail/employee-detail.component')
+          .then(m => m.EmployeeDetailComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/employees/:id/edit',
+        loadComponent: () => import('./features/Admin/employee-management/employee-form/employee-form.component')
+          .then(m => m.EmployeeFormComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+
+
       // ============================================
       // GESTION DES DOCUMENTS
       // ============================================

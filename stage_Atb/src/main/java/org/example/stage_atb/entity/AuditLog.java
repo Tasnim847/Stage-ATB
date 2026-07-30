@@ -1,4 +1,3 @@
-// entity/AuditLog.java - AVEC GETTERS DÉRIVÉS
 package org.example.stage_atb.entity;
 
 import jakarta.persistence.*;
@@ -8,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.stage_atb.enums.ActionType;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
 
@@ -31,32 +31,37 @@ public class AuditLog {
     @JoinColumn(name = "credit_request_id")
     private CreditRequest creditRequest;
 
-    @Column(nullable = false)
+    // ✅ Ajouter columnDefinition = "TEXT" pour forcer le type TEXT
+    @Column(name = "action", nullable = false, columnDefinition = "TEXT")
     private String action;
 
-    @Column(nullable = false)
+    @Column(name = "entity_type", nullable = false, columnDefinition = "TEXT")
     private String entityType;
 
-    @Column(nullable = false)
+    @Column(name = "entity_id", nullable = false, columnDefinition = "TEXT")
     private String entityId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "old_value", columnDefinition = "TEXT")
     private String oldValue;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "details", columnDefinition = "TEXT")
     private String details;
 
+    @Column(name = "ip_address", columnDefinition = "TEXT")
     private String ipAddress;
 
+    @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
     @CreationTimestamp
+    @Column(name = "timestamp", columnDefinition = "TIMESTAMP")
     private LocalDateTime timestamp;
 
     @Version
+    @Column(name = "version")
     private Long version;
 
     // ✅ GETTERS DÉRIVÉS (non persistants)

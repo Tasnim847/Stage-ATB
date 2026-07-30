@@ -1,0 +1,202 @@
+<!-- features/admin/employee-management/employee-form/employee-form.component.html -->
+<div class="employee-form-container">
+  <mat-card class="form-card">
+    <!-- En-tête -->
+    <mat-card-header>
+      <mat-card-title>
+        <div class="header-content">
+          <button mat-icon-button (click)="goBack()" matTooltip="Retour à la liste">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <span>{{ getTitle() }}</span>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Chargement de l'employé...</p>
+      </div>
+
+      <!-- Formulaire -->
+      <form *ngIf="!loading" [formGroup]="employeeForm" (ngSubmit)="onSubmit()" class="employee-form">
+        <!-- Section: Informations personnelles -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>person</mat-icon>
+            Informations personnelles
+          </h3>
+          <mat-divider></mat-divider>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Prénom</mat-label>
+              <input matInput formControlName="firstName" placeholder="Prénom">
+              <mat-error *ngIf="employeeForm.get('firstName')?.touched">
+                {{ getErrorMessage('firstName') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Nom</mat-label>
+              <input matInput formControlName="lastName" placeholder="Nom">
+              <mat-error *ngIf="employeeForm.get('lastName')?.touched">
+                {{ getErrorMessage('lastName') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="Email professionnel">
+              <mat-icon matSuffix>email</mat-icon>
+              <mat-error *ngIf="employeeForm.get('email')?.touched">
+                {{ getErrorMessage('email') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Téléphone</mat-label>
+              <input matInput formControlName="phoneNumber" placeholder="Numéro de téléphone">
+              <mat-icon matSuffix>phone</mat-icon>
+              <mat-error *ngIf="employeeForm.get('phoneNumber')?.touched">
+                {{ getErrorMessage('phoneNumber') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section: Informations professionnelles -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>work</mat-icon>
+            Informations professionnelles
+          </h3>
+          <mat-divider></mat-divider>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Rôle</mat-label>
+              <mat-select formControlName="role">
+                <mat-option *ngFor="let role of roles" [value]="role.value">
+                  {{ role.label }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="employeeForm.get('role')?.touched">
+                {{ getErrorMessage('role') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Statut</mat-label>
+              <mat-select formControlName="status">
+                <mat-option *ngFor="let status of statuses" [value]="status.value">
+                  {{ status.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Département</mat-label>
+              <mat-select formControlName="department">
+                <mat-option *ngFor="let dept of departments" [value]="dept">
+                  {{ dept }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Poste</mat-label>
+              <input matInput formControlName="position" placeholder="Intitulé du poste">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Date d'embauche</mat-label>
+              <input matInput [matDatepicker]="hireDatePicker" formControlName="hireDate">
+              <mat-datepicker-toggle matSuffix [for]="hireDatePicker"></mat-datepicker-toggle>
+              <mat-datepicker #hireDatePicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Manager (ID)</mat-label>
+              <input matInput formControlName="managerId" placeholder="ID du manager">
+              <mat-icon matSuffix>supervisor_account</mat-icon>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section: Adresse -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>location_on</mat-icon>
+            Adresse
+          </h3>
+          <mat-divider></mat-divider>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full">
+              <mat-label>Adresse</mat-label>
+              <input matInput formControlName="address" placeholder="Adresse complète">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field half">
+              <mat-label>Ville</mat-label>
+              <input matInput formControlName="city" placeholder="Ville">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field quarter">
+              <mat-label>Code postal</mat-label>
+              <input matInput formControlName="postalCode" placeholder="Code postal">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field quarter">
+              <mat-label>Pays</mat-label>
+              <mat-select formControlName="country">
+                <mat-option *ngFor="let country of countries" [value]="country">
+                  {{ country }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section: Notes -->
+        <div class="form-section">
+          <h3 class="section-title">
+            <mat-icon>note</mat-icon>
+            Notes supplémentaires
+          </h3>
+          <mat-divider></mat-divider>
+
+          <mat-form-field appearance="outline" class="form-field full">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Informations supplémentaires..."></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button mat-button type="button" (click)="goBack()">
+            Annuler
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="submitting || employeeForm.invalid">
+            <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>
+            <span *ngIf="!submitting">
+              <mat-icon>{{ isEditMode ? 'save' : 'person_add' }}</mat-icon>
+              {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
