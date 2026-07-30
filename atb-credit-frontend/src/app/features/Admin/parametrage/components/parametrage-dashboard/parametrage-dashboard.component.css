@@ -1,48 +1,77 @@
 /* components/parametrage-dashboard/parametrage-dashboard.component.css */
+
+/* components/parametrage-dashboard/parametrage-dashboard.component.css */
+
+/* ============================================
+   PARAMETRAGE DASHBOARD - STYLE ÉQUILIBRÉ
+   ============================================ */
+
 .parametrage-dashboard {
   padding: 24px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+  animation: fadeInUp 0.5s ease;
+  background: #f8fafc;
+  min-height: 100vh;
 }
 
+/* ===== HEADER ===== */
 .header {
   margin-bottom: 32px;
 }
 
 .header-content h1 {
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 28px;
-  color: #1a237e;
+  font-weight: 700;
+  color: #1a2332;
+  margin: 0 0 4px;
+  letter-spacing: -0.5px;
+}
+
+.header-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #be5543;
 }
 
 .subtitle {
-  margin: 8px 0 0;
-  color: #666;
-  font-size: 16px;
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0 0 0 44px;
 }
 
-/* Statistiques */
+/* ===== STATISTIQUES ===== */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 32px;
 }
 
 .stat-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  cursor: default;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+}
+
+.stat-card mat-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
 }
 
 .stat-icon {
@@ -52,12 +81,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .stat-icon mat-icon {
   font-size: 24px;
-  width: 24px;
-  height: 24px;
+  color: white;
 }
 
 .stat-info {
@@ -65,135 +94,385 @@
   flex-direction: column;
 }
 
-.stat-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a237e;
-}
-
 .stat-label {
   font-size: 13px;
-  color: #666;
+  font-weight: 500;
+  color: #6b7280;
 }
 
-/* Modules grid */
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a2332;
+}
+
+/* Couleurs des stats - Neutres avec touche de rouge */
+.stat-credit-types .stat-icon {
+  background: linear-gradient(135deg, #be5543, #a84535);
+}
+.stat-credit-types .stat-value {
+  color: #be5543;
+}
+
+.stat-interest-rates .stat-icon {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+.stat-interest-rates .stat-value {
+  color: #4b5563;
+}
+
+.stat-durations .stat-icon {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+.stat-durations .stat-value {
+  color: #059669;
+}
+
+.stat-ceilings .stat-icon {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+}
+.stat-ceilings .stat-value {
+  color: #7c3aed;
+}
+
+/* ===== MODULES GRID ===== */
 .modules-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
 }
 
+/* ===== MODULE CARD ===== */
 .module-card {
-  cursor: pointer;
-  transition: all 0.3s ease;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
   overflow: hidden;
+  position: relative;
+}
+
+.module-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+/* Bordures colorées par module - Neutres avec touches */
+.module-card.card-credit-types::before {
+  background: linear-gradient(90deg, #be5543, #a84535);
+}
+.module-card.card-interest-rates::before {
+  background: linear-gradient(90deg, #6b7280, #4b5563);
+}
+.module-card.card-durations::before {
+  background: linear-gradient(90deg, #059669, #047857);
+}
+.module-card.card-ceilings::before {
+  background: linear-gradient(90deg, #7c3aed, #6d28d9);
 }
 
 .module-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+}
+
+.module-card:active {
+  transform: scale(0.98);
 }
 
 .module-card mat-card-content {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .module-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  transition: transform 0.3s ease;
-}
-
-.module-card:hover .module-icon {
-  transform: scale(1.1);
+  margin-bottom: 4px;
+  transition: all 0.3s ease;
 }
 
 .module-icon mat-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.module-card:hover .module-icon {
+  transform: scale(1.05) rotate(-3deg);
 }
 
 .module-card h3 {
-  margin: 0 0 8px;
   font-size: 18px;
-  color: #1a237e;
+  font-weight: 600;
+  color: #1a2332;
+  margin: 0;
 }
 
 .module-card p {
-  margin: 0 0 16px;
-  color: #666;
   font-size: 14px;
+  color: #6b7280;
   line-height: 1.5;
+  margin: 0;
+  flex: 1;
 }
 
 .module-stats {
-  margin-bottom: 16px;
+  margin-top: 4px;
 }
 
 .badge {
-  background: #e8eaf6;
-  color: #1a237e;
-  padding: 4px 16px;
-  border-radius: 20px;
-  font-size: 13px;
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 12px;
+  font-size: 12px;
   font-weight: 500;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Badges colorés par module */
+.module-card.card-credit-types .badge {
+  background: #fef2ee;
+  color: #be5543;
+}
+.module-card.card-interest-rates .badge {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.module-card.card-durations .badge {
+  background: #ecfdf5;
+  color: #059669;
+}
+.module-card.card-ceilings .badge {
+  background: #f5f3ff;
+  color: #7c3aed;
 }
 
 .module-action {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #1976d2;
+  gap: 4px;
+  margin-top: 8px;
+  color: #6b7280;
   font-weight: 500;
-  font-size: 14px;
-  opacity: 0;
   transition: all 0.3s ease;
 }
 
-.module-card:hover .module-action {
-  opacity: 1;
+.module-action .action-text {
+  font-size: 14px;
 }
 
-.action-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+.module-action .action-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
   transition: transform 0.3s ease;
 }
 
-.module-card:hover .action-icon {
-  transform: translateX(4px);
+/* Couleur du texte d'action par module */
+.module-card.card-credit-types .module-action {
+  color: #be5543;
+}
+.module-card.card-interest-rates .module-action {
+  color: #4b5563;
+}
+.module-card.card-durations .module-action {
+  color: #059669;
+}
+.module-card.card-ceilings .module-action {
+  color: #7c3aed;
 }
 
-/* Responsive */
+.module-card:hover .module-action .action-icon {
+  transform: translateX(6px);
+}
+
+/* ===== LOADING ===== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.loading-container p {
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.module-card {
+  animation: fadeInUp 0.4s ease;
+}
+
+.module-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.module-card:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.module-card:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .parametrage-dashboard {
     padding: 16px;
   }
 
+  .header-content h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    margin-left: 0;
+  }
+
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card mat-card-content {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-icon mat-icon {
+    font-size: 20px;
+  }
+
+  .stat-value {
+    font-size: 20px;
   }
 
   .modules-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .stats-row {
-    grid-template-columns: 1fr;
+  .parametrage-dashboard {
+    padding: 12px;
   }
+
+  .header-content h1 {
+    font-size: 20px;
+  }
+
+  .header-content h1 .header-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card mat-card-content {
+    padding: 12px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .modules-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .module-card mat-card-content {
+    padding: 20px;
+  }
+
+  .module-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .module-icon mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .module-card h3 {
+    font-size: 16px;
+  }
+
+  .module-card p {
+    font-size: 13px;
+  }
+}
+
+/* src/styles.css - Ajoutez si nécessaire */
+
+.success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+}
+
+.error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+}
+
+.warning-snackbar {
+  background: #ff9800 !important;
+  color: white !important;
+}
+
+.success-snackbar .mat-simple-snackbar-action,
+.error-snackbar .mat-simple-snackbar-action,
+.warning-snackbar .mat-simple-snackbar-action {
+  color: white !important;
 }

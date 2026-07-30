@@ -1,22 +1,57 @@
 <!-- components/ceilings/ceilings.component.html -->
 <div class="ceilings-container">
-  <!-- En-tête avec bouton retour -->
+  <!-- En-tête -->
   <div class="header">
     <div class="header-left">
       <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Retour au paramétrage">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div>
-        <h1>💰 Plafonds</h1>
+        <h1>
+          <mat-icon class="header-icon">euro_symbol</mat-icon>
+          Plafonds
+        </h1>
         <p class="subtitle">Gestion des montants maximums et niveaux d'approbation</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
       <mat-icon>add</mat-icon>
       Nouveau plafond
     </button>
   </div>
 
+  <!-- Statistiques -->
+  <div class="stats-row" *ngIf="!loading">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #be5543, #a84535);">
+        <mat-icon>euro_symbol</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.length }}</span>
+        <span class="stat-label">Total plafonds</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #047857);">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getApprovalLevelCount() }}</span>
+        <span class="stat-label">Niveaux d'approbation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
   <div class="filters">
     <mat-form-field appearance="outline" class="filter-select">
       <mat-label>Statut</mat-label>
@@ -27,6 +62,17 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Niveau d'approbation</mat-label>
+      <mat-select [(ngModel)]="selectedApprovalLevel" (selectionChange)="applyFilters()">
+        <mat-option value="">Tous</mat-option>
+        <mat-option value="ADVISOR">Conseiller</mat-option>
+        <mat-option value="ANALYST">Analyste</mat-option>
+        <mat-option value="MANAGER">Responsable</mat-option>
+        <mat-option value="DIRECTOR">Directeur</mat-option>
+      </mat-select>
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="filter-search">
       <mat-label>Rechercher</mat-label>
       <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Type de crédit ou devise...">
@@ -34,85 +80,110 @@
     </mat-form-field>
   </div>
 
-  <div class="table-container">
-    <mat-progress-spinner *ngIf="loading" mode="indeterminate" diameter="40" class="spinner"></mat-progress-spinner>
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des plafonds...</p>
+  </div>
 
-    <table mat-table [dataSource]="filteredData" class="mat-elevation-z2">
-      <ng-container matColumnDef="creditType">
-        <th mat-header-cell *matHeaderCellDef> Type de crédit </th>
-        <td mat-cell *matCellDef="let item">{{ item.creditTypeName || '-' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="minAmount">
-        <th mat-header-cell *matHeaderCellDef> Montant min </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="amount-value">{{ item.minAmount | number:'1.0-0' }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="maxAmount">
-        <th mat-header-cell *matHeaderCellDef> Montant max </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="amount-value">{{ item.maxAmount | number:'1.0-0' }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="currency">
-        <th mat-header-cell *matHeaderCellDef> Devise </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="currency-badge">{{ item.currency || 'TND' }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="approvalLevel">
-        <th mat-header-cell *matHeaderCellDef> Niveau d'approbation </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="approval-badge">{{ getApprovalLevelLabel(item.approvalLevel) }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="requiresAdditional">
-        <th mat-header-cell *matHeaderCellDef> Approbation supplémentaire </th>
-        <td mat-cell *matCellDef="let item">
-          <mat-icon [color]="item.requiresAdditionalApproval ? 'warn' : ''">
-            {{ item.requiresAdditionalApproval ? 'warning' : 'check_circle' }}
-          </mat-icon>
-          <span *ngIf="item.requiresAdditionalApproval" class="additional-level">
-            {{ getApprovalLevelLabel(item.additionalApprovalLevel || '') }}
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef> Statut </th>
-        <td mat-cell *matCellDef="let item">
-          <mat-slide-toggle [checked]="item.isActive" (change)="toggleStatus(item)" color="primary">
+  <!-- Cards Grid -->
+  <div *ngIf="!loading && filteredData.length > 0" class="cards-grid">
+    <mat-card *ngFor="let item of filteredData" 
+              class="ceiling-card"
+              [class.card-active]="item.isActive"
+              [class.card-inactive]="!item.isActive"
+              [class.card-advisor]="item.approvalLevel === 'ADVISOR'"
+              [class.card-analyst]="item.approvalLevel === 'ANALYST'"
+              [class.card-manager]="item.approvalLevel === 'MANAGER'"
+              [class.card-director]="item.approvalLevel === 'DIRECTOR'">
+      
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div class="card-header-left">
+          <div class="card-icon" [style.background]="getApprovalLevelColor(item.approvalLevel)">
+            <mat-icon>{{ getApprovalLevelIcon(item.approvalLevel) }}</mat-icon>
+          </div>
+          <div class="card-title">
+            <div class="card-type">{{ item.creditTypeName || 'Type non défini' }}</div>
+            <div class="card-amount">{{ item.minAmount | number:'1.0-0' }} - {{ item.maxAmount | number:'1.0-0' }} {{ item.currency || 'DT' }}</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <span class="status-badge" [class.status-active]="item.isActive" [class.status-inactive]="!item.isActive">
             {{ item.isActive ? 'Actif' : 'Inactif' }}
-          </mat-slide-toggle>
-        </td>
-      </ng-container>
+          </span>
+        </div>
+      </mat-card-header>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let item">
+      <!-- Corps de la carte -->
+      <mat-card-content>
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">💰 Montant minimum</span>
+            <span class="detail-value amount">{{ item.minAmount | number:'1.0-0' }} {{ item.currency || 'DT' }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">💰 Montant maximum</span>
+            <span class="detail-value amount">{{ item.maxAmount | number:'1.0-0' }} {{ item.currency || 'DT' }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">🏷️ Devise</span>
+            <span class="currency-badge">{{ item.currency || 'TND' }}</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">✅ Niveau d'approbation</span>
+            <span class="approval-badge" [class]="getApprovalLevelClass(item.approvalLevel)">
+              {{ getApprovalLevelLabel(item.approvalLevel) }}
+            </span>
+          </div>
+
+          <div class="detail-item full-width">
+            <span class="detail-label">🔒 Approbation supplémentaire</span>
+            <div class="approval-extra">
+              <mat-icon [color]="item.requiresAdditionalApproval ? 'warn' : 'primary'">
+                {{ item.requiresAdditionalApproval ? 'warning' : 'check_circle' }}
+              </mat-icon>
+              <span class="extra-text" [class.extra-required]="item.requiresAdditionalApproval" [class.extra-none]="!item.requiresAdditionalApproval">
+                {{ item.requiresAdditionalApproval ? 'Requise: ' + getApprovalLevelLabel(item.additionalApprovalLevel || '') : 'Aucune approbation supplémentaire' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions -->
+      <mat-card-actions align="end">
+        <div class="actions-left">
+          <mat-slide-toggle
+            [checked]="item.isActive"
+            (change)="toggleStatus(item)"
+            color="primary">
+          </mat-slide-toggle>
+          <span class="status-label">{{ item.isActive ? 'Actif' : 'Inactif' }}</span>
+        </div>
+        <div class="actions-right">
           <button mat-icon-button color="primary" (click)="openEditDialog(item)" matTooltip="Modifier">
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button color="warn" (click)="deleteCeiling(item)" matTooltip="Supprimer">
             <mat-icon>delete</mat-icon>
           </button>
-        </td>
-      </ng-container>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="8" style="text-align: center; padding: 32px;">
-          <mat-icon style="font-size: 48px; color: #ccc;">inbox</mat-icon>
-          <p style="color: #999; margin-top: 8px;">Aucun plafond trouvé</p>
-        </td>
-      </tr>
-    </table>
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredData.length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h3>Aucun plafond</h3>
+    <p>Aucun plafond ne correspond à vos critères de recherche.</p>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
+      <mat-icon>add</mat-icon>
+      Créer un plafond
+    </button>
   </div>
 </div>

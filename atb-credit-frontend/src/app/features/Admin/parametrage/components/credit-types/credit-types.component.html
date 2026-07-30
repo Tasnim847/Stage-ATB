@@ -1,23 +1,56 @@
 <!-- components/credit-types/credit-types.component.html -->
 <div class="credit-types-container">
   <!-- En-tête -->
-  <div class="credit-types-container">
-  <!-- En-tête avec bouton retour -->
   <div class="header">
     <div class="header-left">
       <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Retour au paramétrage">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div>
-        <h1>🏦 Types de crédit</h1>
+        <h1>
+          <mat-icon class="header-icon">credit_card</mat-icon>
+          Types de crédit
+        </h1>
         <p class="subtitle">Gestion des produits de crédit proposés par la banque</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
       <mat-icon>add</mat-icon>
       Nouveau type
     </button>
   </div>
+
+  <!-- Statistiques -->
+  <div class="stats-row" *ngIf="!loading">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #be5543, #a84535);">
+        <mat-icon>credit_card</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.length }}</span>
+        <span class="stat-label">Total produits</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #047857);">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
+        <mat-icon>category</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getCategoryCount() }}</span>
+        <span class="stat-label">Catégories</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Filtres -->
   <div class="filters">
     <mat-form-field appearance="outline" class="filter-select">
@@ -46,108 +79,115 @@
     </mat-form-field>
   </div>
 
-  <!-- Tableau -->
-  <div class="table-container">
-    <mat-progress-spinner
-      *ngIf="loading"
-      mode="indeterminate"
-      diameter="40"
-      class="spinner">
-    </mat-progress-spinner>
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des types de crédit...</p>
+  </div>
 
-    <table mat-table [dataSource]="filteredData" class="mat-elevation-z2">
-      <!-- Code -->
-      <ng-container matColumnDef="code">
-        <th mat-header-cell *matHeaderCellDef> Code </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="code-badge">{{ item.code }}</span>
-        </td>
-      </ng-container>
-
-      <!-- Nom -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef> Type de crédit </th>
-        <td mat-cell *matCellDef="let item">
-          <div class="name-cell">
-            <strong>{{ item.name }}</strong>
-            <span class="description">{{ item.description }}</span>
+  <!-- Cards Grid -->
+  <div *ngIf="!loading && filteredData.length > 0" class="cards-grid">
+    <mat-card *ngFor="let item of filteredData" 
+              class="credit-card"
+              [class.card-active]="item.isActive"
+              [class.card-inactive]="!item.isActive">
+      
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div class="card-header-left">
+          <div class="card-icon" [style.background]="getCategoryColor(item.category)">
+            <mat-icon>{{ getCategoryIcon(item.category) }}</mat-icon>
           </div>
-        </td>
-      </ng-container>
-
-      <!-- Catégorie -->
-      <ng-container matColumnDef="category">
-        <th mat-header-cell *matHeaderCellDef> Catégorie </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="category-badge" [class]="getCategoryClass(item.category)">
-            {{ getCategoryLabel(item.category) }}
+          <div class="card-title">
+            <div class="card-code">{{ item.code }}</div>
+            <div class="card-name">{{ item.name }}</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <span class="status-badge" [class.status-active]="item.isActive" [class.status-inactive]="!item.isActive">
+            {{ item.isActive ? 'Actif' : 'Inactif' }}
           </span>
-        </td>
-      </ng-container>
+        </div>
+      </mat-card-header>
 
-      <!-- Durée -->
-      <ng-container matColumnDef="duration">
-        <th mat-header-cell *matHeaderCellDef> Durée </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="duration-range">
-            {{ item.minDurationMonths }} - {{ item.maxDurationMonths }} mois
-          </span>
-        </td>
-      </ng-container>
+      <!-- Corps de la carte -->
+      <mat-card-content>
+        <p class="card-description">{{ item.description }}</p>
+        
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">📂 Catégorie</span>
+            <span class="detail-value">
+              <span class="category-badge" [class]="getCategoryClass(item.category)">
+                {{ getCategoryLabel(item.category) }}
+              </span>
+            </span>
+          </div>
 
-      <!-- Montant -->
-      <ng-container matColumnDef="amount">
-        <th mat-header-cell *matHeaderCellDef> Montant </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="amount-range">
-            {{ item.minAmount | number:'1.0-0' }} - {{ item.maxAmount | number:'1.0-0' }} DT
-          </span>
-        </td>
-      </ng-container>
+          <div class="detail-item">
+            <span class="detail-label">⏱️ Durée</span>
+            <span class="detail-value">{{ item.minDurationMonths }} - {{ item.maxDurationMonths }} mois</span>
+          </div>
 
-      <!-- Taux de base -->
-      <ng-container matColumnDef="baseRate">
-        <th mat-header-cell *matHeaderCellDef> Taux de base </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="rate">{{ item.baseInterestRate }}%</span>
-        </td>
-      </ng-container>
+          <div class="detail-item">
+            <span class="detail-label">💰 Montant</span>
+            <span class="detail-value">{{ item.minAmount | number:'1.0-0' }} - {{ item.maxAmount | number:'1.0-0' }} DT</span>
+          </div>
 
-      <!-- Statut -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef> Statut </th>
-        <td mat-cell *matCellDef="let item">
+          <div class="detail-item">
+            <span class="detail-label">📊 Taux de base</span>
+            <span class="detail-value rate">{{ item.baseInterestRate }}%</span>
+          </div>
+
+          <div class="detail-item full-width" *ngIf="item.requiresCollateral || item.requiresGuarantor">
+            <span class="detail-label">🔒 Options</span>
+            <div class="options-chips">
+              <span class="option-chip" *ngIf="item.requiresCollateral">Garantie requise</span>
+              <span class="option-chip" *ngIf="item.requiresGuarantor">Garant requis</span>
+            </div>
+          </div>
+
+          <div class="detail-item full-width" *ngIf="item.requiredDocuments && item.requiredDocuments.length > 0">
+            <span class="detail-label">📄 Documents requis</span>
+            <div class="doc-chips">
+              <span class="doc-chip" *ngFor="let doc of item.requiredDocuments">
+                {{ getDocumentLabel(doc) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions -->
+      <mat-card-actions align="end">
+        <div class="actions-left">
           <mat-slide-toggle
             [checked]="item.isActive"
             (change)="toggleStatus(item)"
             color="primary">
-            {{ item.isActive ? 'Actif' : 'Inactif' }}
           </mat-slide-toggle>
-        </td>
-      </ng-container>
-
-      <!-- Actions -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let item">
+          <span class="status-label">{{ item.isActive ? 'Actif' : 'Inactif' }}</span>
+        </div>
+        <div class="actions-right">
           <button mat-icon-button color="primary" (click)="openEditDialog(item)" matTooltip="Modifier">
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button color="warn" (click)="deleteCreditType(item)" matTooltip="Supprimer">
             <mat-icon>delete</mat-icon>
           </button>
-        </td>
-      </ng-container>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="8" style="text-align: center; padding: 32px;">
-          <mat-icon style="font-size: 48px; color: #ccc;">inbox</mat-icon>
-          <p style="color: #999; margin-top: 8px;">Aucun type de crédit trouvé</p>
-        </td>
-      </tr>
-    </table>
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredData.length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h3>Aucun type de crédit</h3>
+    <p>Aucun type de crédit ne correspond à vos critères de recherche.</p>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
+      <mat-icon>add</mat-icon>
+      Créer un type
+    </button>
   </div>
 </div>

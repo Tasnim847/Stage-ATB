@@ -1,10 +1,10 @@
 /* components/durations-dialog/durations-dialog.component.css */
+
 .dialog-grid {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 8px 0;
-  min-width: 450px;
 }
 
 .full-width {
@@ -19,34 +19,35 @@
 
 .checkbox-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  flex-wrap: wrap;
 }
 
 .hint-text {
   font-size: 12px;
-  color: #666;
-  margin-left: 28px;
+  color: #6b7280;
+  font-style: italic;
 }
 
 .section-divider {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
+  gap: 2px;
+  padding: 8px 0 4px;
+  border-top: 1px solid #e5e7eb;
 }
 
 .section-label {
   font-size: 14px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #1a2332;
 }
 
 .section-hint {
   font-size: 12px;
-  color: #999;
+  color: #9ca3af;
 }
 
 .spinner-icon {
@@ -58,12 +59,8 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .row {
     grid-template-columns: 1fr;
-  }
-  .dialog-grid {
-    min-width: auto;
   }
 }

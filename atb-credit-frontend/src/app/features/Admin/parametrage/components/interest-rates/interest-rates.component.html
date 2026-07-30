@@ -1,22 +1,66 @@
 <!-- components/interest-rates/interest-rates.component.html -->
 <div class="interest-rates-container">
-  <!-- En-tête avec bouton retour -->
+  <!-- En-tête -->
   <div class="header">
     <div class="header-left">
       <button mat-icon-button (click)="goBack()" class="back-button" matTooltip="Retour au paramétrage">
         <mat-icon>arrow_back</mat-icon>
       </button>
       <div>
-        <h1>📊 Taux d'intérêt</h1>
+        <h1>
+          <mat-icon class="header-icon">percent</mat-icon>
+          Taux d'intérêt
+        </h1>
         <p class="subtitle">Gestion des taux de base et personnalisés</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
       <mat-icon>add</mat-icon>
       Nouveau taux
     </button>
   </div>
 
+  <!-- Statistiques -->
+  <div class="stats-row" *ngIf="!loading">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #be5543, #a84535);">
+        <mat-icon>percent</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ data.length }}</span>
+        <span class="stat-label">Total taux</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #047857);">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+        <mat-icon>star</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getDefaultCount() }}</span>
+        <span class="stat-label">Par défaut</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ getAvgRate() | number:'1.1-2' }}%</span>
+        <span class="stat-label">Taux moyen</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
   <div class="filters">
     <mat-form-field appearance="outline" class="filter-select">
       <mat-label>Statut</mat-label>
@@ -27,6 +71,16 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Catégorie client</mat-label>
+      <mat-select [(ngModel)]="selectedCategory" (selectionChange)="applyFilters()">
+        <mat-option value="">Toutes</mat-option>
+        <mat-option value="STANDARD">Standard</mat-option>
+        <mat-option value="PREMIUM">Premium</mat-option>
+        <mat-option value="RISK">À risque</mat-option>
+      </mat-select>
+    </mat-form-field>
+
     <mat-form-field appearance="outline" class="filter-search">
       <mat-label>Rechercher</mat-label>
       <input matInput [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Type de crédit ou taux...">
@@ -34,86 +88,117 @@
     </mat-form-field>
   </div>
 
-  <div class="table-container">
-    <mat-progress-spinner *ngIf="loading" mode="indeterminate" diameter="40" class="spinner"></mat-progress-spinner>
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des taux d'intérêt...</p>
+  </div>
 
-    <table mat-table [dataSource]="filteredData" class="mat-elevation-z2">
-      <ng-container matColumnDef="creditType">
-        <th mat-header-cell *matHeaderCellDef> Type de crédit </th>
-        <td mat-cell *matCellDef="let item">{{ item.creditTypeName || '-' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="rate">
-        <th mat-header-cell *matHeaderCellDef> Taux </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="rate-value">{{ item.rate }}%</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="minRate">
-        <th mat-header-cell *matHeaderCellDef> Taux min </th>
-        <td mat-cell *matCellDef="let item">{{ item.minRate ? item.minRate + '%' : '-' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="maxRate">
-        <th mat-header-cell *matHeaderCellDef> Taux max </th>
-        <td mat-cell *matCellDef="let item">{{ item.maxRate ? item.maxRate + '%' : '-' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="clientCategory">
-        <th mat-header-cell *matHeaderCellDef> Catégorie client </th>
-        <td mat-cell *matCellDef="let item">
-          <span class="category-badge" [class.premium]="item.clientCategory === 'PREMIUM'"
-                [class.risk]="item.clientCategory === 'RISK'">
-            {{ getClientCategoryLabel(item.clientCategory) }}
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="isDefault">
-        <th mat-header-cell *matHeaderCellDef> Par défaut </th>
-        <td mat-cell *matCellDef="let item">
-          <mat-icon [color]="item.isDefault ? 'primary' : ''">
-            {{ item.isDefault ? 'check_circle' : 'radio_button_unchecked' }}
-          </mat-icon>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="effectiveDate">
-        <th mat-header-cell *matHeaderCellDef> Date d'effet </th>
-        <td mat-cell *matCellDef="let item">{{ item.effectiveDate | date:'dd/MM/yyyy' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef> Statut </th>
-        <td mat-cell *matCellDef="let item">
-          <mat-slide-toggle [checked]="item.isActive" (change)="toggleStatus(item)" color="primary">
+  <!-- Cards Grid -->
+  <div *ngIf="!loading && filteredData.length > 0" class="cards-grid">
+    <mat-card *ngFor="let item of filteredData" 
+              class="rate-card"
+              [class.card-active]="item.isActive"
+              [class.card-inactive]="!item.isActive"
+              [class.card-default]="item.isDefault"
+              [class.card-premium]="item.clientCategory === 'PREMIUM'"
+              [class.card-risk]="item.clientCategory === 'RISK'">
+      
+      <!-- En-tête de la carte -->
+      <mat-card-header>
+        <div class="card-header-left">
+          <div class="card-icon" [style.background]="getCategoryColor(item.clientCategory)">
+            <mat-icon>{{ getCategoryIcon(item.clientCategory) }}</mat-icon>
+          </div>
+          <div class="card-title">
+            <div class="card-type">{{ item.creditTypeName || 'Type non défini' }}</div>
+            <div class="card-rate">{{ item.rate }}%</div>
+          </div>
+        </div>
+        <div class="card-header-right">
+          <span class="status-badge" [class.status-active]="item.isActive" [class.status-inactive]="!item.isActive">
             {{ item.isActive ? 'Actif' : 'Inactif' }}
-          </mat-slide-toggle>
-        </td>
-      </ng-container>
+          </span>
+          <span class="default-badge" *ngIf="item.isDefault">
+            <mat-icon>star</mat-icon> Défaut
+          </span>
+        </div>
+      </mat-card-header>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Actions </th>
-        <td mat-cell *matCellDef="let item">
+      <!-- Corps de la carte -->
+      <mat-card-content>
+        <div class="card-details">
+          <div class="detail-item">
+            <span class="detail-label">📊 Taux</span>
+            <span class="detail-value rate-value">{{ item.rate }}%</span>
+          </div>
+
+          <div class="detail-item" *ngIf="item.minRate || item.maxRate">
+            <span class="detail-label">📈 Fourchette</span>
+            <span class="detail-value">{{ item.minRate || '0' }}% - {{ item.maxRate || '∞' }}%</span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">👤 Catégorie client</span>
+            <span class="category-badge" [class]="getCategoryClass(item.clientCategory)">
+              {{ getClientCategoryLabel(item.clientCategory) }}
+            </span>
+          </div>
+
+          <div class="detail-item" *ngIf="item.rateAdjustment">
+            <span class="detail-label">⚡ Ajustement</span>
+            <span class="detail-value" [style.color]="item.rateAdjustment >= 0 ? '#059669' : '#dc2626'">
+              {{ item.rateAdjustment >= 0 ? '+' : '' }}{{ item.rateAdjustment }}%
+            </span>
+          </div>
+
+          <div class="detail-item">
+            <span class="detail-label">📅 Date d'effet</span>
+            <span class="detail-value">{{ item.effectiveDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="detail-item" *ngIf="item.expiryDate">
+            <span class="detail-label">📅 Date d'expiration</span>
+            <span class="detail-value">{{ item.expiryDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="detail-item full-width" *ngIf="!item.expiryDate">
+            <span class="detail-label">📌 Validité</span>
+            <span class="detail-value no-limit">Sans date d'expiration</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Actions -->
+      <mat-card-actions align="end">
+        <div class="actions-left">
+          <mat-slide-toggle
+            [checked]="item.isActive"
+            (change)="toggleStatus(item)"
+            color="primary">
+          </mat-slide-toggle>
+          <span class="status-label">{{ item.isActive ? 'Actif' : 'Inactif' }}</span>
+        </div>
+        <div class="actions-right">
           <button mat-icon-button color="primary" (click)="openEditDialog(item)" matTooltip="Modifier">
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button color="warn" (click)="deleteInterestRate(item)" matTooltip="Supprimer">
             <mat-icon>delete</mat-icon>
           </button>
-        </td>
-      </ng-container>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="9" style="text-align: center; padding: 32px;">
-          <mat-icon style="font-size: 48px; color: #ccc;">inbox</mat-icon>
-          <p style="color: #999; margin-top: 8px;">Aucun taux d'intérêt trouvé</p>
-        </td>
-      </tr>
-    </table>
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredData.length === 0" class="empty-state">
+    <mat-icon>inbox</mat-icon>
+    <h3>Aucun taux d'intérêt</h3>
+    <p>Aucun taux d'intérêt ne correspond à vos critères de recherche.</p>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()" class="btn-primary">
+      <mat-icon>add</mat-icon>
+      Créer un taux
+    </button>
   </div>
 </div>
