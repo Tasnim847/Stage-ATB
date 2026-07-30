@@ -1,0 +1,210 @@
+<!-- features/dashboard/admin-dashboard/admin-dashboard.component.html -->
+<div class="admin-dashboard-container">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- Contenu -->
+  <ng-container *ngIf="!isLoading">
+    <!-- En-tête -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>🏛️ Tableau de bord Administrateur</h1>
+        <p class="welcome-text">Bonjour, {{ getFullName() }}</p>
+      </div>
+      <div class="header-right">
+        <div class="user-avatar">
+          {{ getInitials() }}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ getFullName() }}</span>
+          <span class="user-role">Administrateur</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Statistiques -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <div class="stat-icon users">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalUsers }}</h3>
+          <p>Utilisateurs</p>
+          <span class="stat-sub">{{ stats.activeUsers }} actifs</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon employees">
+          <mat-icon>badge</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalEmployees }}</h3>
+          <p>Employés</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon clients">
+          <mat-icon>people_outline</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalClients }}</h3>
+          <p>Clients</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon requests">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalCreditRequests }}</h3>
+          <p>Demandes de crédit</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon pending">
+          <mat-icon>hourglass_empty</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.pendingRequests }}</h3>
+          <p>En attente</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon approved">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.approvedRequests }}</h3>
+          <p>Approuvées</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon rejected">
+          <mat-icon>cancel</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.rejectedRequests }}</h3>
+          <p>Refusées</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon fraud">
+          <mat-icon>security</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.fraudAlerts }}</h3>
+          <p>Alertes fraude</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Grille principale -->
+    <div class="dashboard-grid">
+      <!-- Dernières activités -->
+      <mat-card class="activity-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>history</mat-icon>
+            Dernières activités
+          </h2>
+          <button mat-button color="primary" routerLink="/admin/audit-logs">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div *ngFor="let activity of recentActivities" class="activity-item">
+            <div class="activity-icon" [style.background-color]="getActivityColor(activity.type)">
+              <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
+            </div>
+            <div class="activity-details">
+              <span class="activity-user">{{ activity.user }}</span>
+              <span class="activity-action">{{ activity.action }}</span>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Top Analystes -->
+      <mat-card class="analysts-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>analytics</mat-icon>
+            Top Analystes
+          </h2>
+          <button mat-button color="primary" routerLink="/manager/analysts">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div *ngFor="let analyst of topAnalysts; let i = index" class="analyst-item">
+            <div class="analyst-rank" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+              #{{ i + 1 }}
+            </div>
+            <div class="analyst-info">
+              <span class="analyst-name">{{ analyst.name }}</span>
+              <span class="analyst-stats">{{ analyst.requests }} dossiers · Score {{ analyst.avgScore }}%</span>
+            </div>
+            <div class="analyst-score">
+              <div class="score-bar" [style.width]="analyst.avgScore + '%'"></div>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Actions rapides -->
+      <mat-card class="actions-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>flash_on</mat-icon>
+            Actions rapides
+          </h2>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div class="actions-grid">
+            <button mat-raised-button class="action-btn" routerLink="/admin/users">
+              <mat-icon>people</mat-icon>
+              Gérer les utilisateurs
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/admin/employees">
+              <mat-icon>badge</mat-icon>
+              Gérer les employés
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/admin/credit-requests">
+              <mat-icon>assignment</mat-icon>
+              Voir les demandes
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/admin/roles">
+              <mat-icon>admin_panel_settings</mat-icon>
+              Gérer les rôles
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/admin/parametrage">
+              <mat-icon>settings</mat-icon>
+              Paramètres système
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/admin/audit-logs">
+              <mat-icon>history</mat-icon>
+              Journal d'audit
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </ng-container>
+</div>

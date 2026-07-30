@@ -23,19 +23,68 @@ export const routes: Routes = [
     redirectTo: '/auth'
   },
   {
-    path: '',
-    loadComponent: () => import('./features/layout/layout.component')
-      .then(m => m.LayoutComponent),
-    canActivate: [authGuard],
-    children: [
-      // ============================================
-      // DASHBOARD
-      // ============================================
-      {
-        path: 'dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard.component')
-          .then(m => m.DashboardComponent)
-      },
+  path: '',
+  loadComponent: () => import('./features/layout/layout.component')
+    .then(m => m.LayoutComponent),
+  canActivate: [authGuard],
+  children: [
+    // ============================================
+    // DASHBOARD - POINT D'ENTRÉE
+    // ============================================
+    {
+      path: 'dashboard',
+      loadComponent: () => import('./features/dashboard/dashboard.component')
+        .then(m => m.DashboardComponent)
+    },
+    
+    // ============================================
+    // DASHBOARDS PAR RÔLE
+    // ============================================
+    
+    // 👤 Dashboard Client
+    {
+      path: 'client-dashboard',
+      loadComponent: () => import('./features/dashboard/client-dashboard/client-dashboard.component')
+        .then(m => m.ClientDashboardComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['CLIENT'] }
+    },
+    
+    // 🛡️ Dashboard Admin
+    {
+      path: 'admin-dashboard',
+      loadComponent: () => import('./features/dashboard/admin-dashboard/admin-dashboard.component')
+        .then(m => m.AdminDashboardComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['ADMIN'] }
+    },
+    
+    // 📊 Dashboard Analyste
+    {
+      path: 'analyst-dashboard',
+      loadComponent: () => import('./features/dashboard/analyst-dashboard/analyst-dashboard.component')
+        .then(m => m.AnalystDashboardComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['ANALYST'] }
+    },
+    
+    // 💼 Dashboard Conseiller
+    {
+      path: 'advisor-dashboard',
+      loadComponent: () => import('./features/dashboard/advisor-dashboard/advisor-dashboard.component')
+        .then(m => m.AdvisorDashboardComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['ADVISOR'] }
+    },
+    
+    // 📈 Dashboard Manager
+    {
+      path: 'manager-dashboard',
+      loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
+        .then(m => m.ManagerDashboardComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['MANAGER'] }
+    },
 
       // ============================================
       // GESTION DES CLIENTS
