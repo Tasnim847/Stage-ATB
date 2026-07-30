@@ -1,0 +1,172 @@
+<!-- features/dashboard/advisor-dashboard/advisor-dashboard.component.html -->
+<div class="advisor-dashboard-container">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- Contenu -->
+  <ng-container *ngIf="!isLoading">
+    <!-- En-tête -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>💼 Tableau de bord Conseiller</h1>
+        <p class="welcome-text">Bonjour, {{ getFullName() }}</p>
+      </div>
+      <div class="header-right">
+        <div class="user-avatar">
+          {{ getInitials() }}
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ getFullName() }}</span>
+          <span class="user-role">Conseiller bancaire</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Statistiques -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <div class="stat-icon clients">
+          <mat-icon>people</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalClients }}</h3>
+          <p>Total clients</p>
+          <span class="stat-sub">{{ stats.activeClients }} actifs</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon pending">
+          <mat-icon>hourglass_empty</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.pendingRequests }}</h3>
+          <p>Demandes en attente</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon approved">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.approvedRequests }}</h3>
+          <p>Demandes approuvées</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon amount">
+          <mat-icon>account_balance</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalAmount | currency:'EUR' }}</h3>
+          <p>Montant total</p>
+        </div>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <div class="stat-icon appointments">
+          <mat-icon>event</mat-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.upcomingAppointments }}</h3>
+          <p>Rendez-vous à venir</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Grille principale -->
+    <div class="dashboard-grid">
+      <!-- Clients récents -->
+      <mat-card class="clients-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>people_outline</mat-icon>
+            Derniers clients
+          </h2>
+          <button mat-button color="primary" routerLink="/clients">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div *ngFor="let client of recentClients" class="client-item">
+            <div class="client-avatar">
+              {{ client.name.charAt(0) }}
+            </div>
+            <div class="client-info">
+              <span class="client-name">{{ client.name }}</span>
+              <span class="client-email">{{ client.email }}</span>
+            </div>
+            <mat-chip [class]="getClientStatusClass(client.status)">
+              {{ getClientStatusLabel(client.status) }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Demandes récentes -->
+      <mat-card class="requests-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>assignment</mat-icon>
+            Demandes récentes
+          </h2>
+          <button mat-button color="primary" routerLink="/credit-requests">
+            Voir tout
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div *ngFor="let request of recentRequests" class="request-item">
+            <div class="request-info">
+              <span class="request-id">{{ request.id }}</span>
+              <span class="request-client">{{ request.client }}</span>
+              <span class="request-amount">{{ request.amount | currency:'EUR' }}</span>
+            </div>
+            <mat-chip [class]="getStatusClass(request.status)">
+              {{ getStatusLabel(request.status) }}
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card>
+
+      <!-- Actions rapides -->
+      <mat-card class="actions-card">
+        <div class="card-header">
+          <h2>
+            <mat-icon>flash_on</mat-icon>
+            Actions rapides
+          </h2>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="card-content">
+          <div class="actions-grid">
+            <button mat-raised-button class="action-btn" routerLink="/clients/new">
+              <mat-icon>person_add</mat-icon>
+              Nouveau client
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/credit-requests/new">
+              <mat-icon>add</mat-icon>
+              Nouvelle demande
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/simulation">
+              <mat-icon>calculate</mat-icon>
+              Simuler un crédit
+            </button>
+            <button mat-raised-button class="action-btn" routerLink="/kyc">
+              <mat-icon>verified_user</mat-icon>
+              Vérifier KYC
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </ng-container>
+</div>
