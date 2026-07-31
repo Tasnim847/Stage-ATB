@@ -1,5 +1,5 @@
+// FinancialAnalysis.java - CORRIGÉ
 package org.example.stage_atb.entity;
-
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,42 +24,66 @@ public class FinancialAnalysis {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    // ✅ CHANGER EN @OneToOne pour être cohérent avec CreditRequest
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credit_request_id", nullable = false)
     private CreditRequest creditRequest;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private Client client;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "analyst_id")
     private User analyst;
 
-    // Financial Ratios
+    // Revenus
+    private BigDecimal monthlyNetIncome;
+    private BigDecimal otherMonthlyIncome;
+    private BigDecimal totalMonthlyIncome;
+    private BigDecimal annualIncome;
+
+    // Charges
+    private BigDecimal monthlyCharges;
+    private BigDecimal existingCreditPayments;
+    private BigDecimal newMonthlyPayment;
+
+    // Ratios - Particulier
     private BigDecimal debtRatio;
-    private BigDecimal liquidityRatio;
-    private BigDecimal solvencyRatio;
-    private BigDecimal profitabilityRatio;
-    private BigDecimal efficiencyRatio;
-
-    // Cash Flow Analysis
-    private BigDecimal monthlyIncome;
-    private BigDecimal monthlyExpenses;
-    private BigDecimal netMonthlyCashFlow;
-    private BigDecimal totalAssets;
-    private BigDecimal totalLiabilities;
-    private BigDecimal netWorth;
-
-    // Repayment Capacity
     private BigDecimal repaymentCapacity;
-    private BigDecimal debtServiceCoverageRatio;
-    private BigDecimal monthlyPaymentToIncomeRatio;
+    private BigDecimal residualIncome;
+    private BigDecimal monthlyPaymentRatio;
+    private BigDecimal chargesToIncomeRatio;
+    private BigDecimal lti;
+    private BigDecimal ltv;
+    private BigDecimal coverageRatio;
+    private BigDecimal incomeToPaymentRatio;
 
-    // Analysis Results
+    // Ratios - Professionnel
+    private BigDecimal currentRatio;
+    private BigDecimal solvencyRatio;
+    private BigDecimal financialAutonomyRatio;
+    private BigDecimal financialDebtRatio;
+    private BigDecimal debtToAssetRatio;
+    private BigDecimal interestCoverageRatio;
+    private BigDecimal dscr;
+
+    // Analyse crédit
+    private BigDecimal totalCost;
+    private BigDecimal totalInterest;
+
+    // Score global
+    private BigDecimal overallScore;
+    private String riskLevel;
+    private String recommendation;
     private String financialHealthScore;
-    private String analysisSummary;
 
-    @Column(columnDefinition = "TEXT")
-    private String detailedAnalysis;
-
+    // Statut de l'analyse
+    private String status;
     private boolean approvedByAnalyst;
+
+    // Métadonnées
+    private String analyzedBy;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

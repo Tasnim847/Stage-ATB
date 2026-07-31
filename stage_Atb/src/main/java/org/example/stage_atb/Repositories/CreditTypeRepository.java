@@ -1,6 +1,8 @@
+// Repositories/CreditTypeRepository.java
 package org.example.stage_atb.Repositories;
 
 import org.example.stage_atb.entity.CreditType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,12 +13,18 @@ import java.util.Optional;
 @Repository
 public interface CreditTypeRepository extends JpaRepository<CreditType, String> {
 
+    @EntityGraph(attributePaths = {"requiredDocuments"})
     Optional<CreditType> findByCode(String code);
 
+    @EntityGraph(attributePaths = {"requiredDocuments"})
     List<CreditType> findByIsActiveTrue();
 
+    @EntityGraph(attributePaths = {"requiredDocuments"})
     @Query("SELECT c FROM CreditType c WHERE c.isActive = true ORDER BY c.name ASC")
     List<CreditType> findActiveOrderByName();
+
+    @EntityGraph(attributePaths = {"requiredDocuments"})
+    Optional<CreditType> findById(String id);
 
     boolean existsByCode(String code);
 

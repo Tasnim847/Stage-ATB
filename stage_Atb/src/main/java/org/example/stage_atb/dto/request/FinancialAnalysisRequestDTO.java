@@ -1,5 +1,5 @@
+// FinancialAnalysisRequestDTO.java
 package org.example.stage_atb.dto.request;
-
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,28 +15,30 @@ import java.math.BigDecimal;
 public class FinancialAnalysisRequestDTO {
 
     private String creditRequestId;
+    private String clientId;
+    private String analystId;
 
-    // Financial Ratios
-    private BigDecimal debtRatio;
-    private BigDecimal liquidityRatio;
-    private BigDecimal solvencyRatio;
-    private BigDecimal profitabilityRatio;
-    private BigDecimal efficiencyRatio;
+    // Données de base
+    private BigDecimal monthlyNetIncome;
+    private BigDecimal otherMonthlyIncome;
+    private BigDecimal monthlyCharges;
+    private BigDecimal existingCreditPayments;
 
-    // Cash Flow Analysis
-    private BigDecimal monthlyIncome;
-    private BigDecimal monthlyExpenses;
-    private BigDecimal netMonthlyCashFlow;
+    // Données du crédit
+    private BigDecimal creditAmount;
+    private Integer durationMonths;
+    private BigDecimal annualInterestRate;
+    private BigDecimal collateralValue;
+
+    // Données professionnelles (optionnelles)
     private BigDecimal totalAssets;
     private BigDecimal totalLiabilities;
-    private BigDecimal netWorth;
-
-    // Repayment Capacity
-    private BigDecimal repaymentCapacity;
-    private BigDecimal debtServiceCoverageRatio;
-    private BigDecimal monthlyPaymentToIncomeRatio;
-
-    private String financialHealthScore;
-    private String analysisSummary;
-    private String detailedAnalysis;
+    private BigDecimal currentAssets;
+    private BigDecimal currentLiabilities;
+    private BigDecimal ebit;
+    private BigDecimal financialCharges;
+    private BigDecimal availableCashFlow;
+    private BigDecimal annualDebtService;
+    private BigDecimal totalFinancialDebts;
+    private BigDecimal shareholdersEquity;
 }

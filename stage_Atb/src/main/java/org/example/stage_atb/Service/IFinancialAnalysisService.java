@@ -1,32 +1,48 @@
+// IFinancialAnalysisService.java - CORRIGÉ
 package org.example.stage_atb.Service;
-
 
 import org.example.stage_atb.dto.request.FinancialAnalysisRequestDTO;
 import org.example.stage_atb.dto.response.FinancialAnalysisResponseDTO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IFinancialAnalysisService {
 
-    FinancialAnalysisResponseDTO createFinancialAnalysis(FinancialAnalysisRequestDTO financialAnalysisRequestDTO);
+    FinancialAnalysisResponseDTO calculateAndSaveAnalysis(FinancialAnalysisRequestDTO request);
 
-    FinancialAnalysisResponseDTO getFinancialAnalysisById(String id);
+    FinancialAnalysisResponseDTO getAnalysisById(String id);
 
-    FinancialAnalysisResponseDTO getFinancialAnalysisByCreditRequest(String creditRequestId);
+    List<FinancialAnalysisResponseDTO> getAnalysesByClient(String clientId);
 
-    List<FinancialAnalysisResponseDTO> getFinancialAnalysesByAnalyst(String analystId);
+    List<FinancialAnalysisResponseDTO> getAnalysesByCreditRequest(String creditRequestId);
 
-    List<FinancialAnalysisResponseDTO> getAllFinancialAnalyses();
+    List<FinancialAnalysisResponseDTO> getAllAnalyses();
 
-    FinancialAnalysisResponseDTO updateFinancialAnalysis(String id, FinancialAnalysisRequestDTO financialAnalysisRequestDTO);
+    List<FinancialAnalysisResponseDTO> getAnalysesByAnalyst(String analystId);
 
-    void deleteFinancialAnalysis(String id);
+    FinancialAnalysisResponseDTO updateAnalysis(String id, FinancialAnalysisRequestDTO request);
 
-    FinancialAnalysisResponseDTO approveFinancialAnalysis(String id);
+    void deleteAnalysis(String id);
 
-    FinancialAnalysisResponseDTO performAIAnalysis(String creditRequestId);
+    // ✅ CORRECTION - Les deux méthodes doivent avoir la même signature
+    // Option 1: Approve avec 2 paramètres (sans raison)
+    FinancialAnalysisResponseDTO approveAnalysis(String id, String analystId);
 
-    List<FinancialAnalysisResponseDTO> getPendingAnalyses();
+    // Option 2: Approve avec 3 paramètres (avec raison optionnelle)
+    // FinancialAnalysisResponseDTO approveAnalysis(String id, String analystId, String reason);
 
-    List<FinancialAnalysisResponseDTO> getApprovedAnalyses();
+    // ✅ Reject avec 3 paramètres (raison obligatoire)
+    FinancialAnalysisResponseDTO rejectAnalysis(String id, String analystId, String reason);
+
+    // Méthodes de calcul
+    BigDecimal calculateMonthlyPayment(BigDecimal amount, BigDecimal annualRate, Integer months);
+
+    BigDecimal calculateDebtRatio(BigDecimal totalMonthlyIncome, BigDecimal existingPayments, BigDecimal newPayment);
+
+    BigDecimal calculateRepaymentCapacity(BigDecimal totalMonthlyIncome, BigDecimal charges, BigDecimal existingPayments);
+
+    BigDecimal calculateLTV(BigDecimal creditAmount, BigDecimal collateralValue);
+
+    BigDecimal calculateDSCR(BigDecimal cashFlow, BigDecimal annualDebtService);
 }

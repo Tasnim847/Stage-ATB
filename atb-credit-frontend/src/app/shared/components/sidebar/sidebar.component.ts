@@ -1,4 +1,4 @@
-// sidebar.component.ts
+// sidebar.component.ts - CODE COMPLET
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -77,7 +77,8 @@ export class SidebarComponent {
     // Demandes de crédit
     { path: '/admin/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     { path: '/admin/credit-requests/new', icon: 'add', label: 'Nouvelle demande (Admin)', badge: 0 },
-    // sidebar.component.ts - Dans adminMenuItems
+    
+    // Paramétrage
     {
       path: '/admin/parametrage',
       icon: 'settings',
@@ -91,8 +92,11 @@ export class SidebarComponent {
       ]
     },
 
-    // Analyses
+    // ✅ ANALYSES FINANCIÈRES - ADMIN
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
+    { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
+    
+    // Analyses
     { path: '/risk-analysis', icon: 'warning', label: 'Analyse des risques', badge: 3 },
     { path: '/fraud-alerts', icon: 'security', label: 'Alertes fraude', badge: 2 },
     { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 4 },
@@ -104,7 +108,7 @@ export class SidebarComponent {
     
     // IA & Configuration
     { path: '/admin/ai-config', icon: 'smart_toy', label: 'Configuration IA', badge: 0 },
-    { path: '/admin/ocr-config', icon: 'text_snippet', label: 'Configuration OCR' }, // ✅ OK
+    { path: '/admin/ocr-config', icon: 'text_snippet', label: 'Configuration OCR', badge: 0 },
     
     // Rapports & Journal
     { path: '/reports', icon: 'assessment', label: 'Rapports', badge: 0 },
@@ -125,15 +129,16 @@ export class SidebarComponent {
     { path: '/dashboard', icon: 'dashboard', label: 'Tableau de bord', badge: 0 },
     
     // Demandes de crédit
-    { path: '/analyst/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },    
+    { path: '/analyst/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     
     // Analyse documentaire
     { path: '/documents/analysis', icon: 'folder_open', label: 'Analyse documentaire', badge: 3 },
     { path: '/documents/ocr', icon: 'text_snippet', label: 'Lancer OCR', badge: 0 },
     { path: '/documents/ai-summary', icon: 'smart_toy', label: 'Résumé IA', badge: 0 },
     
-    // Analyse financière
+    // ✅ ANALYSES FINANCIÈRES - ANALYSTE
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 3 },
+    { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
     { path: '/financial-analysis/ratios', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
     { path: '/financial-analysis/debt', icon: 'trending_up', label: 'Taux d\'endettement', badge: 0 },
     
@@ -169,11 +174,14 @@ export class SidebarComponent {
     { path: '/clients', icon: 'people', label: 'Mes clients', badge: 0 },
     { path: '/clients/new', icon: 'person_add', label: 'Nouveau client', badge: 0 },
   
-    // ✅ Gestion des demandes de crédit - CORRIGÉ
+    // Demandes de crédit
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
   
     // Simulation
     { path: '/simulation', icon: 'calculate', label: 'Simulation de crédit', badge: 0 },
+    
+    // ✅ ANALYSES FINANCIÈRES - CONSEILLER (lecture seule)
+    { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
     
     // KYC
     { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 3 },
@@ -219,8 +227,9 @@ export class SidebarComponent {
     // Demandes
     { path: '/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
     
-    // Analyses
+    // ✅ ANALYSES FINANCIÈRES - MANAGER
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
+    { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
     { path: '/risk-analysis', icon: 'warning', label: 'Analyse des risques', badge: 3 },
     { path: '/fraud-alerts', icon: 'security', label: 'Alertes fraude', badge: 2 },
     
@@ -234,9 +243,8 @@ export class SidebarComponent {
   // ============================================
   // 5. MENU CLIENT
   // ============================================
-
   clientMenuItems: MenuItem[] = [
-     // Tableau de bord
+    // Tableau de bord
     { path: '/dashboard', icon: 'dashboard', label: 'Mon tableau de bord', badge: 0 },
   
     // Gestion du profil
@@ -244,7 +252,7 @@ export class SidebarComponent {
     { path: '/profile/edit', icon: 'edit', label: 'Modifier mon profil', badge: 0 },
     { path: '/profile/password', icon: 'lock', label: 'Changer mot de passe', badge: 0 },
   
-    // ✅ SIMULATIONS - AJOUTER CETTE SECTION
+    // Simulations
     { path: '/simulations', icon: 'calculate', label: 'Mes simulations', badge: 0 },
     { path: '/simulation-new', icon: 'add', label: 'Nouvelle simulation', badge: 0 },
   
@@ -259,6 +267,7 @@ export class SidebarComponent {
     // Notifications
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 3 }
   ];
+
   // ============================================
   // 6. MENU PAR DÉFAUT
   // ============================================
@@ -307,5 +316,11 @@ export class SidebarComponent {
     const user = this.getUserInfo();
     if (!user) return '';
     return (user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '');
+  }
+
+  // ✅ Méthode pour vérifier si un chemin est actif
+  isActive(path: string): boolean {
+    // À implémenter avec le Router si nécessaire
+    return false;
   }
 }
