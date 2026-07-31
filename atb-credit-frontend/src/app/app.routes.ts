@@ -378,6 +378,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      // ⚠️ OCR CONFIGURATION - ICI
+      {
+        path: 'admin/ocr-config',
+        loadComponent: () => import('./features/Admin/ocr-config/ocr-config.component')
+          .then(m => m.OcrConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
       // Dans app.routes.ts
       {
         path: 'admin/parametrage',

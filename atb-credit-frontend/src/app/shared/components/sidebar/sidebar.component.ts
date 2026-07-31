@@ -104,7 +104,7 @@ export class SidebarComponent {
     
     // IA & Configuration
     { path: '/admin/ai-config', icon: 'smart_toy', label: 'Configuration IA', badge: 0 },
-    { path: '/admin/ocr-config', icon: 'text_snippet', label: 'Configuration OCR', badge: 0 },
+    { path: '/admin/ocr-config', icon: 'text_snippet', label: 'Configuration OCR' }, // ✅ OK
     
     // Rapports & Journal
     { path: '/reports', icon: 'assessment', label: 'Rapports', badge: 0 },
