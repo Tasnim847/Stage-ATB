@@ -1,0 +1,614 @@
+<!-- src/app/features/admin/ocr-config/ocr-config.component.html -->
+<div class="ocr-config-container">
+  <div class="page-header">
+    <h1>⚙️ Configuration OCR</h1>
+    <p class="subtitle">Paramétrage du moteur OCR pour l'extraction automatique des documents</p>
+  </div>
+
+  <!-- Tabs de navigation -->
+  <mat-tab-group>
+    <!-- ========================================== -->
+    <!-- TAB 1: CONFIGURATION OCR                   -->
+    <!-- ========================================== -->
+    <mat-tab label="📋 Configuration OCR">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>settings</mat-icon>
+              Paramètres du moteur OCR
+            </mat-card-title>
+            <mat-card-subtitle>Configurez le fournisseur et les paramètres d'extraction</mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <form [formGroup]="ocrConfigForm">
+              <div class="config-grid">
+                <!-- Fournisseur OCR -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Fournisseur OCR</mat-label>
+                  <mat-select formControlName="provider">
+                    <mat-option *ngFor="let provider of ocrProviders" [value]="provider.value">
+                      {{ provider.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="ocrConfigForm.get('provider')?.hasError('required')">
+                    Le fournisseur est requis
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Clé API -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Clé API</mat-label>
+                  <input matInput formControlName="apiKey" type="password" placeholder="Entrez votre clé API">
+                  <button mat-icon-button matSuffix type="button" (click)="toggleApiKeyVisibility($event)">
+                    <mat-icon>{{ showApiKey ? 'visibility' : 'visibility_off' }}</mat-icon>
+                  </button>
+                  <mat-error *ngIf="ocrConfigForm.get('apiKey')?.hasError('required')">
+                    La clé API est requise
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Endpoint -->
+                <mat-form-field appearance="outline">
+                  <mat-label>URL du service OCR</mat-label>
+                  <input matInput formControlName="endpoint" placeholder="https://api.azure.com/...">
+                  <mat-error *ngIf="ocrConfigForm.get('endpoint')?.hasError('required')">
+                    L'URL est requise
+                  </mat-error>
+                  <mat-error *ngIf="ocrConfigForm.get('endpoint')?.hasError('pattern')">
+                    Format d'URL invalide
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Langues -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Langues</mat-label>
+                  <mat-select formControlName="languages" multiple>
+                    <mat-option *ngFor="let lang of languages" [value]="lang.value">
+                      {{ lang.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="ocrConfigForm.get('languages')?.hasError('required')">
+                    Au moins une langue est requise
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Confiance minimale -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Confiance minimale (%)</mat-label>
+                  <input matInput formControlName="minConfidence" type="number" min="0" max="100">
+                  <mat-error *ngIf="ocrConfigForm.get('minConfidence')?.hasError('required')">
+                    La confiance minimale est requise
+                  </mat-error>
+                  <mat-error *ngIf="ocrConfigForm.get('minConfidence')?.hasError('min')">
+                    La valeur doit être ≥ 0
+                  </mat-error>
+                  <mat-error *ngIf="ocrConfigForm.get('minConfidence')?.hasError('max')">
+                    La valeur doit être ≤ 100
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- Temps d'expiration -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Timeout (secondes)</mat-label>
+                  <input matInput formControlName="timeout" type="number" min="5">
+                  <mat-error *ngIf="ocrConfigForm.get('timeout')?.hasError('required')">
+                    Le timeout est requis
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="config-options">
+                <!-- OCR activé -->
+                <mat-slide-toggle formControlName="enabled" color="primary">
+                  OCR activé
+                </mat-slide-toggle>
+
+                <!-- Synchronisation automatique -->
+                <mat-slide-toggle formControlName="autoSync" color="primary">
+                  Synchronisation automatique
+                </mat-slide-toggle>
+
+                <!-- Nombre de tentatives -->
+                <mat-form-field appearance="outline" class="retry-field">
+                  <mat-label>Tentatives max</mat-label>
+                  <input matInput formControlName="maxRetries" type="number" min="0" max="5">
+                </mat-form-field>
+              </div>
+            </form>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button mat-raised-button color="primary" (click)="saveOcrConfig()" [disabled]="isSaving">
+              <mat-icon>save</mat-icon>
+              {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder la configuration' }}
+            </button>
+            <button mat-raised-button color="accent" (click)="testOcrConnection()" [disabled]="isLoading">
+              <mat-icon>wifi_tethering</mat-icon>
+              {{ isLoading ? 'Test en cours...' : 'Tester la connexion' }}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+
+        <!-- Statut de la connexion -->
+        <mat-card class="status-card" *ngIf="connectionStatus">
+          <mat-card-content>
+            <div class="status-indicator" [class.success]="connectionStatus.success" [class.error]="!connectionStatus.success">
+              <mat-icon>{{ connectionStatus.success ? 'check_circle' : 'error' }}</mat-icon>
+              <span>{{ connectionStatus.message }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: TYPES DE DOCUMENTS                 -->
+    <!-- ========================================== -->
+    <mat-tab label="📄 Types de documents">
+      <div class="tab-content">
+        <div class="documents-layout">
+          <!-- Liste des types -->
+          <div class="document-list">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>folder</mat-icon>
+                  Types de documents
+                </mat-card-title>
+                <button mat-icon-button (click)="addNewDocumentType()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="document-type-item" 
+                     *ngFor="let type of documentTypes"
+                     [class.selected]="selectedDocumentType?.id === type.id"
+                     (click)="selectDocumentType(type)">
+                  <div class="type-info">
+                    <mat-icon>{{ type.ocrEnabled ? 'description' : 'block' }}</mat-icon>
+                    <div>
+                      <div class="type-name">{{ type.name }}</div>
+                      <div class="type-code">{{ type.code }}</div>
+                    </div>
+                  </div>
+                  <div class="type-status">
+                    <mat-slide-toggle 
+                      [checked]="type.ocrEnabled"
+                      (change)="toggleDocumentOcr(type)"
+                      (click)="$event.stopPropagation()"
+                      color="primary">
+                    </mat-slide-toggle>
+                  </div>
+                </div>
+
+                <mat-divider></mat-divider>
+
+                <!-- Formulaire d'ajout -->
+                <div *ngIf="showDocumentTypeForm" class="add-document-form">
+                  <form [formGroup]="documentTypeForm">
+                    <div class="form-row">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Nom du document</mat-label>
+                        <input matInput formControlName="name" placeholder="ex: Carte d'identité">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Code</mat-label>
+                        <input matInput formControlName="code" placeholder="ex: CIN">
+                      </mat-form-field>
+                    </div>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Description</mat-label>
+                      <textarea matInput formControlName="description" rows="2"></textarea>
+                    </mat-form-field>
+                    <div class="form-row">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Taille max (MB)</mat-label>
+                        <input matInput formControlName="maxSize" type="number">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Formats autorisés</mat-label>
+                        <mat-select formControlName="allowedFormats" multiple>
+                          <mat-option value="PDF">PDF</mat-option>
+                          <mat-option value="JPG">JPG</mat-option>
+                          <mat-option value="PNG">PNG</mat-option>
+                          <mat-option value="JPEG">JPEG</mat-option>
+                          <mat-option value="TIFF">TIFF</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <div class="form-row">
+                      <mat-slide-toggle formControlName="ocrEnabled" color="primary">OCR activé</mat-slide-toggle>
+                      <mat-slide-toggle formControlName="required" color="primary">Obligatoire</mat-slide-toggle>
+                    </div>
+                    <div class="form-actions">
+                      <button mat-raised-button color="primary" (click)="addDocumentType()" [disabled]="documentTypeForm.invalid">
+                        <mat-icon>add</mat-icon> Ajouter
+                      </button>
+                      <button mat-button (click)="cancelDocumentTypeForm()">Annuler</button>
+                    </div>
+                  </form>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Détail du document sélectionné -->
+          <div class="document-detail" *ngIf="selectedDocumentType">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon>edit</mat-icon>
+                  {{ selectedDocumentType.name }}
+                </mat-card-title>
+                <mat-card-subtitle>
+                  Code: {{ selectedDocumentType.code }}
+                </mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <!-- Onglets pour les champs et règles -->
+                <mat-tab-group>
+                  <!-- Champs OCR -->
+                  <mat-tab label="🏷️ Champs OCR">
+                    <div class="fields-section">
+                      <div class="section-header">
+                        <h3>Champs à extraire</h3>
+                        <button mat-raised-button color="primary" (click)="toggleFieldForm()">
+                          <mat-icon>add</mat-icon> Ajouter un champ
+                        </button>
+                      </div>
+
+                      <!-- Formulaire d'ajout de champ -->
+                      <div *ngIf="showFieldForm" class="field-form">
+                        <form [formGroup]="fieldForm">
+                          <div class="form-row">
+                            <mat-form-field appearance="outline">
+                              <mat-label>Nom du champ</mat-label>
+                              <input matInput formControlName="name">
+                              <mat-error *ngIf="fieldForm.get('name')?.hasError('required')">
+                                Le nom est requis
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                              <mat-label>Type</mat-label>
+                              <mat-select formControlName="type">
+                                <mat-option *ngFor="let type of fieldTypes" [value]="type.value">
+                                  {{ type.label }}
+                                </mat-option>
+                              </mat-select>
+                              <mat-error *ngIf="fieldForm.get('type')?.hasError('required')">
+                                Le type est requis
+                              </mat-error>
+                            </mat-form-field>
+                          </div>
+                          <div class="form-row">
+                            <mat-form-field appearance="outline" class="full-width">
+                              <mat-label>Expression régulière (optionnel)</mat-label>
+                              <input matInput formControlName="regex" placeholder="ex: ^[0-9]{8}$">
+                            </mat-form-field>
+                          </div>
+                          <div class="form-row">
+                            <mat-slide-toggle formControlName="required" color="primary">
+                              Champ obligatoire
+                            </mat-slide-toggle>
+                            <mat-form-field appearance="outline">
+                              <mat-label>Description</mat-label>
+                              <input matInput formControlName="description">
+                            </mat-form-field>
+                          </div>
+                          <div class="form-actions">
+                            <button mat-raised-button color="primary" (click)="addField()" [disabled]="fieldForm.invalid">
+                              <mat-icon>{{ editingFieldId ? 'save' : 'add' }}</mat-icon>
+                              {{ editingFieldId ? 'Mettre à jour' : 'Ajouter' }}
+                            </button>
+                            <button mat-button (click)="cancelFieldForm()">Annuler</button>
+                          </div>
+                        </form>
+                      </div>
+
+                      <!-- Liste des champs -->
+                      <table mat-table [dataSource]="ocrFields" class="fields-table">
+                        <ng-container matColumnDef="name">
+                          <th mat-header-cell *matHeaderCellDef>Nom</th>
+                          <td mat-cell *matCellDef="let field">{{ field.name }}</td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="type">
+                          <th mat-header-cell *matHeaderCellDef>Type</th>
+                          <td mat-cell *matCellDef="let field">
+                            <mat-chip>{{ getFieldTypeLabel(field.type) }}</mat-chip>
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="required">
+                          <th mat-header-cell *matHeaderCellDef>Obligatoire</th>
+                          <td mat-cell *matCellDef="let field">
+                            <mat-icon [color]="field.required ? 'primary' : ''">
+                              {{ field.required ? 'check_circle' : 'radio_button_unchecked' }}
+                            </mat-icon>
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                          <th mat-header-cell *matHeaderCellDef>Actions</th>
+                          <td mat-cell *matCellDef="let field">
+                            <button mat-icon-button (click)="editField(field)" matTooltip="Modifier">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deleteField(field.id!)" matTooltip="Supprimer">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="fieldColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: fieldColumns;"></tr>
+                      </table>
+
+                      <div *ngIf="ocrFields.length === 0" class="empty-state">
+                        <mat-icon>text_fields</mat-icon>
+                        <p>Aucun champ défini pour ce document</p>
+                      </div>
+                    </div>
+                  </mat-tab>
+
+                  <!-- Règles de validation -->
+                  <mat-tab label="✅ Règles de validation">
+                    <div class="rules-section">
+                      <div class="section-header">
+                        <h3>Règles de validation automatique</h3>
+                        <button mat-raised-button color="primary" (click)="toggleRuleForm()">
+                          <mat-icon>add</mat-icon> Ajouter une règle
+                        </button>
+                      </div>
+
+                      <!-- Formulaire d'ajout de règle -->
+                      <div *ngIf="showRuleForm" class="rule-form">
+                        <form [formGroup]="validationRuleForm">
+                          <div class="form-row">
+                            <mat-form-field appearance="outline">
+                              <mat-label>Nom de la règle</mat-label>
+                              <input matInput formControlName="name">
+                              <mat-error *ngIf="validationRuleForm.get('name')?.hasError('required')">
+                                Le nom est requis
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                              <mat-label>Condition</mat-label>
+                              <mat-select formControlName="condition">
+                                <mat-option *ngFor="let cond of validationConditions" [value]="cond.value">
+                                  {{ cond.label }}
+                                </mat-option>
+                              </mat-select>
+                              <mat-error *ngIf="validationRuleForm.get('condition')?.hasError('required')">
+                                La condition est requise
+                              </mat-error>
+                            </mat-form-field>
+                          </div>
+                          <div class="form-row">
+                            <mat-form-field appearance="outline">
+                              <mat-label>Valeur</mat-label>
+                              <input matInput formControlName="value">
+                              <mat-error *ngIf="validationRuleForm.get('value')?.hasError('required')">
+                                La valeur est requise
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline">
+                              <mat-label>Valeur 2 (pour les conditions "Entre")</mat-label>
+                              <input matInput formControlName="value2">
+                            </mat-form-field>
+                          </div>
+                          <div class="form-row">
+                            <mat-form-field appearance="outline">
+                              <mat-label>Action</mat-label>
+                              <mat-select formControlName="action">
+                                <mat-option *ngFor="let action of validationActions" [value]="action.value">
+                                  {{ action.label }}
+                                </mat-option>
+                              </mat-select>
+                              <mat-error *ngIf="validationRuleForm.get('action')?.hasError('required')">
+                                L'action est requise
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="full-width">
+                              <mat-label>Message d'alerte</mat-label>
+                              <input matInput formControlName="message">
+                              <mat-error *ngIf="validationRuleForm.get('message')?.hasError('required')">
+                                Le message est requis
+                              </mat-error>
+                            </mat-form-field>
+                          </div>
+                          <div class="form-actions">
+                            <button mat-raised-button color="primary" (click)="addValidationRule()" [disabled]="validationRuleForm.invalid">
+                              <mat-icon>{{ editingRuleId ? 'save' : 'add' }}</mat-icon>
+                              {{ editingRuleId ? 'Mettre à jour' : 'Ajouter' }}
+                            </button>
+                            <button mat-button (click)="cancelRuleForm()">Annuler</button>
+                          </div>
+                        </form>
+                      </div>
+
+                      <!-- Liste des règles -->
+                      <table mat-table [dataSource]="validationRules" class="rules-table">
+                        <ng-container matColumnDef="name">
+                          <th mat-header-cell *matHeaderCellDef>Règle</th>
+                          <td mat-cell *matCellDef="let rule">{{ rule.name }}</td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="condition">
+                          <th mat-header-cell *matHeaderCellDef>Condition</th>
+                          <td mat-cell *matCellDef="let rule">
+                            {{ getConditionLabel(rule.condition) }}
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="action">
+                          <th mat-header-cell *matHeaderCellDef>Action</th>
+                          <td mat-cell *matCellDef="let rule">
+                            <mat-chip [color]="getActionColor(rule.action)" selected>
+                              {{ getActionLabel(rule.action) }}
+                            </mat-chip>
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                          <th mat-header-cell *matHeaderCellDef>Statut</th>
+                          <td mat-cell *matCellDef="let rule">
+                            <mat-slide-toggle 
+                              [checked]="rule.active"
+                              (change)="toggleRuleActive(rule)"
+                              color="primary">
+                            </mat-slide-toggle>
+                          </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                          <th mat-header-cell *matHeaderCellDef>Actions</th>
+                          <td mat-cell *matCellDef="let rule">
+                            <button mat-icon-button (click)="editValidationRule(rule)" matTooltip="Modifier">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deleteValidationRule(rule.id!)" matTooltip="Supprimer">
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="ruleColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: ruleColumns;"></tr>
+                      </table>
+
+                      <div *ngIf="validationRules.length === 0" class="empty-state">
+                        <mat-icon>rule</mat-icon>
+                        <p>Aucune règle de validation définie</p>
+                      </div>
+                    </div>
+                  </mat-tab>
+                </mat-tab-group>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <!-- Message quand aucun document sélectionné -->
+          <div *ngIf="!selectedDocumentType" class="no-selection">
+            <mat-icon>folder_open</mat-icon>
+            <p>Sélectionnez un type de document pour configurer ses champs et règles</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: JOURNAL OCR                       -->
+    <!-- ========================================== -->
+    <mat-tab label="📊 Journal OCR">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>history</mat-icon>
+              Historique des traitements OCR
+            </mat-card-title>
+            <mat-card-subtitle>Consultez tous les traitements OCR effectués</mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="log-controls">
+              <button mat-raised-button color="primary" (click)="refreshLogs()">
+                <mat-icon>refresh</mat-icon> Actualiser
+              </button>
+              <button mat-raised-button color="warn" (click)="clearLogs()">
+                <mat-icon>delete_sweep</mat-icon> Effacer les logs
+              </button>
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Filtrer par résultat</mat-label>
+                <mat-select>
+                  <mat-option value="all">Tous</mat-option>
+                  <mat-option value="SUCCESS">Succès</mat-option>
+                  <mat-option value="ERROR">Erreur</mat-option>
+                  <mat-option value="WARNING">Avertissement</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="log-stats">
+              <div class="stat-item">
+                <span class="stat-label">Total traitements</span>
+                <span class="stat-value">{{ ocrLogs.length }}</span>
+              </div>
+              <div class="stat-item success">
+                <span class="stat-label">Succès</span>
+                <span class="stat-value">{{ getSuccessCount() }}</span>
+              </div>
+              <div class="stat-item error">
+                <span class="stat-label">Erreurs</span>
+                <span class="stat-value">{{ getErrorCount() }}</span>
+              </div>
+              <div class="stat-item warning">
+                <span class="stat-label">Avertissements</span>
+                <span class="stat-value">{{ getWarningCount() }}</span>
+              </div>
+            </div>
+
+            <table mat-table [dataSource]="ocrLogs" class="logs-table">
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let log">{{ formatDate(log.date) }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="user">
+                <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+                <td mat-cell *matCellDef="let log">{{ log.user || '-' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="document">
+                <th mat-header-cell *matHeaderCellDef>Document</th>
+                <td mat-cell *matCellDef="let log">{{ log.documentType }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="result">
+                <th mat-header-cell *matHeaderCellDef>Résultat</th>
+                <td mat-cell *matCellDef="let log">
+                  <span [class]="getStatusLabel(log.result).class">
+                    {{ getStatusLabel(log.result).label }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="confidence">
+                <th mat-header-cell *matHeaderCellDef>Confiance</th>
+                <td mat-cell *matCellDef="let log">
+                  <span *ngIf="log.confidence !== undefined">
+                    {{ log.confidence }}%
+                  </span>
+                  <span *ngIf="log.confidence === undefined">-</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Statut</th>
+                <td mat-cell *matCellDef="let log">
+                  <mat-chip [color]="getStatusColor(log.result)" selected>
+                    {{ log.result }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="logColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: logColumns;"></tr>
+            </table>
+
+            <mat-paginator 
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              showFirstLastButtons
+              aria-label="Sélectionner une page">
+            </mat-paginator>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
