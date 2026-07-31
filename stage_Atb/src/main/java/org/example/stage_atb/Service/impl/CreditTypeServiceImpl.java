@@ -11,6 +11,7 @@ import org.example.stage_atb.dto.response.CreditTypeResponseDTO;
 import org.example.stage_atb.entity.CreditType;
 import org.example.stage_atb.entity.DurationConfig;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true) // ✅ Toutes les méthodes sont en lecture seule
 public class CreditTypeServiceImpl implements ICreditTypeService {
 
     private final CreditTypeRepository creditTypeRepository;
@@ -27,6 +29,7 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
     @Override
     public List<CreditTypeResponseDTO> getActiveCreditTypes() {
         log.info("Getting active credit types");
+        // ✅ Les documents sont chargés via EntityGraph
         List<CreditType> creditTypes = creditTypeRepository.findActiveOrderByName();
         List<CreditTypeResponseDTO> dtos = creditTypeMapper.toResponseDTOList(creditTypes);
 
@@ -43,6 +46,7 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
     @Override
     public CreditTypeResponseDTO getCreditTypeById(String id) {
         log.info("Getting credit type by id: {}", id);
+        // ✅ Les documents sont chargés via EntityGraph
         CreditType creditType = creditTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Credit type not found"));
         CreditTypeResponseDTO dto = creditTypeMapper.toResponseDTO(creditType);
@@ -57,6 +61,7 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public CreditType getCreditTypeEntity(String id) {
+        // ✅ Les documents sont chargés via EntityGraph
         return creditTypeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Credit type not found"));
     }
@@ -101,6 +106,7 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
     @Override
     public List<String> getRequiredDocuments(String creditTypeId) {
         CreditType creditType = getCreditTypeEntity(creditTypeId);
+        // ✅ Les documents sont déjà chargés via EntityGraph
         return creditType.getRequiredDocuments();
     }
 }

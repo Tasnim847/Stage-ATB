@@ -428,6 +428,40 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
 
+      // ============================================
+      // ANALYSES FINANCIÈRES - ✅ AJOUT DES ROUTES
+      // ============================================
+      {
+        path: 'financial-analysis',
+        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
+          .then(m => m.FinancialAnalysisComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      // ✅ Page de calcul des ratios (nouvelle route)
+      {
+        path: 'financial-analysis/calculate',
+        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
+          .then(m => m.FinancialAnalysisComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      // ✅ Détail d'une analyse
+      {
+        path: 'financial-analysis/:id',
+        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
+          .then(m => m.FinancialAnalysisComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      // ✅ Analyse par client
+      {
+        path: 'financial-analysis/client/:clientId',
+        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
+          .then(m => m.FinancialAnalysisComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
 
       // ============================================
       // GESTION DES DOCUMENTS

@@ -1,0 +1,605 @@
+/* ============================================
+   FINANCIAL ANALYSIS - DESIGN MODERNE & HARMONIE
+   ============================================ */
+
+.financial-analysis-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeInUp 0.5s ease;
+}
+
+/* ===== HEADER ===== */
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.analysis-header-left h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2c2c2c;
+  margin: 0 0 4px;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analysis-header-left h1 mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #c9614c;
+}
+
+.analysis-header-left .subtitle {
+  font-size: 15px;
+  color: #757575;
+  margin: 0;
+}
+
+/* ===== CARD PRINCIPAL ===== */
+.analysis-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.analysis-card .card-body {
+  padding: 28px 32px 32px;
+}
+
+/* ===== TITRES DES SECTIONS ===== */
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(193, 97, 76, 0.12);
+}
+
+.section-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #c9614c;
+}
+
+.section-title:not(:first-of-type) {
+  margin-top: 28px;
+}
+
+/* ===== FORMULAIRES ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* Style des champs */
+::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--outlined {
+  background-color: #fafafa;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--outlined:hover {
+  background-color: #f5f5f5;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--outlined.mat-focused {
+  background-color: #ffffff;
+  border-color: #c9614c;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-form-field-infix {
+  padding: 12px 0;
+}
+
+::ng-deep .mat-mdc-form-field .mat-icon {
+  color: #c9614c;
+}
+
+/* ===== EXPANSION PANEL ===== */
+::ng-deep .mat-expansion-panel {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  margin: 16px 0 4px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+::ng-deep .mat-expansion-panel .mat-expansion-panel-header {
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+::ng-deep .mat-expansion-panel .mat-expansion-panel-header:hover {
+  background: #f5f5f5;
+}
+
+::ng-deep .mat-expansion-panel .mat-expansion-panel-header .mat-panel-title {
+  font-weight: 600;
+  color: #2c2c2c;
+  align-items: center;
+  gap: 8px;
+}
+
+::ng-deep .mat-expansion-panel .mat-expansion-panel-header .mat-panel-title mat-icon {
+  color: #c9614c;
+}
+
+::ng-deep .mat-expansion-panel .mat-expansion-panel-body {
+  padding: 20px 20px 8px;
+}
+
+/* ===== ACTIONS ===== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+}
+
+.form-actions button {
+  border-radius: 10px;
+  padding: 0 28px;
+  height: 44px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.form-actions .btn-reset {
+  color: #757575;
+  border-color: #e0e0e0;
+}
+
+.form-actions .btn-reset:hover {
+  background: #f5f5f5;
+  border-color: #c9614c;
+}
+
+.form-actions .btn-calculate {
+  background: linear-gradient(135deg, #c9614c, #be5543) !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(190, 85, 67, 0.3);
+}
+
+.form-actions .btn-calculate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(190, 85, 67, 0.4);
+}
+
+.form-actions button mat-icon {
+  margin-right: 8px;
+}
+
+/* ===== RÉSULTATS ===== */
+.results-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid rgba(0, 0, 0, 0.06);
+}
+
+/* ===== SCORE GLOBAL ===== */
+.score-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border-radius: 14px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  flex-wrap: wrap;
+}
+
+.score-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.score-number {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.score-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #757575;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.score-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ===== GRILLE DES RATIOS ===== */
+.ratios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 16px 0 8px;
+}
+
+.ratio-item {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  text-align: center;
+  position: relative;
+}
+
+.ratio-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ratio-item .ratio-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ratio-item .ratio-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c2c2c;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.ratio-item .ratio-status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 14px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+/* États des ratios */
+.ratio-item.good {
+  border-left: 4px solid #4caf50;
+}
+.ratio-item.good .ratio-status {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.ratio-item.warning {
+  border-left: 4px solid #ff9800;
+}
+.ratio-item.warning .ratio-status {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.ratio-item.danger {
+  border-left: 4px solid #f44336;
+}
+.ratio-item.danger .ratio-status {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* ===== RECOMMANDATION ===== */
+.recommendation-box {
+  margin: 24px 0 20px;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border-radius: 12px;
+  border-left: 4px solid #c9614c;
+}
+
+.recommendation-box h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #c9614c;
+}
+
+.recommendation-box p {
+  margin: 0;
+  font-size: 15px;
+  color: #424242;
+  line-height: 1.6;
+}
+
+/* ===== ACTIONS ANALYSTE ===== */
+.analyst-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+}
+
+.analyst-actions button {
+  border-radius: 10px;
+  padding: 0 32px;
+  height: 48px;
+  font-weight: 600;
+  min-width: 160px;
+  transition: all 0.3s ease;
+}
+
+.analyst-actions .btn-approve {
+  background: linear-gradient(135deg, #4caf50, #388e3c) !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+}
+
+.analyst-actions .btn-approve:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(76, 175, 80, 0.4);
+}
+
+.analyst-actions .btn-reject {
+  background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+  color: white !important;
+  box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+}
+
+.analyst-actions .btn-reject:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(244, 67, 54, 0.4);
+}
+
+.analyst-actions button mat-icon {
+  margin-right: 8px;
+}
+
+/* ===== LOADING & ERROR ===== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #757575;
+  font-size: 15px;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  text-align: center;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #f44336;
+}
+
+/* ===== DIVIDER ===== */
+::ng-deep .mat-divider {
+  margin: 24px 0 20px;
+  border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .full-width {
+    grid-column: 1;
+  }
+
+  .ratios-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+
+  .score-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .score-badges {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .financial-analysis-container {
+    padding: 16px;
+  }
+
+  .analysis-header-left h1 {
+    font-size: 22px;
+  }
+
+  .analysis-card .card-body {
+    padding: 20px 16px;
+  }
+
+  .ratios-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .ratio-item {
+    padding: 14px 16px;
+  }
+
+  .ratio-item .ratio-value {
+    font-size: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .analyst-actions {
+    flex-direction: column;
+  }
+
+  .analyst-actions button {
+    width: 100%;
+  }
+
+  .score-number {
+    font-size: 44px;
+  }
+
+  .recommendation-box {
+    padding: 16px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .financial-analysis-container {
+    padding: 12px;
+  }
+
+  .analysis-header-left h1 {
+    font-size: 20px;
+  }
+
+  .analysis-card .card-body {
+    padding: 16px 12px;
+  }
+
+  .ratios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .score-number {
+    font-size: 36px;
+  }
+
+  .score-circle {
+    min-width: 80px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 4px 14px;
+  }
+
+  .section-title {
+    font-size: 14px;
+  }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9614c;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #be5543;
+}
+
+/* financial-analysis.component.css */
+.currency-suffix {
+  font-weight: 600;
+  color: #757575;
+  margin-right: 8px;
+  font-size: 13px;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--outlined .mat-mdc-form-field-infix {
+  padding: 12px 0;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  background-color: #fafafa;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper:hover {
+  background-color: #f5f5f5;
+}
