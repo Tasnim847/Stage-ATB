@@ -1,27 +1,43 @@
-// financial-analysis.service.ts - CORRIGÉ
+// services/financial-analysis.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { FinancialAnalysisRequest, FinancialAnalysisResponse } from '../models/financial-analysis.model';
+import { 
+  RatioCalculationRequest, 
+  RatioCalculationResponse,
+  FinancialAnalysisRequest,
+  FinancialAnalysisResponse 
+} from '../models/financial-analysis.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FinancialAnalysisService {
-  // ✅ CORRECTION - Ajouter /api/ dans l'URL
   private apiUrl = `${environment.apiUrl}/financial-analysis`;
 
   constructor(private http: HttpClient) {}
 
-  calculateAnalysis(request: FinancialAnalysisRequest): Observable<FinancialAnalysisResponse> {
-    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/calculate`, request);
+  // ============================================
+  // ÉCRAN 1: CALCUL DES RATIOS
+  // ============================================
+  
+  calculateRatios(request: RatioCalculationRequest): Observable<RatioCalculationResponse> {
+    return this.http.post<RatioCalculationResponse>(`${this.apiUrl}/ratios/calculate`, request);
   }
 
-  simulateAnalysis(request: FinancialAnalysisRequest): Observable<FinancialAnalysisResponse> {
-    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/simulate`, request);
+  // ============================================
+  // ÉCRAN 2: ANALYSE FINANCIÈRE
+  // ============================================
+  
+  analyzeFinancialSituation(request: FinancialAnalysisRequest): Observable<FinancialAnalysisResponse> {
+    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/analyze`, request);
   }
 
+  // ============================================
+  // AUTRES MÉTHODES
+  // ============================================
+  
   getAnalysisById(id: string): Observable<FinancialAnalysisResponse> {
     return this.http.get<FinancialAnalysisResponse>(`${this.apiUrl}/${id}`);
   }
@@ -30,36 +46,19 @@ export class FinancialAnalysisService {
     return this.http.get<FinancialAnalysisResponse[]>(`${this.apiUrl}/client/${clientId}`);
   }
 
-  getAnalysesByCreditRequest(creditRequestId: string): Observable<FinancialAnalysisResponse[]> {
-    return this.http.get<FinancialAnalysisResponse[]>(`${this.apiUrl}/credit-request/${creditRequestId}`);
-  }
-
-  getAnalysesByAnalyst(analystId: string): Observable<FinancialAnalysisResponse[]> {
-    return this.http.get<FinancialAnalysisResponse[]>(`${this.apiUrl}/analyst/${analystId}`);
-  }
-
   getAllAnalyses(): Observable<FinancialAnalysisResponse[]> {
     return this.http.get<FinancialAnalysisResponse[]>(`${this.apiUrl}/all`);
   }
 
-  updateAnalysis(id: string, request: FinancialAnalysisRequest): Observable<FinancialAnalysisResponse> {
-    return this.http.put<FinancialAnalysisResponse>(`${this.apiUrl}/${id}`, request);
-  }
-
-  deleteAnalysis(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
   approveAnalysis(id: string, analystId: string): Observable<FinancialAnalysisResponse> {
-    const params = new HttpParams().set('analystId', analystId);
-    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/${id}/approve`, null, { params });
+    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/${id}/approve?analystId=${analystId}`, null);
   }
 
   rejectAnalysis(id: string, analystId: string, reason?: string): Observable<FinancialAnalysisResponse> {
-    let params = new HttpParams().set('analystId', analystId);
+    let url = `${this.apiUrl}/${id}/reject?analystId=${analystId}`;
     if (reason) {
-      params = params.set('reason', reason);
+      url += `&reason=${encodeURIComponent(reason)}`;
     }
-    return this.http.post<FinancialAnalysisResponse>(`${this.apiUrl}/${id}/reject`, null, { params });
+    return this.http.post<FinancialAnalysisResponse>(url, null);
   }
 }

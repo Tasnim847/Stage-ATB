@@ -23,68 +23,68 @@ export const routes: Routes = [
     redirectTo: '/auth'
   },
   {
-  path: '',
-  loadComponent: () => import('./features/layout/layout.component')
-    .then(m => m.LayoutComponent),
-  canActivate: [authGuard],
-  children: [
-    // ============================================
-    // DASHBOARD - POINT D'ENTRÉE
-    // ============================================
-    {
-      path: 'dashboard',
-      loadComponent: () => import('./features/dashboard/dashboard.component')
-        .then(m => m.DashboardComponent)
-    },
-    
-    // ============================================
-    // DASHBOARDS PAR RÔLE
-    // ============================================
-    
-    // 👤 Dashboard Client
-    {
-      path: 'client-dashboard',
-      loadComponent: () => import('./features/dashboard/client-dashboard/client-dashboard.component')
-        .then(m => m.ClientDashboardComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['CLIENT'] }
-    },
-    
-    // 🛡️ Dashboard Admin
-    {
-      path: 'admin-dashboard',
-      loadComponent: () => import('./features/dashboard/admin-dashboard/admin-dashboard.component')
-        .then(m => m.AdminDashboardComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['ADMIN'] }
-    },
-    
-    // 📊 Dashboard Analyste
-    {
-      path: 'analyst-dashboard',
-      loadComponent: () => import('./features/dashboard/analyst-dashboard/analyst-dashboard.component')
-        .then(m => m.AnalystDashboardComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['ANALYST'] }
-    },
-    
-    // 💼 Dashboard Conseiller
-    {
-      path: 'advisor-dashboard',
-      loadComponent: () => import('./features/dashboard/advisor-dashboard/advisor-dashboard.component')
-        .then(m => m.AdvisorDashboardComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['ADVISOR'] }
-    },
-    
-    // 📈 Dashboard Manager
-    {
-      path: 'manager-dashboard',
-      loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
-        .then(m => m.ManagerDashboardComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['MANAGER'] }
-    },
+    path: '',
+    loadComponent: () => import('./features/layout/layout.component')
+      .then(m => m.LayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      // ============================================
+      // DASHBOARD - POINT D'ENTRÉE
+      // ============================================
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component')
+          .then(m => m.DashboardComponent)
+      },
+      
+      // ============================================
+      // DASHBOARDS PAR RÔLE
+      // ============================================
+      
+      // 👤 Dashboard Client
+      {
+        path: 'client-dashboard',
+        loadComponent: () => import('./features/dashboard/client-dashboard/client-dashboard.component')
+          .then(m => m.ClientDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['CLIENT'] }
+      },
+      
+      // 🛡️ Dashboard Admin
+      {
+        path: 'admin-dashboard',
+        loadComponent: () => import('./features/dashboard/admin-dashboard/admin-dashboard.component')
+          .then(m => m.AdminDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      
+      // 📊 Dashboard Analyste
+      {
+        path: 'analyst-dashboard',
+        loadComponent: () => import('./features/dashboard/analyst-dashboard/analyst-dashboard.component')
+          .then(m => m.AnalystDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST'] }
+      },
+      
+      // 💼 Dashboard Conseiller
+      {
+        path: 'advisor-dashboard',
+        loadComponent: () => import('./features/dashboard/advisor-dashboard/advisor-dashboard.component')
+          .then(m => m.AdvisorDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADVISOR'] }
+      },
+      
+      // 📈 Dashboard Manager
+      {
+        path: 'manager-dashboard',
+        loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
+          .then(m => m.ManagerDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
 
       // ============================================
       // GESTION DES CLIENTS
@@ -262,7 +262,7 @@ export const routes: Routes = [
       },
 
       // ============================================
-      // ANALYSES
+      // ANALYSES FINANCIÈRES - PAGE PRINCIPALE
       // ============================================
       {
         path: 'financial-analysis',
@@ -271,6 +271,39 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
       },
+      
+      // ============================================
+      // ANALYSES FINANCIÈRES - CALCUL DES RATIOS
+      // ============================================
+      {
+        path: 'financial-analysis/calculate',
+        loadComponent: () => import('./features/financial-analysis/ratio-calculator/ratio-calculator.component')
+          .then(m => m.RatioCalculatorComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      
+      // ============================================
+      // ANALYSES FINANCIÈRES - ANALYSE FINANCIÈRE
+      // ============================================
+      {
+        path: 'financial-analysis/analyze',
+        loadComponent: () => import('./features/financial-analysis/financial-analyzer/financial-analyzer.component')
+          .then(m => m.FinancialAnalyzerComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      {
+        path: 'financial-analysis/analyze/:clientId',
+        loadComponent: () => import('./features/financial-analysis/financial-analyzer/financial-analyzer.component')
+          .then(m => m.FinancialAnalyzerComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+
+      // ============================================
+      // RISK ANALYSIS
+      // ============================================
       {
         path: 'risk-analysis',
         loadComponent: () => import('./features/risk-analysis/risk-analysis.component')
@@ -378,7 +411,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
-      // ⚠️ OCR CONFIGURATION - ICI
+      
+      // ⚠️ OCR CONFIGURATION
       {
         path: 'admin/ocr-config',
         loadComponent: () => import('./features/Admin/ocr-config/ocr-config.component')
@@ -386,7 +420,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
-      // Dans app.routes.ts
+      
+      // Paramétrage
       {
         path: 'admin/parametrage',
         loadChildren: () => import('./features/Admin/parametrage/parametrage.module')
@@ -395,9 +430,8 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
 
-
       // ============================================
-      // GESTION DES EMPLOYÉS - CORRIGÉ
+      // GESTION DES EMPLOYÉS
       // ============================================
       {
         path: 'admin/employees',
@@ -426,41 +460,6 @@ export const routes: Routes = [
           .then(m => m.EmployeeFormComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
-      },
-
-      // ============================================
-      // ANALYSES FINANCIÈRES - ✅ AJOUT DES ROUTES
-      // ============================================
-      {
-        path: 'financial-analysis',
-        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
-          .then(m => m.FinancialAnalysisComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
-      },
-      // ✅ Page de calcul des ratios (nouvelle route)
-      {
-        path: 'financial-analysis/calculate',
-        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
-          .then(m => m.FinancialAnalysisComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
-      },
-      // ✅ Détail d'une analyse
-      {
-        path: 'financial-analysis/:id',
-        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
-          .then(m => m.FinancialAnalysisComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
-      },
-      // ✅ Analyse par client
-      {
-        path: 'financial-analysis/client/:clientId',
-        loadComponent: () => import('./features/financial-analysis/financial-analysis.component')
-          .then(m => m.FinancialAnalysisComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
       },
 
       // ============================================

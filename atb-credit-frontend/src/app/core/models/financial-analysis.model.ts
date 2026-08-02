@@ -1,21 +1,15 @@
 // models/financial-analysis.model.ts
-export interface FinancialAnalysisRequest {
-  creditRequestId?: string;
+export interface RatioCalculationRequest {
   clientId: string;
-  analystId?: string;
-  
-  // Données de base
+  creditRequestId?: string;
   monthlyNetIncome: number;
   otherMonthlyIncome?: number;
   monthlyCharges: number;
   existingCreditPayments: number;
-  
-  // Données du crédit
   creditAmount: number;
   durationMonths: number;
   annualInterestRate: number;
   collateralValue?: number;
-  
   // Données professionnelles
   totalAssets?: number;
   totalLiabilities?: number;
@@ -25,8 +19,68 @@ export interface FinancialAnalysisRequest {
   financialCharges?: number;
   availableCashFlow?: number;
   annualDebtService?: number;
-  totalFinancialDebts?: number;
-  shareholdersEquity?: number;
+}
+
+// models/financial-analysis.model.ts
+export interface RatioCalculationResponse {
+  // ✅ Ajouter ces propriétés manquantes
+  totalMonthlyIncome: number;
+  clientId: string;
+  
+  // Ratios calculés
+  debtRatio: number;
+  debtRatioStatus: 'FAIBLE' | 'ACCEPTABLE' | 'ELEVE' | 'CRITIQUE';
+  repaymentCapacity: number;
+  repaymentCapacityStatus: 'TRES_BONNE' | 'BONNE' | 'MOYENNE' | 'FAIBLE';
+  residualIncome: number;
+  residualIncomeStatus: 'SUFFISANT' | 'ACCEPTABLE' | 'INSUFFISANT';
+  monthlyPaymentRatio: number;
+  monthlyPaymentRatioStatus: 'BON' | 'MOYEN' | 'ELEVE';
+  lti: number;
+  ltiStatus: 'BON' | 'ACCEPTABLE' | 'ELEVE';
+  ltv: number;
+  ltvStatus: 'FAIBLE_RISQUE' | 'MODERE' | 'ELEVE' | 'TRES_ELEVE';
+  chargesToIncomeRatio: number;
+  coverageRatio: number;
+  incomeToPaymentRatio: number;
+  // Ratios professionnels
+  currentRatio?: number;
+  currentRatioStatus?: 'BONNE' | 'ACCEPTABLE' | 'RISQUE';
+  solvencyRatio?: number;
+  solvencyRatioStatus?: 'BONNE' | 'ACCEPTABLE' | 'FAIBLE';
+  dscr?: number;
+  dscrStatus?: 'TRES_BON' | 'ACCEPTABLE' | 'FRAGILE' | 'INSUFFISANT';
+  financialAutonomyRatio?: number;
+  debtToAssetRatio?: number;
+  interestCoverageRatio?: number;
+  // Informations crédit
+  monthlyPayment: number;
+  totalCost: number;
+  totalInterest: number;
+}
+
+export interface FinancialAnalysisRequest {
+  clientId: string;
+  creditRequestId?: string;
+  analystId?: string;
+  // Données de base
+  monthlyNetIncome: number;
+  otherMonthlyIncome?: number;
+  monthlyCharges: number;
+  existingCreditPayments: number;
+  creditAmount: number;
+  durationMonths: number;
+  annualInterestRate: number;
+  collateralValue?: number;
+  // Données professionnelles
+  totalAssets?: number;
+  totalLiabilities?: number;
+  currentAssets?: number;
+  currentLiabilities?: number;
+  ebit?: number;
+  financialCharges?: number;
+  availableCashFlow?: number;
+  annualDebtService?: number;
 }
 
 export interface FinancialAnalysisResponse {
@@ -35,14 +89,12 @@ export interface FinancialAnalysisResponse {
   clientId: string;
   clientName: string;
   analystName?: string;
-  
   // Données de base
   totalMonthlyIncome: number;
   monthlyCharges: number;
   existingCreditPayments: number;
   newMonthlyPayment: number;
-  
-  // Ratios particuliers
+  // Tous les ratios (hérités de RatioCalculationResponse)
   debtRatio: number;
   debtRatioStatus: string;
   repaymentCapacity: number;
@@ -58,30 +110,21 @@ export interface FinancialAnalysisResponse {
   ltvStatus: string;
   coverageRatio: number;
   incomeToPaymentRatio: number;
-  
-  // Ratios professionnels
   currentRatio?: number;
   currentRatioStatus?: string;
   solvencyRatio?: number;
   solvencyRatioStatus?: string;
-  financialAutonomyRatio?: number;
-  financialDebtRatio?: number;
-  debtToAssetRatio?: number;
-  interestCoverageRatio?: number;
   dscr?: number;
   dscrStatus?: string;
-  
   // Analyse crédit
   totalCost: number;
   totalInterest: number;
   monthlyPayment: number;
-  
   // Score et décision
   overallScore: number;
   riskLevel: string;
   recommendation: string;
   financialHealthScore: string;
-  
   // Métadonnées
   status: string;
   analyzedBy: string;

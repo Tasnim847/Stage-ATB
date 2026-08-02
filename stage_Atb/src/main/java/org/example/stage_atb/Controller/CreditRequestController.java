@@ -37,6 +37,8 @@ public class CreditRequestController {
     private final ICreditSimulationService creditSimulationService;
     private final IUserService userService; // ✅ AJOUTER
     private final CreditRequestRepository creditRequestRepository; // ✅ AJOUTER pour les méthodes avec count
+    private final ICreditSimulationService simulationService;
+
 
     @PostMapping
     public ResponseEntity<CreditResponseDTO> createCreditRequest(@Valid @RequestBody CreditRequestDTO requestDTO) {
@@ -275,67 +277,59 @@ public class CreditRequestController {
     /**
      * ✅ Récupérer la simulation d'une demande de crédit
      */
+    // ✅ AJOUTER CET ENDPOINT POUR LA SIMULATION
     @GetMapping("/{id}/simulation")
     public ResponseEntity<CreditSimulationDTO> getSimulationByCreditRequestId(@PathVariable String id) {
         try {
-            log.info("Récupération de la simulation pour la demande: {}", id);
+            log.info("📊 Récupération de la simulation pour la demande: {}", id);
 
-            // Récupérer la demande de crédit
-            CreditRequest creditRequest = creditRequestService.getCreditRequestEntityById(id);
+            // Vérifier que la demande existe
+            CreditResponseDTO creditRequest = creditRequestService.getCreditRequestById(id);
             if (creditRequest == null) {
-                log.warn("Demande de crédit non trouvée: {}", id);
+                log.warn("❌ Demande de crédit non trouvée: {}", id);
                 return ResponseEntity.notFound().build();
             }
 
-            // Vérifier que l'utilisateur connecté est bien le propriétaire
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userEmail = authentication.getName();
-            log.info("Utilisateur connecté: {}", userEmail);
+            // Récupérer la simulation
+            CreditSimulation simulation = simulationService.getSimulationByCreditRequestId(id)
+                    .orElseThrow(() -> new RuntimeException("Simulation not found for credit request: " + id));
 
-            // Vérifier si l'utilisateur est le client ou un admin/analyst
-            boolean isOwner = creditRequest.getClient().getEmail().equals(userEmail);
-            boolean isAuthorized = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
-                            a.getAuthority().equals("ROLE_ANALYST"));
-
-            if (!isOwner && !isAuthorized) {
-                log.warn("Accès non autorisé à la simulation pour l'utilisateur: {}", userEmail);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-
-            // Récupérer la simulation liée
-            CreditSimulation simulation = creditRequest.getCreditSimulation();
-            if (simulation == null) {
-                log.warn("Simulation non trouvée pour la demande: {}", id);
-                return ResponseEntity.notFound().build();
-            }
+            log.info("✅ Simulation trouvée: {}", simulation.getId());
 
             // Convertir en DTO
-            CreditSimulationDTO dto = CreditSimulationDTO.builder()
-                    .id(simulation.getId())
-                    .creditRequestId(simulation.getCreditRequest().getId())
-                    .userId(simulation.getUser().getId())
-                    .clientId(simulation.getClient() != null ? simulation.getClient().getId() : null)
-                    .amount(simulation.getAmount())
-                    .durationMonths(simulation.getDurationMonths())
-                    .interestRate(simulation.getInterestRate())
-                    .monthlyPayment(simulation.getMonthlyPayment())
-                    .totalInterest(simulation.getTotalInterest())
-                    .totalPayment(simulation.getTotalPayment())
-                    .borrowingCapacity(simulation.getBorrowingCapacity())
-                    .simulationResults(simulation.getSimulationResults())
-                    .comparisonResults(simulation.getComparisonResults())
-                    .simulationName(simulation.getSimulationName())
-                    .createdAt(simulation.getCreatedAt())
-                    .updatedAt(simulation.getUpdatedAt())
-                    .build();
-
-            log.info("Simulation récupérée avec succès pour la demande: {}", id);
+            CreditSimulationDTO dto = convertToDTO(simulation);
             return ResponseEntity.ok(dto);
+
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération de la simulation: {}", e.getMessage(), e);
+            log.error("❌ Erreur lors de la récupération de la simulation: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    // ✅ Méthode helper pour convertir en DTO
+    private CreditSimulationDTO convertToDTO(CreditSimulation simulation) {
+        return CreditSimulationDTO.builder()
+                .id(simulation.getId())
+                .creditRequestId(simulation.getCreditRequest() != null ?
+                        simulation.getCreditRequest().getId() : null)
+                .userId(simulation.getUser().getId())
+                .clientId(simulation.getClient() != null ?
+                        simulation.getClient().getId() : null)
+                .amount(simulation.getAmount())
+                .durationMonths(simulation.getDurationMonths())
+                .interestRate(simulation.getInterestRate())
+                .monthlyPayment(simulation.getMonthlyPayment())
+                .totalInterest(simulation.getTotalInterest())
+                .totalPayment(simulation.getTotalPayment())
+                .borrowingCapacity(simulation.getBorrowingCapacity())
+                .debtRatio(simulation.getDebtRatio())
+                .solvencyScore(simulation.getSolvencyScore())
+                .simulationResults(simulation.getSimulationResults())
+                .comparisonResults(simulation.getComparisonResults())
+                .simulationName(simulation.getSimulationName())
+                .createdAt(simulation.getCreatedAt())
+                .updatedAt(simulation.getUpdatedAt())
+                .build();
     }
 
     @PatchMapping("/{id}/cancel")
