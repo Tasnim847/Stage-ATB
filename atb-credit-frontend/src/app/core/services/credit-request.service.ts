@@ -1,6 +1,6 @@
 // core/services/credit-request.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 import { CreditResponseDTO, CreditRequestDTO, CreditStatus } from '@core/models';
@@ -11,6 +11,10 @@ import { CreditResponseDTO, CreditRequestDTO, CreditStatus } from '@core/models'
 export class CreditRequestService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
+
+  // ============================================
+  // MÉTHODES CLIENT
+  // ============================================
 
   /**
    * Récupérer les crédits du client connecté
@@ -33,12 +37,20 @@ export class CreditRequestService {
     return this.http.get<number>(`${this.apiUrl}/credit-requests/my-credits/count`);
   }
 
+  // ============================================
+  // MÉTHODES CRÉATION
+  // ============================================
+
   /**
-   * Créer une demande de crédit
+   * Créer une demande de crédit (avec toutes les données)
    */
   createCreditRequest(request: CreditRequestDTO): Observable<CreditResponseDTO> {
     return this.http.post<CreditResponseDTO>(`${this.apiUrl}/credit-requests`, request);
   }
+
+  // ============================================
+  // MÉTHODES LECTURE
+  // ============================================
 
   /**
    * Récupérer une demande de crédit par ID
@@ -48,7 +60,7 @@ export class CreditRequestService {
   }
 
   /**
-   * ✅ Récupérer les demandes de crédit d'un client
+   * Récupérer les demandes de crédit d'un client
    */
   getCreditRequestsByClient(clientId: string): Observable<CreditResponseDTO[]> {
     return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/client/${clientId}`);
@@ -68,17 +80,45 @@ export class CreditRequestService {
     return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests`);
   }
 
+  // ============================================
+  // MÉTHODES ANALYSTE
+  // ============================================
+
   /**
-    * Annuler une demande de crédit (si elle est en attente)
-  */
+   * Récupérer les demandes de crédit pour l'analyste connecté
+   */
+  getCreditRequestsForAnalyst(): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients`);
+  }
+
+  /**
+   * Récupérer les demandes de crédit pour l'analyste par statut
+   */
+  getCreditRequestsForAnalystByStatus(status: CreditStatus): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients/status/${status}`);
+  }
+
+  /**
+   * Compter les demandes de crédit pour l'analyste
+   */
+  countCreditRequestsForAnalyst(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/credit-requests/analyst/my-clients/count`);
+  }
+
+  // ============================================
+  // MÉTHODES DE MODIFICATION
+  // ============================================
+
+  /**
+   * Annuler une demande de crédit (si elle est en attente)
+   */
   cancelCreditRequest(id: string): Observable<CreditResponseDTO> {
     return this.http.patch<CreditResponseDTO>(`${this.apiUrl}/credit-requests/${id}/cancel`, {});
   }
 
-
   /**
-    * Transmettre une demande de crédit à l'analyste
-  */
+   * Transmettre une demande de crédit à l'analyste
+   */
   transmitToAnalyst(id: string, notes?: string): Observable<CreditResponseDTO> {
     return this.http.patch<CreditResponseDTO>(
       `${this.apiUrl}/credit-requests/${id}/transmit-to-analyst`,
@@ -87,32 +127,29 @@ export class CreditRequestService {
   }
 
   /**
-    * Vérifier si une demande peut être transmise
-  */
+   * Vérifier si une demande peut être transmise
+   */
   canTransmitToAnalyst(id: string): Observable<{ canTransmit: boolean; missingDocuments: string[] }> {
     return this.http.get<{ canTransmit: boolean; missingDocuments: string[] }>(
       `${this.apiUrl}/credit-requests/${id}/can-transmit`
     );
   }
 
+  // ============================================
+  // MÉTHODES ADMIN
+  // ============================================
+
   /**
- * ✅ Récupérer les demandes de crédit pour l'analyste connecté
- */
-getCreditRequestsForAnalyst(): Observable<CreditResponseDTO[]> {
-  return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients`);
-}
+   * Récupérer toutes les demandes pour l'admin
+   */
+  getAdminCreditRequests(): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/admin/all`);
+  }
 
-/**
- * ✅ Récupérer les demandes de crédit pour l'analyste par statut
- */
-getCreditRequestsForAnalystByStatus(status: CreditStatus): Observable<CreditResponseDTO[]> {
-  return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/analyst/my-clients/status/${status}`);
-}
-
-/**
- * ✅ Compter les demandes de crédit pour l'analyste
- */
-countCreditRequestsForAnalyst(): Observable<number> {
-  return this.http.get<number>(`${this.apiUrl}/credit-requests/analyst/my-clients/count`);
-}
+  /**
+   * Récupérer les demandes par statut pour l'admin
+   */
+  getAdminCreditRequestsByStatus(status: CreditStatus): Observable<CreditResponseDTO[]> {
+    return this.http.get<CreditResponseDTO[]>(`${this.apiUrl}/credit-requests/admin/status/${status}`);
+  }
 }

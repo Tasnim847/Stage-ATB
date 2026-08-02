@@ -245,6 +245,7 @@ export class AddCreditComponent implements OnInit {
     });
   }
 
+
   initForms(): void {
     // ✅ Formulaire de catégorie
     this.categoryForm = this.fb.group({
@@ -263,87 +264,91 @@ export class AddCreditComponent implements OnInit {
       birthPlace: [''],
       nationality: [''],
       idType: [''],
-      idNumber: [''],
-      idExpiryDate: [''],
-      maritalStatus: [''],
-      dependents: [0],
-      phone: [''],
-      email: ['', [Validators.email]],
-      spouseName: [''],
-      spousePhone: [''],
-      spouseProfession: [''],
-      spouseIncome: ['']
-    });
+    idNumber: [''],
+    idExpiryDate: [''],
+    maritalStatus: [''],
+    dependents: [0],
+    phone: [''],
+    email: ['', [Validators.email]],
+    spouseName: [''],
+    spousePhone: [''],
+    spouseProfession: [''],
+    spouseIncome: ['']
+  });
 
-    this.professionalForm = this.fb.group({
-      address: [''],
-      city: [''],
-      postalCode: [''],
-      country: [''],
-      addressSince: [''],
-      profession: [''],
-      employer: [''],
-      professionalCategory: ['', Validators.required],
-      businessSector: ['', Validators.required],
-      yearsOfExperience: [''],
-      employmentContract: ['CDI']
-    });
+  this.professionalForm = this.fb.group({
+    address: [''],
+    city: [''],
+    postalCode: [''],
+    country: [''],
+    addressSince: [''],
+    profession: [''],
+    employer: [''],
+    professionalCategory: ['', Validators.required],
+    businessSector: ['', Validators.required],
+    yearsOfExperience: [''],
+    employmentContract: ['CDI']
+  });
 
-    this.financialForm = this.fb.group({
-      creditTypeId: ['', Validators.required],
-      amount: ['', [Validators.required, Validators.min(100)]],
-      currency: ['TND', Validators.required],
-      durationMonths: ['', [Validators.required, Validators.min(1)]],
-      interestRate: [{ value: 0, disabled: true }],
-      loanPurpose: ['', Validators.required],
-      collateralType: [''],
-      collateralValue: [''],
-      expectedDisbursementDate: [''],
-      monthlySalary: ['', [Validators.required, Validators.min(0)]],
-      otherMonthlyIncome: [0],
-      hasOtherCredits: [false],
-      otherCreditsAmount: [0],
-      monthlyExpenses: [0],
-      rentAmount: [0],
-      refinanceAmount: [0],
-      refinanceBankName: [''],
-      refinanceContractNumber: [''],
-      submitImmediately: [true, Validators.required]
-    });
+  // ✅ AJOUTER 'rib' et 'bankName' dans financialForm
+  this.financialForm = this.fb.group({
+    creditTypeId: ['', Validators.required],
+    amount: ['', [Validators.required, Validators.min(100)]],
+    currency: ['TND', Validators.required],
+    durationMonths: ['', [Validators.required, Validators.min(1)]],
+    interestRate: [{ value: 0, disabled: true }],
+    loanPurpose: ['', Validators.required],
+    collateralType: [''],
+    collateralValue: [''],
+    expectedDisbursementDate: [''],
+    monthlySalary: ['', [Validators.required, Validators.min(0)]],
+    otherMonthlyIncome: [0],
+    hasOtherCredits: [false],
+    otherCreditsAmount: [0],
+    monthlyExpenses: [0],
+    rentAmount: [0],
+    refinanceAmount: [0],
+    refinanceBankName: [''],
+    refinanceContractNumber: [''],
+    submitImmediately: [true, Validators.required],
+    // ✅ AJOUTER CES CHAMPS ICI
+    rib: ['', [Validators.required, Validators.pattern(/^\d{20}$/)]],
+    bankName: ['', Validators.required]
+  });
 
-    // ✅ Écouter les changements de catégorie
-    this.categoryForm.get('category')?.valueChanges.subscribe((categoryId) => {
-      if (categoryId) {
-        this.selectedCategory = categoryId;
-        const category = this.categories.find(c => c.id === categoryId);
-        this.selectedCategoryLabel = category ? category.label : '';
-        this.filterCreditTypes();
-        // Réinitialiser la sélection de type
-        this.creditTypeForm.patchValue({ creditType: '' });
-        this.selectedCreditType = null;
-        this.financialForm.patchValue({ creditTypeId: '' });
-      }
-    });
+  // ✅ Écouter les changements de catégorie
+  this.categoryForm.get('category')?.valueChanges.subscribe((categoryId) => {
+    if (categoryId) {
+      this.selectedCategory = categoryId;
+      const category = this.categories.find(c => c.id === categoryId);
+      this.selectedCategoryLabel = category ? category.label : '';
+      this.filterCreditTypes();
+      // Réinitialiser la sélection de type
+      this.creditTypeForm.patchValue({ creditType: '' });
+      this.selectedCreditType = null;
+      this.financialForm.patchValue({ creditTypeId: '' });
+    }
+  });
 
-    // ✅ Écouter les changements de type de crédit
-    this.creditTypeForm.get('creditType')?.valueChanges.subscribe((creditTypeId) => {
-      if (creditTypeId) {
-        this.financialForm.patchValue({ creditTypeId: creditTypeId }, { emitEvent: false });
-        this.loadCreditTypeParams(creditTypeId);
-      }
-    });
+  // ✅ Écouter les changements de type de crédit
+  this.creditTypeForm.get('creditType')?.valueChanges.subscribe((creditTypeId) => {
+    if (creditTypeId) {
+      this.financialForm.patchValue({ creditTypeId: creditTypeId }, { emitEvent: false });
+      this.loadCreditTypeParams(creditTypeId);
+    }
+  });
 
-    this.financialForm.get('creditTypeId')?.valueChanges.subscribe((creditTypeId) => {
-      if (creditTypeId) {
-        this.creditTypeForm.patchValue({ creditType: creditTypeId }, { emitEvent: false });
-        this.loadCreditTypeParams(creditTypeId);
-      }
-    });
+  this.financialForm.get('creditTypeId')?.valueChanges.subscribe((creditTypeId) => {
+    if (creditTypeId) {
+      this.creditTypeForm.patchValue({ creditType: creditTypeId }, { emitEvent: false });
+      this.loadCreditTypeParams(creditTypeId);
+    }
+  });
 
-    this.financialForm.valueChanges.subscribe(() => {
-      this.calculateInterestRate();
-    });
-  }
+  this.financialForm.valueChanges.subscribe(() => {
+    this.calculateInterestRate();
+  });
+}
 
   updateFinancialValidations(creditType: CreditType): void {
     const amountControl = this.financialForm.get('amount');
@@ -600,81 +605,105 @@ export class AddCreditComponent implements OnInit {
            this.financialForm.valid;
   }
 
-  onSubmit(): void {
-    if (!this.isFormValid()) {
-      this.toastr.error('Veuillez compléter tous les champs obligatoires', 'Formulaire invalide');
-      return;
-    }
 
-    if (!this.clientId) {
-      this.toastr.error('Impossible de créer la demande: client non identifié', 'Erreur');
-      return;
-    }
+  // features/credits/client/add-credit/add-credit.component.ts
 
-    if (!this.selectedCreditType) {
-      this.toastr.error('Veuillez sélectionner un type de crédit', 'Erreur');
-      return;
-    }
-
-    const debtRatio = this.calculateDebtRatio();
-    if (debtRatio > 50) {
-      this.toastr.warning(
-        `Votre taux d'endettement est de ${debtRatio}%. Il est recommandé de ne pas dépasser 33%.`,
-        'Attention'
-      );
-    }
-
-    this.isSubmitting = true;
-
-    const personal = this.personalForm.value;
-    const financial = this.financialForm.value;
-    const submitImmediately = financial.submitImmediately;
-
-    const creditData: CreditRequestDTO = {
-      clientId: this.clientId,
-      userId: this.currentUser?.id || '',
-      creditTypeId: this.selectedCreditType.id,
-      amount: financial.amount,
-      currency: financial.currency,
-      durationMonths: financial.durationMonths,
-      monthlyPayment: this.calculateMonthlyPaymentFromForms(),
-      interestRate: this.calculatedInterestRate,
-      loanPurpose: financial.loanPurpose,
-      collateralType: financial.collateralType || '',
-      collateralValue: financial.collateralValue || 0,
-      guarantorName: this.showSpouse ? personal.spouseName : '',
-      guarantorPhone: this.showSpouse ? personal.spousePhone : '',
-      expectedDisbursementDate: financial.expectedDisbursementDate || '',
-      submitImmediately: submitImmediately
-    };
-
-    this.creditService.createCreditRequest(creditData).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        
-        if (submitImmediately) {
-          this.toastr.success(
-            `✅ Votre demande de crédit N°${response.requestNumber} a été soumise avec succès`,
-            'Demande soumise'
-          );
-          this.router.navigate(['/simulation-result', response.id]);
-        } else {
-          this.toastr.success(
-            `📝 Votre demande de crédit N°${response.requestNumber} a été sauvegardée comme brouillon.`,
-            'Brouillon enregistré'
-          );
-          this.router.navigate(['/my-credits']);
-        }
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        this.toastr.error(
-          error.error?.message || 'Erreur lors de la création de la demande',
-          'Erreur'
-        );
-      }
-    });
+onSubmit(): void {
+  if (!this.isFormValid()) {
+    this.toastr.error('Veuillez compléter tous les champs obligatoires', 'Formulaire invalide');
+    return;
   }
+
+  if (!this.clientId) {
+    this.toastr.error('Impossible de créer la demande: client non identifié', 'Erreur');
+    return;
+  }
+
+  if (!this.selectedCreditType) {
+    this.toastr.error('Veuillez sélectionner un type de crédit', 'Erreur');
+    return;
+  }
+
+  const debtRatio = this.calculateDebtRatio();
+  if (debtRatio > 50) {
+    this.toastr.warning(
+      `Votre taux d'endettement est de ${debtRatio}%. Il est recommandé de ne pas dépasser 33%.`,
+      'Attention'
+    );
+  }
+
+  this.isSubmitting = true;
+
+  const personal = this.personalForm.value;
+  const financial = this.financialForm.value;
+  const professional = this.professionalForm.value;
+  const submitImmediately = financial.submitImmediately;
+
+  // ✅ Construction du DTO avec les champs du backend
+  const creditData: any = {
+    clientId: this.clientId,
+    userId: this.currentUser?.id || '',
+    creditTypeId: this.selectedCreditType.id,
+    amount: financial.amount,
+    currency: financial.currency || 'TND',
+    durationMonths: financial.durationMonths,
+    interestRate: this.calculatedInterestRate,
+    loanPurpose: financial.loanPurpose || 'Autre',
+    collateralType: financial.collateralType || '',
+    collateralValue: financial.collateralValue || 0,
+    guarantorName: this.showSpouse ? personal.spouseName : '',
+    guarantorPhone: this.showSpouse ? personal.spousePhone : '',
+    expectedDisbursementDate: financial.expectedDisbursementDate || null,
+    submitImmediately: submitImmediately,
+    // ✅ Champs professionnels
+    salary: financial.monthlySalary ? String(financial.monthlySalary) : '',
+    employer: professional.employer || '',
+    businessSector: professional.businessSector || '',
+    // ✅ Autres champs optionnels
+    companyName: '',
+    turnover: null,
+    vehicleBrand: '',
+    vehicleModel: '',
+    vehiclePrice: null,
+    personalContribution: null,
+    propertyType: '',
+    propertyValue: null,
+    propertyAddress: ''
+  };
+
+  // ✅ Ajouter monthlyPayment (calculé)
+  creditData.monthlyPayment = this.calculateMonthlyPaymentFromForms();
+
+  console.log('📤 Envoi de la demande:', creditData);
+
+  this.creditService.createCreditRequest(creditData).subscribe({
+    next: (response) => {
+      this.isSubmitting = false;
+      
+      if (submitImmediately) {
+        this.toastr.success(
+          `✅ Votre demande de crédit N°${response.requestNumber} a été soumise avec succès`,
+          'Demande soumise'
+        );
+        this.router.navigate(['/simulation-result', response.id]);
+      } else {
+        this.toastr.success(
+          `📝 Votre demande de crédit N°${response.requestNumber} a été sauvegardée comme brouillon.`,
+          'Brouillon enregistré'
+        );
+        this.router.navigate(['/my-credits']);
+      }
+    },
+    error: (error) => {
+      this.isSubmitting = false;
+      console.error('❌ Erreur création demande:', error);
+      
+      // ✅ Afficher l'erreur détaillée
+      const errorMessage = error.error?.message || error.message || 'Erreur lors de la création de la demande';
+      this.toastr.error(errorMessage, 'Erreur');
+    }
+  });
+}
 
   goBack(): void {
     this.router.navigate(['/my-credits']);

@@ -1,385 +1,409 @@
-// analyst-financial-analysis.component.ts
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+// features/financial-analysis/financial-analysis.component.ts
+import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-
-// Angular Material Modules
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-
-// Services
-import { FinancialAnalysisService } from '@core/services/financial-analysis.service';
-import { ClientService } from '@core/services/client.service';
-import { CreditRequestService } from '@core/services/credit-request.service';
-import { AuthService } from '@core/services/auth.service';
-
-// Models
-import { FinancialAnalysisResponse } from '@core/models/financial-analysis.model';
-
-// Material Snackbar
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-// RxJS
-import { finalize, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
-
-// ✅ Importer le pipe TND
-import { TndCurrencyPipe } from '@shared/pipes/tnd-currency.pipe';
+import { MatButtonModule } from '@angular/material/button';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-financial-analysis',
   standalone: true,
-  templateUrl: './financial-analysis.component.html',
-  styleUrls: ['./financial-analysis.component.css'],
   imports: [
     CommonModule,
-    ReactiveFormsModule,
     RouterModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
     MatIconModule,
-    MatDividerModule,
-    MatExpansionModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatTooltipModule,
-    TndCurrencyPipe // ✅ Ajouter le pipe
-  ]
-})
-export class FinancialAnalysisComponent implements OnInit {
-  analysisForm: FormGroup;
-  analysisResult: FinancialAnalysisResponse | null = null;
-  isLoading = false;
-  clients: any[] = [];
-  creditRequests: any[] = [];
-  analystId: string = '';
+    MatButtonModule
+  ],
+  template: `
+    <div class="financial-analysis-container">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <h1>
+            <mat-icon>analytics</mat-icon>
+            Analyse Financière
+          </h1>
+          <p class="subtitle">Choisissez une option pour commencer l'analyse</p>
+        </div>
+      </div>
 
-  constructor(
-    private fb: FormBuilder,
-    private analysisService: FinancialAnalysisService,
-    private clientService: ClientService,
-    private creditRequestService: CreditRequestService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar
-  ) {
-    this.analysisForm = this.createForm();
-  }
+      <!-- Cartes de navigation -->
+      <div class="navigation-cards">
+        <!-- Carte 1: Calcul des ratios -->
+        <a 
+          mat-raised-button 
+          color="primary" 
+          routerLink="/financial-analysis/calculate" 
+          class="nav-card card-calculate"
+        >
+          <div class="card-icon">
+            <mat-icon>calculate</mat-icon>
+          </div>
+          <div class="card-content">
+            <span class="card-title">Calcul des ratios</span>
+            <span class="card-description">
+              Calculez automatiquement les ratios financiers du client
+            </span>
+            <span class="card-action">
+              Commencer <mat-icon>arrow_forward</mat-icon>
+            </span>
+          </div>
+        </a>
 
-  ngOnInit(): void {
-    const userInfo = this.authService.getUserInfo();
-    this.analystId = userInfo?.id || '';
-    console.log('Analyst ID:', this.analystId);
-    this.loadClients();
-  }
+        <!-- Carte 2: Analyse financière -->
+        <a 
+          mat-raised-button 
+          color="accent" 
+          routerLink="/financial-analysis/analyze" 
+          class="nav-card card-analyze"
+        >
+          <div class="card-icon">
+            <mat-icon>analytics</mat-icon>
+          </div>
+          <div class="card-content">
+            <span class="card-title">Analyse financière</span>
+            <span class="card-description">
+              Analysez la situation financière du client
+            </span>
+            <span class="card-action">
+              Commencer <mat-icon>arrow_forward</mat-icon>
+            </span>
+          </div>
+        </a>
+      </div>
 
-  createForm(): FormGroup {
-    return this.fb.group({
-      clientId: ['', Validators.required],
-      creditRequestId: [''],
-      monthlyNetIncome: ['', [Validators.required, Validators.min(0)]],
-      otherMonthlyIncome: ['', [Validators.min(0)]],
-      monthlyCharges: ['', [Validators.required, Validators.min(0)]],
-      existingCreditPayments: ['', [Validators.required, Validators.min(0)]],
-      creditAmount: ['', [Validators.required, Validators.min(0)]],
-      durationMonths: ['', [Validators.required, Validators.min(1)]],
-      annualInterestRate: ['', [Validators.required, Validators.min(0)]],
-      collateralValue: ['', [Validators.min(0)]],
-      totalAssets: [''],
-      totalLiabilities: [''],
-      currentAssets: [''],
-      currentLiabilities: [''],
-      ebit: [''],
-      financialCharges: [''],
-      availableCashFlow: [''],
-      annualDebtService: [''],
-      totalFinancialDebts: [''],
-      shareholdersEquity: ['']
-    });
-  }
+      <!-- Informations supplémentaires -->
+      <div class="info-section">
+        <div class="info-card">
+          <mat-icon>info</mat-icon>
+          <div>
+            <h4>À propos de l'analyse financière</h4>
+            <p>
+              L'analyse financière permet d'évaluer la capacité de remboursement 
+              d'un client à travers le calcul de ratios financiers et une analyse 
+              approfondie de sa situation financière.
+            </p>
+          </div>
+        </div>
+        <div class="info-card">
+          <mat-icon>trending_up</mat-icon>
+          <div>
+            <h4>Ratios calculés</h4>
+            <p>
+              Taux d'endettement, capacité de remboursement, revenu résiduel, 
+              LTI, LTV, ratios de liquidité et solvabilité.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .financial-analysis-container {
+      padding: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: fadeInUp 0.5s ease;
+    }
 
-  loadClients(): void {
-    this.clientService.getAllClients().subscribe({
-      next: (data) => {
-        this.clients = data;
-        console.log('Clients loaded:', data.length);
-      },
-      error: (err) => {
-        console.error('Error loading clients:', err);
-        this.snackBar.open('Erreur lors du chargement des clients: ' + err.message, 'Fermer', { duration: 5000 });
+    /* ===== HEADER ===== */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header-content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c2c2c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 0 0 8px;
+    }
+
+    .header-content h1 mat-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: #c9614c;
+    }
+
+    .header-content .subtitle {
+      font-size: 16px;
+      color: #757575;
+      margin: 0;
+    }
+
+    /* ===== NAVIGATION CARDS ===== */
+    .navigation-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .nav-card {
+      padding: 32px 28px !important;
+      border-radius: 16px !important;
+      text-decoration: none !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 24px !important;
+      background: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.06) !important;
+      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+      transition: all 0.3s ease !important;
+      height: auto !important;
+      min-height: 140px;
+      text-align: left !important;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-card.card-calculate::before {
+      background: linear-gradient(90deg, #c9614c, #e57373);
+    }
+
+    .nav-card.card-analyze::before {
+      background: linear-gradient(90deg, #2196f3, #64b5f6);
+    }
+
+    .nav-card:hover {
+      transform: translateY(-6px) !important;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12) !important;
+      border-color: transparent !important;
+    }
+
+    .nav-card .card-icon {
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-card.card-calculate .card-icon {
+      background: rgba(193, 97, 76, 0.12);
+      color: #c9614c;
+    }
+
+    .nav-card.card-analyze .card-icon {
+      background: rgba(33, 150, 243, 0.12);
+      color: #2196f3;
+    }
+
+    .nav-card:hover .card-icon {
+      transform: scale(1.05);
+    }
+
+    .nav-card .card-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-card .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2c2c2c;
+    }
+
+    .nav-card .card-description {
+      font-size: 14px;
+      color: #757575;
+      line-height: 1.5;
+    }
+
+    .nav-card .card-action {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-card.card-calculate .card-action {
+      color: #c9614c;
+    }
+
+    .nav-card.card-analyze .card-action {
+      color: #2196f3;
+    }
+
+    .nav-card .card-action mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-card:hover .card-action mat-icon {
+      transform: translateX(4px);
+    }
+
+    /* ===== INFO SECTION ===== */
+    .info-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .info-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px 24px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .info-card mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      color: #c9614c;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .info-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2c2c2c;
+      margin: 0 0 4px;
+    }
+
+    .info-card p {
+      font-size: 13px;
+      color: #757575;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
       }
-    });
-  }
-
-  onClientChange(): void {
-    const clientId = this.analysisForm.get('clientId')?.value;
-    if (clientId) {
-      this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
-        next: (data) => {
-          this.creditRequests = data;
-          console.log('Credit requests loaded:', data.length);
-        },
-        error: (err) => {
-          console.error('Error loading credit requests:', err);
-          this.snackBar.open('Erreur lors du chargement des demandes', 'Fermer', { duration: 3000 });
-        }
-      });
-    }
-  }
-
-  onSubmit(): void {
-    if (this.analysisForm.invalid) {
-      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 3000 });
-      return;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    this.isLoading = true;
-    const formValue = this.analysisForm.value;
-    const request = {
-      ...formValue,
-      analystId: this.analystId,
-      otherMonthlyIncome: formValue.otherMonthlyIncome || 0,
-      collateralValue: formValue.collateralValue || null,
-      totalAssets: formValue.totalAssets || null,
-      totalLiabilities: formValue.totalLiabilities || null,
-      currentAssets: formValue.currentAssets || null,
-      currentLiabilities: formValue.currentLiabilities || null,
-      ebit: formValue.ebit || null,
-      financialCharges: formValue.financialCharges || null,
-      availableCashFlow: formValue.availableCashFlow || null,
-      annualDebtService: formValue.annualDebtService || null,
-      totalFinancialDebts: formValue.totalFinancialDebts || null,
-      shareholdersEquity: formValue.shareholdersEquity || null
-    };
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 992px) {
+      .navigation-cards {
+        grid-template-columns: 1fr;
+      }
 
-    console.log('Sending request:', request);
-
-    this.analysisService.calculateAnalysis(request)
-      .pipe(
-        finalize(() => this.isLoading = false),
-        catchError((error) => {
-          console.error('Analysis error:', error);
-          this.snackBar.open('Erreur lors du calcul: ' + (error.error?.message || error.message), 'Fermer', { duration: 5000 });
-          return throwError(() => error);
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          console.log('Analysis response:', response);
-          this.analysisResult = response;
-          this.snackBar.open('Analyse financière calculée avec succès', 'Fermer', { duration: 3000 });
-        },
-        error: (err) => {
-          // L'erreur est déjà gérée par catchError
-        }
-      });
-  }
-
-  approveAnalysis(): void {
-    if (!this.analysisResult) return;
-    
-    this.isLoading = true;
-    this.analysisService.approveAnalysis(this.analysisResult.id, this.analystId)
-      .pipe(
-        finalize(() => this.isLoading = false),
-        catchError((error) => {
-          console.error('Approve error:', error);
-          this.snackBar.open('Erreur lors de l\'approbation: ' + (error.error?.message || error.message), 'Fermer', { duration: 5000 });
-          return throwError(() => error);
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          this.analysisResult = response;
-          this.snackBar.open('Analyse approuvée avec succès', 'Fermer', { duration: 3000 });
-        }
-      });
-  }
-
-  rejectAnalysis(): void {
-    if (!this.analysisResult) return;
-    
-    const reason = prompt('Motif du rejet:');
-    if (reason !== null) {
-      this.isLoading = true;
-      this.analysisService.rejectAnalysis(this.analysisResult.id, this.analystId, reason)
-        .pipe(
-          finalize(() => this.isLoading = false),
-          catchError((error) => {
-            console.error('Reject error:', error);
-            this.snackBar.open('Erreur lors du rejet: ' + (error.error?.message || error.message), 'Fermer', { duration: 5000 });
-            return throwError(() => error);
-          })
-        )
-        .subscribe({
-          next: (response) => {
-            this.analysisResult = response;
-            this.snackBar.open('Analyse rejetée', 'Fermer', { duration: 3000 });
-          }
-        });
+      .info-section {
+        grid-template-columns: 1fr;
+      }
     }
-  }
 
-  resetForm(): void {
-    this.analysisForm.reset();
-    this.analysisResult = null;
-    this.analysisForm.patchValue({
-      otherMonthlyIncome: 0,
-      collateralValue: null
-    });
-  }
+    @media (max-width: 768px) {
+      .financial-analysis-container {
+        padding: 20px;
+      }
 
-  // ===== MÉTHODES DE TRADUCTION AVEC GESTION DES UNDEFINED =====
-  
-  getRiskLevelColor(level: string | undefined): string {
-    if (!level) return '#9e9e9e';
-    const colors: { [key: string]: string } = {
-      'VERY_LOW': '#4caf50',
-      'LOW': '#8bc34a',
-      'MEDIUM': '#ff9800',
-      'HIGH': '#f44336',
-      'VERY_HIGH': '#d32f2f'
-    };
-    return colors[level] || '#9e9e9e';
-  }
+      .header-content h1 {
+        font-size: 24px;
+      }
 
-  getStatusColor(status: string | undefined): string {
-    if (!status) return '#9e9e9e';
-    const colors: { [key: string]: string } = {
-      'PENDING': '#ff9800',
-      'COMPLETED': '#2196f3',
-      'APPROVED': '#4caf50',
-      'REJECTED': '#f44336'
-    };
-    return colors[status] || '#9e9e9e';
-  }
+      .header-content h1 mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
 
-  getRiskLevelText(level: string | undefined): string {
-    if (!level) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'VERY_LOW': 'Très faible',
-      'LOW': 'Faible',
-      'MEDIUM': 'Moyen',
-      'HIGH': 'Élevé',
-      'VERY_HIGH': 'Très élevé'
-    };
-    return texts[level] || level;
-  }
+      .header-content .subtitle {
+        font-size: 14px;
+      }
 
-  getStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'PENDING': 'En attente',
-      'COMPLETED': 'Complété',
-      'APPROVED': 'Approuvé',
-      'REJECTED': 'Rejeté'
-    };
-    return texts[status] || status;
-  }
+      .nav-card {
+        flex-direction: column;
+        text-align: center !important;
+        padding: 24px 20px !important;
+        min-height: auto;
+      }
 
-  getDebtRatioStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'FAIBLE': 'Faible',
-      'ACCEPTABLE': 'Acceptable',
-      'ELEVE': 'Élevé',
-      'CRITIQUE': 'Critique'
-    };
-    return texts[status] || status;
-  }
+      .nav-card .card-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+      }
 
-  getRepaymentCapacityStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'TRES_BONNE': 'Très bonne',
-      'BONNE': 'Bonne',
-      'MOYENNE': 'Moyenne',
-      'FAIBLE': 'Faible'
-    };
-    return texts[status] || status;
-  }
+      .nav-card .card-title {
+        font-size: 18px;
+      }
 
-  getResidualIncomeStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'SUFFISANT': 'Suffisant',
-      'ACCEPTABLE': 'Acceptable',
-      'INSUFFISANT': 'Insuffisant'
-    };
-    return texts[status] || status;
-  }
+      .nav-card .card-description {
+        font-size: 13px;
+      }
 
-  getPaymentRatioStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'BON': 'Bon',
-      'MOYEN': 'Moyen',
-      'ELEVE': 'Élevé'
-    };
-    return texts[status] || status;
-  }
+      .nav-card .card-action {
+        justify-content: center;
+      }
 
-  getLtiStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'BON': 'Bon',
-      'ACCEPTABLE': 'Acceptable',
-      'ELEVE': 'Élevé'
-    };
-    return texts[status] || status;
-  }
+      .info-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 16px 20px;
+      }
+    }
 
-  getLtvStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'FAIBLE_RISQUE': 'Risque faible',
-      'MODERE': 'Modéré',
-      'ELEVE': 'Élevé',
-      'TRES_ELEVE': 'Très élevé'
-    };
-    return texts[status] || status;
-  }
+    @media (max-width: 480px) {
+      .financial-analysis-container {
+        padding: 16px;
+      }
 
-  getCurrentRatioStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'BONNE': 'Bonne',
-      'ACCEPTABLE': 'Acceptable',
-      'RISQUE': 'Risque'
-    };
-    return texts[status] || status;
-  }
+      .header-content h1 {
+        font-size: 20px;
+      }
 
-  getSolvencyRatioStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'BONNE': 'Bonne',
-      'ACCEPTABLE': 'Acceptable',
-      'FAIBLE': 'Faible'
-    };
-    return texts[status] || status;
-  }
+      .nav-card {
+        padding: 20px 16px !important;
+      }
 
-  getDscrStatusText(status: string | undefined): string {
-    if (!status) return 'Non défini';
-    const texts: { [key: string]: string } = {
-      'TRES_BON': 'Très bon',
-      'ACCEPTABLE': 'Acceptable',
-      'FRAGILE': 'Fragile',
-      'INSUFFISANT': 'Insuffisant'
-    };
-    return texts[status] || status;
-  }
-}
+      .nav-card .card-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
+      }
+
+      .nav-card .card-title {
+        font-size: 16px;
+      }
+    }
+  `]
+})
+export class FinancialAnalysisComponent {}

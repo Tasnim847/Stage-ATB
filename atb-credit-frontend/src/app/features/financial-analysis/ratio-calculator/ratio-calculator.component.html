@@ -1,0 +1,370 @@
+<!-- components/ratio-calculator/ratio-calculator.component.html -->
+<div class="ratio-calculator-container">
+  <!-- Header -->
+  <div class="calculator-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>calculate</mat-icon>
+        Calcul des Ratios Financiers
+      </h1>
+      <p class="subtitle">Calculez automatiquement les ratios financiers du client</p>
+    </div>
+  </div>
+
+  <!-- Formulaire -->
+  <div class="calculator-card">
+    <div class="card-body">
+      <form [formGroup]="ratioForm" (ngSubmit)="onSubmit()">
+        <!-- Section Client -->
+        <div class="section-title">
+          <mat-icon>person</mat-icon>
+          Informations du client
+        </div>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Client</mat-label>
+            <mat-select formControlName="clientId" (selectionChange)="onClientChange()">
+              <mat-option *ngFor="let client of clients" [value]="client.id">
+                {{ client.firstName }} {{ client.lastName }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Demande de crédit</mat-label>
+            <mat-select formControlName="creditRequestId">
+              <mat-option value="">Aucune (simulation)</mat-option>
+              <mat-option *ngFor="let request of creditRequests" [value]="request.id">
+                {{ request.requestNumber }} - {{ request.amount | tndCurrency:'1.0-0' }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Section Revenus -->
+        <div class="section-title">
+          <mat-icon>payments</mat-icon>
+          Revenus et charges
+        </div>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Revenu mensuel net (DT)</mat-label>
+            <input matInput type="number" formControlName="monthlyNetIncome">
+            <span matSuffix class="currency-suffix">DT</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Autres revenus mensuels (DT)</mat-label>
+            <input matInput type="number" formControlName="otherMonthlyIncome">
+            <span matSuffix class="currency-suffix">DT</span>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Charges mensuelles (DT)</mat-label>
+            <input matInput type="number" formControlName="monthlyCharges">
+            <span matSuffix class="currency-suffix">DT</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Mensualités crédits existants (DT)</mat-label>
+            <input matInput type="number" formControlName="existingCreditPayments">
+            <span matSuffix class="currency-suffix">DT</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Section Crédit -->
+        <div class="section-title">
+          <mat-icon>credit_card</mat-icon>
+          Nouveau crédit
+        </div>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Montant du crédit (DT)</mat-label>
+            <input matInput type="number" formControlName="creditAmount">
+            <span matSuffix class="currency-suffix">DT</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Durée (mois)</mat-label>
+            <input matInput type="number" formControlName="durationMonths">
+            <span matSuffix class="currency-suffix">mois</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Taux d'intérêt annuel (%)</mat-label>
+            <input matInput type="number" formControlName="annualInterestRate" step="0.01">
+            <span matSuffix class="currency-suffix">%</span>
+            <mat-error>Obligatoire</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Valeur de la garantie (DT)</mat-label>
+            <input matInput type="number" formControlName="collateralValue">
+            <span matSuffix class="currency-suffix">DT</span>
+          </mat-form-field>
+        </div>
+
+        <!-- Section Professionnelle -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <mat-icon>business</mat-icon>
+              Données professionnelles (optionnel)
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Total actif (DT)</mat-label>
+              <input matInput type="number" formControlName="totalAssets">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Total passif (DT)</mat-label>
+              <input matInput type="number" formControlName="totalLiabilities">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Actif courant (DT)</mat-label>
+              <input matInput type="number" formControlName="currentAssets">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Passif courant (DT)</mat-label>
+              <input matInput type="number" formControlName="currentLiabilities">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>EBIT (DT)</mat-label>
+              <input matInput type="number" formControlName="ebit">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Charges financières (DT)</mat-label>
+              <input matInput type="number" formControlName="financialCharges">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Cash-flow disponible (DT)</mat-label>
+              <input matInput type="number" formControlName="availableCashFlow">
+              <span matSuffix class="currency-suffix">DT</span>
+            </mat-form-field>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button mat-stroked-button type="button" (click)="resetForm()" class="btn-reset">
+            <mat-icon>clear</mat-icon>
+            Réinitialiser
+          </button>
+          <button mat-raised-button type="submit" [disabled]="isLoading" class="btn-calculate">
+            <mat-icon *ngIf="!isLoading">calculate</mat-icon>
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            Calculer les ratios
+          </button>
+        </div>
+      </form>
+
+      <!-- Résultats des ratios -->
+      <div *ngIf="ratioResult" class="results-section">
+        <mat-divider></mat-divider>
+        
+        <div class="results-header">
+          <h2>
+            <mat-icon>assessment</mat-icon>
+            Résultats des ratios
+          </h2>
+          <!-- ✅ CORRECTION: Supprimer le pipe date sur ratioResult -->
+          <span class="calculation-date">Résultats du calcul</span>
+        </div>
+
+        <!-- Résumé des données -->
+        <div class="data-summary">
+          <div class="summary-item">
+            <span class="label">Revenu mensuel</span>
+            <span class="value">{{ ratioResult.totalMonthlyIncome | tndCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Nouvelle mensualité</span>
+            <span class="value">{{ ratioResult.monthlyPayment | tndCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Coût total</span>
+            <span class="value">{{ ratioResult.totalCost | tndCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Intérêts totaux</span>
+            <span class="value">{{ ratioResult.totalInterest | tndCurrency }}</span>
+          </div>
+        </div>
+
+        <!-- Tableau des ratios -->
+        <div class="ratios-table-container">
+          <h3>Ratios financiers</h3>
+          <div class="ratios-grid">
+            <!-- Taux d'endettement -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.debtRatioStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">Taux d'endettement</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.debtRatioStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.debtRatio | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.debtRatioStatus }}</div>
+              <div class="ratio-detail">
+                <span>Seuil recommandé: &lt; 33%</span>
+              </div>
+            </div>
+
+            <!-- Capacité de remboursement -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.repaymentCapacityStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">Capacité de remboursement</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.repaymentCapacityStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.repaymentCapacity | tndCurrency }}</div>
+              <div class="ratio-status">{{ ratioResult.repaymentCapacityStatus }}</div>
+              <div class="ratio-detail">
+                <span>Recommandé: &gt; 1 000 DT</span>
+              </div>
+            </div>
+
+            <!-- Revenu résiduel -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.residualIncomeStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">Revenu résiduel</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.residualIncomeStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.residualIncome | tndCurrency }}</div>
+              <div class="ratio-status">{{ ratioResult.residualIncomeStatus }}</div>
+              <div class="ratio-detail">
+                <span>Recommandé: &gt; 500 DT</span>
+              </div>
+            </div>
+
+            <!-- Ratio mensualité/revenu -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.monthlyPaymentRatioStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">Ratio mensualité/revenu</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.monthlyPaymentRatioStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.monthlyPaymentRatio | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.monthlyPaymentRatioStatus }}</div>
+              <div class="ratio-detail">
+                <span>Seuil recommandé: &lt; 30%</span>
+              </div>
+            </div>
+
+            <!-- LTI -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.ltiStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">LTI (Loan to Income)</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.ltiStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.lti | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.ltiStatus }}</div>
+              <div class="ratio-detail">
+                <span>Seuil recommandé: &lt; 300%</span>
+              </div>
+            </div>
+
+            <!-- LTV -->
+            <div class="ratio-item" [class]="getStatusClass(ratioResult.ltvStatus)">
+              <div class="ratio-header">
+                <span class="ratio-name">LTV (Loan to Value)</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.ltvStatus) }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.ltv | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.ltvStatus }}</div>
+              <div class="ratio-detail">
+                <span>Seuil recommandé: &lt; 80%</span>
+              </div>
+            </div>
+
+            <!-- Ratio charges/revenus -->
+            <div class="ratio-item" [class]="ratioResult.chargesToIncomeRatio > 50 ? 'danger' : 'good'">
+              <div class="ratio-header">
+                <span class="ratio-name">Ratio charges/revenus</span>
+                <mat-icon>{{ ratioResult.chargesToIncomeRatio > 50 ? 'error' : 'check_circle' }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.chargesToIncomeRatio | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.chargesToIncomeRatio > 50 ? 'ÉLEVÉ' : 'ACCEPTABLE' }}</div>
+              <div class="ratio-detail">
+                <span>Seuil recommandé: &lt; 50%</span>
+              </div>
+            </div>
+
+            <!-- Ratio de couverture -->
+            <div class="ratio-item" [class]="ratioResult.coverageRatio > 100 ? 'good' : 'warning'">
+              <div class="ratio-header">
+                <span class="ratio-name">Couverture garantie</span>
+                <mat-icon>{{ ratioResult.coverageRatio > 100 ? 'check_circle' : 'warning' }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.coverageRatio | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.coverageRatio > 100 ? 'SUFFISANTE' : 'INSUFFISANTE' }}</div>
+              <div class="ratio-detail">
+                <span>Recommandé: &gt; 100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ratios professionnels -->
+        <div *ngIf="ratioResult.currentRatio || ratioResult.solvencyRatio || ratioResult.dscr" class="professional-ratios">
+          <h3>Ratios professionnels</h3>
+          <div class="ratios-grid">
+            <div *ngIf="ratioResult.currentRatio" class="ratio-item" [class]="getStatusClass(ratioResult.currentRatioStatus || '')">
+              <div class="ratio-header">
+                <span class="ratio-name">Liquidité générale</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.currentRatioStatus || '') }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.currentRatio | number:'1.2-2' }}</div>
+              <div class="ratio-status">{{ ratioResult.currentRatioStatus }}</div>
+            </div>
+
+            <div *ngIf="ratioResult.solvencyRatio" class="ratio-item" [class]="getStatusClass(ratioResult.solvencyRatioStatus || '')">
+              <div class="ratio-header">
+                <span class="ratio-name">Solvabilité</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.solvencyRatioStatus || '') }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.solvencyRatio | number:'1.2-2' }}%</div>
+              <div class="ratio-status">{{ ratioResult.solvencyRatioStatus }}</div>
+            </div>
+
+            <div *ngIf="ratioResult.dscr" class="ratio-item" [class]="getStatusClass(ratioResult.dscrStatus || '')">
+              <div class="ratio-header">
+                <span class="ratio-name">DSCR</span>
+                <mat-icon>{{ getStatusIcon(ratioResult.dscrStatus || '') }}</mat-icon>
+              </div>
+              <div class="ratio-value">{{ ratioResult.dscr | number:'1.2-2' }}</div>
+              <div class="ratio-status">{{ ratioResult.dscrStatus }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions après calcul -->
+        <div class="post-actions">
+          <button mat-raised-button color="primary" [routerLink]="['/financial-analysis/analyze', ratioResult.clientId]">
+            <mat-icon>analytics</mat-icon>
+            Analyser la situation financière
+          </button>
+          <button mat-stroked-button (click)="resetForm()">
+            <mat-icon>refresh</mat-icon>
+            Nouveau calcul
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

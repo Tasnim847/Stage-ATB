@@ -39,14 +39,15 @@ public class CreditRequest {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // ✅ AJOUTER CE CHAMP AVEC L'ID RÉEL
+    // entity/CreditRequest.java
     @Column(name = "credit_type_id", nullable = false)
-    private String creditTypeId = "6babcd6d-326f-4755-aa9a-7a66f8f58b9"; // ✅ REMPLACER "1" PAR L'ID RÉEL
+    private String creditTypeId = ""; // ✅ Ne pas mettre d'ID fixe
 
     // ✅ AJOUTER CETTE RELATION
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credit_type_id", insertable = false, updatable = false)
     private CreditType creditType;
+
 
     @Column(nullable = false)
     private BigDecimal amount;
