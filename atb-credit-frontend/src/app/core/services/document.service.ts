@@ -164,4 +164,17 @@ export class DocumentService {
       })
     );
   }
+
+  getMyDocuments(): Observable<DocumentResponseDTO[]> {
+    console.log('📡 Récupération des documents du client authentifié via /my-documents');
+    return this.http.get<any>(`${this.apiUrl}/my-documents`).pipe(
+      map(response => {
+        console.log('📡 Réponse brute:', response);
+        const data = response?.data || response;
+        console.log('📡 Documents reçus:', data);
+        return Array.isArray(data) ? data : [];
+      }),
+      tap(data => console.log('📡 Documents du client:', data))
+    );
+  }
 }

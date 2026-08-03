@@ -1,0 +1,118 @@
+<!-- features/documents/client/client-documents.component.html -->
+<div class="client-documents-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>📄 Mes Documents</h1>
+        <p class="subtitle">Gérez vos documents personnels en toute simplicité</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" routerLink="/my-documents/upload" class="upload-btn">
+          <mat-icon>upload_file</mat-icon>
+          Déposer un document
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">📁</div>
+      <div class="stat-value">{{ documents.length }}</div>
+      <div class="stat-label">Total documents</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon verified">✅</div>
+      <div class="stat-value">{{ getVerifiedCount() }}</div>
+      <div class="stat-label">Vérifiés</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pending">⏳</div>
+      <div class="stat-value">{{ getPendingCount() }}</div>
+      <div class="stat-label">En attente</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon complete">📋</div>
+      <div class="stat-value">{{ getCompleteCount() }}</div>
+      <div class="stat-label">Complets</div>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <span>Chargement de vos documents...</span>
+  </div>
+
+  <!-- Liste des documents en cartes -->
+  <div *ngIf="!loading" class="documents-grid">
+    <!-- Message vide -->
+    <div *ngIf="documents.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">folder_open</mat-icon>
+      <h3>Aucun document trouvé</h3>
+      <p>Vous n'avez pas encore déposé de documents.</p>
+      <button mat-raised-button color="primary" routerLink="/my-documents/upload" class="empty-upload-btn">
+        <mat-icon>upload_file</mat-icon>
+        Déposer mon premier document
+      </button>
+    </div>
+
+    <!-- Cartes des documents -->
+    <mat-card *ngFor="let doc of documents" class="document-card" [class.verified]="doc.verified" [class.pending]="!doc.verified">
+      <mat-card-header>
+        <div mat-card-avatar class="document-icon" [class.verified-icon]="doc.verified" [class.pending-icon]="!doc.verified">
+          <mat-icon>{{ doc.verified ? 'check_circle' : 'pending' }}</mat-icon>
+        </div>
+        <mat-card-title class="document-title">
+          {{ doc.fileName }}
+        </mat-card-title>
+        <mat-card-subtitle class="document-subtitle">
+          <mat-chip [color]="getDocumentColor(doc.documentType)" size="small" class="type-chip">
+            {{ getDocumentLabel(doc.documentType) }}
+          </mat-chip>
+          <span class="document-date">📅 {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</span>
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="document-info">
+          <div class="info-row">
+            <span class="info-label">Type :</span>
+            <span class="info-value">{{ getDocumentLabel(doc.documentType) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Taille :</span>
+            <span class="info-value">{{ formatFileSize(doc.fileSize) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Statut :</span>
+            <mat-chip [color]="doc.verified ? 'primary' : 'warn'" size="small" class="status-chip">
+              {{ doc.verified ? '✅ Vérifié' : '⏳ En attente' }}
+            </mat-chip>
+          </div>
+          <div *ngIf="doc.description" class="info-row">
+            <span class="info-label">Description :</span>
+            <span class="info-value">{{ doc.description }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="card-actions">
+        <button mat-button color="primary" (click)="viewDocument(doc)" class="action-btn">
+          <mat-icon>visibility</mat-icon>
+          Voir
+        </button>
+        <button mat-button color="accent" (click)="downloadDocument(doc)" class="action-btn">
+          <mat-icon>download</mat-icon>
+          Télécharger
+        </button>
+        <button mat-button color="warn" (click)="deleteDocument(doc)" class="action-btn">
+          <mat-icon>delete</mat-icon>
+          Supprimer
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
