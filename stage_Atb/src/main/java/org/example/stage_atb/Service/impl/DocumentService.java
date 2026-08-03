@@ -149,7 +149,43 @@ public class DocumentService implements IDocumentService {
                         .build());
     }
 
+
+    // ✅ Méthode privée pour récupérer le client courant
     // org.example.stage_atb.Service.impl.DocumentService.java
+
+    // ✅ Méthode privée pour récupérer le client courant
+    private Client getCurrentClient() {
+        User currentUser = getCurrentUser();
+
+        // Vérifier que l'utilisateur est un client
+        if (currentUser.getRole() != UserRole.CLIENT) {
+            throw new UnauthorizedAccessException("Only clients can access their documents");
+        }
+
+        // ✅ CORRECTION : Utiliser findByEmail au lieu de findByUserId
+        // Récupérer le client associé à l'utilisateur via son email
+        return clientRepository.findByEmail(currentUser.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Client profile not found for user: " + currentUser.getEmail()
+                ));
+    }
+
+    // ✅ Nouvelle méthode pour récupérer les documents du client courant
+    @Override
+    public List<DocumentResponseDTO> getDocumentsForCurrentClient() {
+        log.info("Fetching documents for current client");
+
+        Client client = getCurrentClient();
+        log.info("Found client: {}", client.getId());
+
+        List<Document> documents = documentRepository.findByClientId(client.getId());
+        log.info("Found {} documents", documents.size());
+
+        return documents.stream()
+                .map(documentMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     @Transactional

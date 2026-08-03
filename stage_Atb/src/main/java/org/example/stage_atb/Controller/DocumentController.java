@@ -3,16 +3,22 @@ package org.example.stage_atb.Controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.stage_atb.Repositories.ClientRepository;
 import org.example.stage_atb.Service.IDocumentService;
 import org.example.stage_atb.dto.request.DocumentUploadRequestDTO;
 import org.example.stage_atb.dto.request.DocumentVerificationRequestDTO;
 import org.example.stage_atb.dto.response.DocumentResponseDTO;
 import org.example.stage_atb.dto.response.ApiResponse;
+import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.DocumentType;
+import org.example.stage_atb.enums.UserRole;
+import org.example.stage_atb.exception.ResourceNotFoundException;
+import org.example.stage_atb.exception.UnauthorizedAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +32,7 @@ import java.util.Map;
 public class DocumentController {
 
     private final IDocumentService documentService;
+    private final ClientRepository clientRepository;
 
     // ✅ SOLUTION RECOMMANDÉE : Utiliser @RequestParam
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -218,4 +225,54 @@ public class DocumentController {
         List<DocumentType> missing = documentService.getMissingMandatoryDocuments(clientId);
         return ResponseEntity.ok(ApiResponse.success("Missing mandatory documents retrieved successfully", missing));
     }
+
+    @GetMapping("/my-documents")
+    public ResponseEntity<ApiResponse<List<DocumentResponseDTO>>> getMyDocuments(
+            Authentication authentication) {
+
+        log.info("GET /api/documents/my-documents - Fetching documents for current user");
+
+        try {
+            List<DocumentResponseDTO> documents = documentService.getDocumentsForCurrentClient();
+            return ResponseEntity.ok(
+                    ApiResponse.success("Documents retrieved successfully", documents)
+            );
+        } catch (UnauthorizedAccessException e) {
+            log.warn("Unauthorized access: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("You don't have permission to access these documents"));
+        } catch (ResourceNotFoundException e) {
+            log.warn("Client not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Client profile not found"));
+        }
+    }
+
+    // ✅ CORRIGER cette méthode - Utiliser findByEmail au lieu de findByUserId
+    private boolean canAccessClientDocuments(User currentUser, String clientId) {
+        if (currentUser.getRole() == UserRole.ADMIN ||
+                currentUser.getRole() == UserRole.MANAGER ||
+                currentUser.getRole() == UserRole.ANALYST) {
+            return true;
+        }
+
+        if (currentUser.getRole() == UserRole.ADVISOR) {
+            // Les conseillers ne peuvent voir que les documents de leurs clients
+            // ✅ Utiliser findByEmail car Client n'a pas de relation directe avec User
+            return clientRepository.findByEmail(currentUser.getEmail())
+                    .map(client -> client.getId().equals(clientId))
+                    .orElse(false);
+        }
+
+        if (currentUser.getRole() == UserRole.CLIENT) {
+            // Les clients ne peuvent voir que leurs propres documents
+            // ✅ Utiliser findByEmail car Client n'a pas de relation directe avec User
+            return clientRepository.findByEmail(currentUser.getEmail())
+                    .map(client -> client.getId().equals(clientId))
+                    .orElse(false);
+        }
+
+        return false;
+    }
+    // Méthode utilitaire pour vérifier les permissions
 }

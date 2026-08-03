@@ -261,9 +261,18 @@ export class SidebarComponent {
     { path: '/credit-requests/new', icon: 'add', label: 'Nouvelle demande', badge: 0 },
   
     // Gestion documentaire
-    { path: '/my-documents', icon: 'folder', label: 'Mes documents', badge: 0 },
-    { path: '/my-documents/upload', icon: 'upload_file', label: 'Déposer un document', badge: 0 },
-  
+    {
+    path: '/my-documents',
+    icon: 'folder',
+    label: 'Mes documents',
+    badge: 0
+  },
+  {
+    path: '/my-documents/upload',
+    icon: 'upload_file',
+    label: 'Déposer un document',
+    badge: 0
+  },
     // Notifications
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 3 }
   ];

@@ -465,7 +465,17 @@ export const routes: Routes = [
       // ============================================
       // GESTION DES DOCUMENTS
       // ============================================
-      
+      // ============================================
+      // GESTION DES DOCUMENTS - CLIENT
+      // ============================================
+
+      {
+        path: 'my-documents',
+        loadComponent: () => import('./features/documents/client/client-documents/client-documents.component')
+          .then(m => m.ClientDocumentsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['CLIENT'] }
+      }, 
       {
         path: 'documents',
         loadComponent: () => import('./features/documents/document-management/document-management.component')

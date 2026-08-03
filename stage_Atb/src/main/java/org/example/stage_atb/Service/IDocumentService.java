@@ -45,4 +45,7 @@ public interface IDocumentService {
     List<DocumentType> getMissingMandatoryDocuments(String clientId);
 
     boolean isMandatoryDocument(DocumentType documentType);
+
+    List<DocumentResponseDTO> getDocumentsForCurrentClient();
+
 }
