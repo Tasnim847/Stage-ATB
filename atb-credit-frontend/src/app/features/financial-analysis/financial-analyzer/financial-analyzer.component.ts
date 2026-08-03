@@ -84,7 +84,6 @@ export class FinancialAnalyzerComponent implements OnInit {
     const userInfo = this.authService.getUserInfo();
     this.analystId = userInfo?.id || '';
     
-    // Récupérer le clientId de l'URL si présent
     this.clientIdFromRoute = this.route.snapshot.paramMap.get('clientId');
     
     this.loadClients();
@@ -103,10 +102,11 @@ export class FinancialAnalyzerComponent implements OnInit {
       otherMonthlyIncome: [0, [Validators.min(0)]],
       monthlyCharges: ['', [Validators.required, Validators.min(0)]],
       existingCreditPayments: ['', [Validators.required, Validators.min(0)]],
-      creditAmount: ['', [Validators.required, Validators.min(0)]],
-      durationMonths: ['', [Validators.required, Validators.min(1)]],
-      annualInterestRate: ['', [Validators.required, Validators.min(0)]],
+      creditAmount: ['', [Validators.required, Validators.min(100)]],
+      durationMonths: ['', [Validators.required, Validators.min(1), Validators.max(360)]],
+      annualInterestRate: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       collateralValue: [null, [Validators.min(0)]],
+      // Professionnel
       totalAssets: [null],
       totalLiabilities: [null],
       currentAssets: [null],
@@ -119,11 +119,14 @@ export class FinancialAnalyzerComponent implements OnInit {
   }
 
   loadClients(): void {
+    this.isLoading = true;
     this.clientService.getAllClients().subscribe({
       next: (data) => {
-        this.clients = data;
+        this.clients = data || [];
+        this.isLoading = false;
       },
       error: () => {
+        this.isLoading = false;
         this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 5000 });
       }
     });
@@ -134,35 +137,32 @@ export class FinancialAnalyzerComponent implements OnInit {
     if (clientId) {
       this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
         next: (data) => {
-          this.creditRequests = data;
-          // Si une demande est disponible, la sélectionner automatiquement
+          this.creditRequests = data || [];
           if (data && data.length > 0) {
             this.analysisForm.patchValue({ creditRequestId: data[0].id });
             this.loadClientData(clientId);
           }
         },
         error: () => {
+          this.creditRequests = [];
           this.snackBar.open('Erreur lors du chargement des demandes', 'Fermer', { duration: 3000 });
         }
       });
+    } else {
+      this.creditRequests = [];
+      this.analysisForm.patchValue({ creditRequestId: '' });
     }
   }
 
-  // ✅ CORRECTION: Supprimer les lignes avec monthlyCharges
   loadClientData(clientId: string): void {
     this.clientService.getClientById(clientId).subscribe({
       next: (client) => {
-        // Charger les données du client si disponibles
         if (client.monthlyIncome) {
           this.analysisForm.patchValue({ monthlyNetIncome: client.monthlyIncome });
         }
-        // ❌ SUPPRIMER CES LIGNES - monthlyCharges n'existe pas sur ClientResponseDTO
-        // if (client.monthlyCharges) {
-        //   this.analysisForm.patchValue({ monthlyCharges: client.monthlyCharges });
-        // }
       },
       error: () => {
-        // Ignorer l'erreur, les champs restent vides
+        // Ignorer l'erreur
       }
     });
   }
@@ -189,7 +189,20 @@ export class FinancialAnalyzerComponent implements OnInit {
 
   onSubmit(): void {
     if (this.analysisForm.invalid) {
-      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 3000 });
+      // ✅ CORRECTION: Ajouter le type explicitement
+      const errors: string[] = [];
+      Object.keys(this.analysisForm.controls).forEach(key => {
+        const control = this.analysisForm.get(key);
+        if (control?.invalid && key !== 'creditRequestId' && key !== 'collateralValue') {
+          errors.push(key);
+        }
+      });
+      
+      this.snackBar.open(
+        `Veuillez remplir tous les champs obligatoires: ${errors.join(', ')}`, 
+        'Fermer', 
+        { duration: 5000 }
+      );
       return;
     }
 
@@ -355,7 +368,7 @@ export class FinancialAnalyzerComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/financial-analysis/calculate']);
+    this.router.navigate(['/financial-analysis']);
   }
 
   approveAnalysis(): void {

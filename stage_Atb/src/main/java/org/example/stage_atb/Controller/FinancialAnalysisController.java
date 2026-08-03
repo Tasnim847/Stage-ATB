@@ -3,15 +3,16 @@ package org.example.stage_atb.Controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.stage_atb.dto.request.FinancialAnalysisRequestDTO;
+import org.example.stage_atb.dto.request.RatioCalculationRequestDTO;
 import org.example.stage_atb.dto.response.FinancialAnalysisResponseDTO;
 import org.example.stage_atb.Service.IFinancialAnalysisService;
+import org.example.stage_atb.dto.response.RatioCalculationResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
-
 @RestController
 @RequestMapping("/api/financial-analysis")
 @RequiredArgsConstructor
@@ -19,13 +20,23 @@ public class FinancialAnalysisController {
 
     private final IFinancialAnalysisService analysisService;
 
-    @PostMapping("/calculate")
-    public ResponseEntity<FinancialAnalysisResponseDTO> calculateAndSave(
+    // ✅ ENDPOINT POUR CALCULER LES RATIOS
+    @PostMapping("/ratios/calculate")
+    public ResponseEntity<RatioCalculationResponseDTO> calculateRatios(
+            @Valid @RequestBody RatioCalculationRequestDTO request) {
+        RatioCalculationResponseDTO response = analysisService.calculateRatios(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // ✅ ENDPOINT POUR L'ANALYSE FINANCIÈRE
+    @PostMapping("/analyze")
+    public ResponseEntity<FinancialAnalysisResponseDTO> analyzeFinancialSituation(
             @Valid @RequestBody FinancialAnalysisRequestDTO request) {
         FinancialAnalysisResponseDTO response = analysisService.calculateAndSaveAnalysis(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // ✅ 3. Simulation (optionnel)
     @PostMapping("/simulate")
     public ResponseEntity<FinancialAnalysisResponseDTO> simulate(
             @Valid @RequestBody FinancialAnalysisRequestDTO request) {
@@ -33,67 +44,60 @@ public class FinancialAnalysisController {
         return ResponseEntity.ok(response);
     }
 
+    // ✅ 4. Récupérer par ID
     @GetMapping("/{id}")
     public ResponseEntity<FinancialAnalysisResponseDTO> getById(@PathVariable String id) {
-        FinancialAnalysisResponseDTO response = analysisService.getAnalysisById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(analysisService.getAnalysisById(id));
     }
 
+    // ✅ 5. Récupérer par client
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<FinancialAnalysisResponseDTO>> getByClient(@PathVariable String clientId) {
-        List<FinancialAnalysisResponseDTO> responses = analysisService.getAnalysesByClient(clientId);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(analysisService.getAnalysesByClient(clientId));
     }
 
+    // ✅ 6. Récupérer par demande de crédit
     @GetMapping("/credit-request/{creditRequestId}")
     public ResponseEntity<List<FinancialAnalysisResponseDTO>> getByCreditRequest(
             @PathVariable String creditRequestId) {
-        List<FinancialAnalysisResponseDTO> responses = analysisService.getAnalysesByCreditRequest(creditRequestId);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(analysisService.getAnalysesByCreditRequest(creditRequestId));
     }
 
-    @GetMapping("/analyst/{analystId}")
-    public ResponseEntity<List<FinancialAnalysisResponseDTO>> getByAnalyst(@PathVariable String analystId) {
-        List<FinancialAnalysisResponseDTO> responses = analysisService.getAnalysesByAnalyst(analystId);
-        return ResponseEntity.ok(responses);
-    }
-
+    // ✅ 7. Toutes les analyses
     @GetMapping("/all")
     public ResponseEntity<List<FinancialAnalysisResponseDTO>> getAll() {
-        List<FinancialAnalysisResponseDTO> responses = analysisService.getAllAnalyses();
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(analysisService.getAllAnalyses());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<FinancialAnalysisResponseDTO> update(
-            @PathVariable String id,
-            @Valid @RequestBody FinancialAnalysisRequestDTO request) {
-        FinancialAnalysisResponseDTO response = analysisService.updateAnalysis(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        analysisService.deleteAnalysis(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // ✅ CORRECTION ICI - Supprimer le 3ème paramètre null
+    // ✅ 8. Approuver
     @PostMapping("/{id}/approve")
     public ResponseEntity<FinancialAnalysisResponseDTO> approve(
             @PathVariable String id,
             @RequestParam String analystId) {
-        // La méthode approveAnalysis n'accepte que 2 paramètres
-        FinancialAnalysisResponseDTO response = analysisService.approveAnalysis(id, analystId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(analysisService.approveAnalysis(id, analystId));
     }
 
+    // ✅ 9. Rejeter
     @PostMapping("/{id}/reject")
     public ResponseEntity<FinancialAnalysisResponseDTO> reject(
             @PathVariable String id,
             @RequestParam String analystId,
             @RequestParam(required = false) String reason) {
-        FinancialAnalysisResponseDTO response = analysisService.rejectAnalysis(id, analystId, reason);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(analysisService.rejectAnalysis(id, analystId, reason));
+    }
+
+    // ✅ 10. Mettre à jour
+    @PutMapping("/{id}")
+    public ResponseEntity<FinancialAnalysisResponseDTO> update(
+            @PathVariable String id,
+            @Valid @RequestBody FinancialAnalysisRequestDTO request) {
+        return ResponseEntity.ok(analysisService.updateAnalysis(id, request));
+    }
+
+    // ✅ 11. Supprimer
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        analysisService.deleteAnalysis(id);
+        return ResponseEntity.noContent().build();
     }
 }
