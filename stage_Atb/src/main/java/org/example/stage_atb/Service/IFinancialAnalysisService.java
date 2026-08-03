@@ -2,7 +2,9 @@
 package org.example.stage_atb.Service;
 
 import org.example.stage_atb.dto.request.FinancialAnalysisRequestDTO;
+import org.example.stage_atb.dto.request.RatioCalculationRequestDTO;
 import org.example.stage_atb.dto.response.FinancialAnalysisResponseDTO;
+import org.example.stage_atb.dto.response.RatioCalculationResponseDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -45,4 +47,8 @@ public interface IFinancialAnalysisService {
     BigDecimal calculateLTV(BigDecimal creditAmount, BigDecimal collateralValue);
 
     BigDecimal calculateDSCR(BigDecimal cashFlow, BigDecimal annualDebtService);
+
+    // ✅ AJOUTER CETTE MÉTHODE
+    RatioCalculationResponseDTO calculateRatios(RatioCalculationRequestDTO request);
+
 }

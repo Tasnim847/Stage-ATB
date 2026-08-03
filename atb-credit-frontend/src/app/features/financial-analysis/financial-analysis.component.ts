@@ -106,7 +106,6 @@ import { CommonModule } from '@angular/common';
       animation: fadeInUp 0.5s ease;
     }
 
-    /* ===== HEADER ===== */
     .header {
       text-align: center;
       margin-bottom: 40px;
@@ -136,7 +135,6 @@ import { CommonModule } from '@angular/common';
       margin: 0;
     }
 
-    /* ===== NAVIGATION CARDS ===== */
     .navigation-cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -260,7 +258,6 @@ import { CommonModule } from '@angular/common';
       transform: translateX(4px);
     }
 
-    /* ===== INFO SECTION ===== */
     .info-section {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -306,7 +303,6 @@ import { CommonModule } from '@angular/common';
       line-height: 1.5;
     }
 
-    /* ===== ANIMATIONS ===== */
     @keyframes fadeInUp {
       from {
         opacity: 0;
@@ -318,7 +314,6 @@ import { CommonModule } from '@angular/common';
       }
     }
 
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 992px) {
       .navigation-cards {
         grid-template-columns: 1fr;
@@ -344,10 +339,6 @@ import { CommonModule } from '@angular/common';
         height: 28px;
       }
 
-      .header-content .subtitle {
-        font-size: 14px;
-      }
-
       .nav-card {
         flex-direction: column;
         text-align: center !important;
@@ -361,14 +352,6 @@ import { CommonModule } from '@angular/common';
         font-size: 28px;
       }
 
-      .nav-card .card-title {
-        font-size: 18px;
-      }
-
-      .nav-card .card-description {
-        font-size: 13px;
-      }
-
       .nav-card .card-action {
         justify-content: center;
       }
@@ -378,30 +361,6 @@ import { CommonModule } from '@angular/common';
         align-items: center;
         text-align: center;
         padding: 16px 20px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .financial-analysis-container {
-        padding: 16px;
-      }
-
-      .header-content h1 {
-        font-size: 20px;
-      }
-
-      .nav-card {
-        padding: 20px 16px !important;
-      }
-
-      .nav-card .card-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 24px;
-      }
-
-      .nav-card .card-title {
-        font-size: 16px;
       }
     }
   `]

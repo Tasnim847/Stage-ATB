@@ -59,19 +59,6 @@ export class RatioCalculatorComponent implements OnInit {
   clients: any[] = [];
   creditRequests: any[] = [];
 
-  // Seuils pour les statuts
-  readonly DEBT_RATIO_THRESHOLDS = {
-    LOW: 30,
-    ACCEPTABLE: 33,
-    HIGH: 40
-  };
-
-  readonly REPAYMENT_CAPACITY_THRESHOLDS = {
-    VERY_GOOD: 1500,
-    GOOD: 1000,
-    AVERAGE: 500
-  };
-
   constructor(
     private fb: FormBuilder,
     private analysisService: FinancialAnalysisService,
@@ -94,9 +81,9 @@ export class RatioCalculatorComponent implements OnInit {
       otherMonthlyIncome: [0, [Validators.min(0)]],
       monthlyCharges: ['', [Validators.required, Validators.min(0)]],
       existingCreditPayments: ['', [Validators.required, Validators.min(0)]],
-      creditAmount: ['', [Validators.required, Validators.min(0)]],
-      durationMonths: ['', [Validators.required, Validators.min(1)]],
-      annualInterestRate: ['', [Validators.required, Validators.min(0)]],
+      creditAmount: ['', [Validators.required, Validators.min(100)]],
+      durationMonths: ['', [Validators.required, Validators.min(1), Validators.max(360)]],
+      annualInterestRate: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       collateralValue: [null, [Validators.min(0)]],
       // Professionnel
       totalAssets: [null],
@@ -111,11 +98,14 @@ export class RatioCalculatorComponent implements OnInit {
   }
 
   loadClients(): void {
+    this.isLoading = true;
     this.clientService.getAllClients().subscribe({
       next: (data) => {
-        this.clients = data;
+        this.clients = data || [];
+        this.isLoading = false;
       },
       error: (err) => {
+        this.isLoading = false;
         this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 5000 });
       }
     });
@@ -126,10 +116,37 @@ export class RatioCalculatorComponent implements OnInit {
     if (clientId) {
       this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
         next: (data) => {
-          this.creditRequests = data;
+          this.creditRequests = data || [];
+          if (data && data.length > 0) {
+            this.ratioForm.patchValue({ creditRequestId: data[0].id });
+          }
         },
         error: () => {
+          this.creditRequests = [];
           this.snackBar.open('Erreur lors du chargement des demandes', 'Fermer', { duration: 3000 });
+        }
+      });
+    } else {
+      this.creditRequests = [];
+      this.ratioForm.patchValue({ creditRequestId: '' });
+    }
+  }
+
+  onCreditRequestSelect(): void {
+    const creditRequestId = this.ratioForm.get('creditRequestId')?.value;
+    if (creditRequestId) {
+      this.creditRequestService.getCreditRequestById(creditRequestId).subscribe({
+        next: (request) => {
+          if (request) {
+            this.ratioForm.patchValue({
+              creditAmount: request.amount,
+              durationMonths: request.durationMonths,
+              annualInterestRate: request.interestRate
+            });
+          }
+        },
+        error: () => {
+          // Ignorer l'erreur
         }
       });
     }
@@ -137,7 +154,20 @@ export class RatioCalculatorComponent implements OnInit {
 
   onSubmit(): void {
     if (this.ratioForm.invalid) {
-      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 3000 });
+      // ✅ CORRECTION: Ajouter le type explicitement
+      const errors: string[] = [];
+      Object.keys(this.ratioForm.controls).forEach(key => {
+        const control = this.ratioForm.get(key);
+        if (control?.invalid && key !== 'creditRequestId' && key !== 'collateralValue') {
+          errors.push(key);
+        }
+      });
+      
+      this.snackBar.open(
+        `Veuillez remplir tous les champs obligatoires: ${errors.join(', ')}`, 
+        'Fermer', 
+        { duration: 5000 }
+      );
       return;
     }
 
@@ -173,6 +203,7 @@ export class RatioCalculatorComponent implements OnInit {
       error: (error) => {
         this.isLoading = false;
         this.snackBar.open('Erreur lors du calcul des ratios', 'Fermer', { duration: 5000 });
+        console.error('Calculation error:', error);
       }
     });
   }

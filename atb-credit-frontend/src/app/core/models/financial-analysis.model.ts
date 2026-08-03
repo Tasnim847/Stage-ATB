@@ -21,11 +21,9 @@ export interface RatioCalculationRequest {
   annualDebtService?: number;
 }
 
-// models/financial-analysis.model.ts
 export interface RatioCalculationResponse {
-  // ✅ Ajouter ces propriétés manquantes
-  totalMonthlyIncome: number;
   clientId: string;
+  totalMonthlyIncome: number;
   
   // Ratios calculés
   debtRatio: number;
@@ -43,6 +41,7 @@ export interface RatioCalculationResponse {
   chargesToIncomeRatio: number;
   coverageRatio: number;
   incomeToPaymentRatio: number;
+  
   // Ratios professionnels
   currentRatio?: number;
   currentRatioStatus?: 'BONNE' | 'ACCEPTABLE' | 'RISQUE';
@@ -53,10 +52,14 @@ export interface RatioCalculationResponse {
   financialAutonomyRatio?: number;
   debtToAssetRatio?: number;
   interestCoverageRatio?: number;
+  
   // Informations crédit
   monthlyPayment: number;
   totalCost: number;
   totalInterest: number;
+  
+  // Timestamp pour l'affichage
+  calculatedAt: Date;
 }
 
 export interface FinancialAnalysisRequest {
@@ -94,7 +97,7 @@ export interface FinancialAnalysisResponse {
   monthlyCharges: number;
   existingCreditPayments: number;
   newMonthlyPayment: number;
-  // Tous les ratios (hérités de RatioCalculationResponse)
+  // Tous les ratios
   debtRatio: number;
   debtRatioStatus: string;
   repaymentCapacity: number;

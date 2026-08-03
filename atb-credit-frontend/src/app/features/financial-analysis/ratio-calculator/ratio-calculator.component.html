@@ -24,15 +24,17 @@
           <mat-form-field appearance="outline">
             <mat-label>Client</mat-label>
             <mat-select formControlName="clientId" (selectionChange)="onClientChange()">
+              <mat-option value="">Sélectionner un client</mat-option>
               <mat-option *ngFor="let client of clients" [value]="client.id">
                 {{ client.firstName }} {{ client.lastName }}
               </mat-option>
             </mat-select>
+            <mat-error>Veuillez sélectionner un client</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Demande de crédit</mat-label>
-            <mat-select formControlName="creditRequestId">
+            <mat-select formControlName="creditRequestId" (selectionChange)="onCreditRequestSelect()">
               <mat-option value="">Aucune (simulation)</mat-option>
               <mat-option *ngFor="let request of creditRequests" [value]="request.id">
                 {{ request.requestNumber }} - {{ request.amount | tndCurrency:'1.0-0' }}
@@ -49,27 +51,27 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Revenu mensuel net (DT)</mat-label>
-            <input matInput type="number" formControlName="monthlyNetIncome">
+            <input matInput type="number" formControlName="monthlyNetIncome" placeholder="Ex: 3000">
             <span matSuffix class="currency-suffix">DT</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Autres revenus mensuels (DT)</mat-label>
-            <input matInput type="number" formControlName="otherMonthlyIncome">
+            <input matInput type="number" formControlName="otherMonthlyIncome" placeholder="Ex: 500">
             <span matSuffix class="currency-suffix">DT</span>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Charges mensuelles (DT)</mat-label>
-            <input matInput type="number" formControlName="monthlyCharges">
+            <input matInput type="number" formControlName="monthlyCharges" placeholder="Ex: 800">
             <span matSuffix class="currency-suffix">DT</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Mensualités crédits existants (DT)</mat-label>
-            <input matInput type="number" formControlName="existingCreditPayments">
+            <input matInput type="number" formControlName="existingCreditPayments" placeholder="Ex: 400">
             <span matSuffix class="currency-suffix">DT</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
@@ -83,28 +85,28 @@
         <div class="form-grid">
           <mat-form-field appearance="outline">
             <mat-label>Montant du crédit (DT)</mat-label>
-            <input matInput type="number" formControlName="creditAmount">
+            <input matInput type="number" formControlName="creditAmount" placeholder="Ex: 50000">
             <span matSuffix class="currency-suffix">DT</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Durée (mois)</mat-label>
-            <input matInput type="number" formControlName="durationMonths">
+            <input matInput type="number" formControlName="durationMonths" placeholder="Ex: 60">
             <span matSuffix class="currency-suffix">mois</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Taux d'intérêt annuel (%)</mat-label>
-            <input matInput type="number" formControlName="annualInterestRate" step="0.01">
+            <input matInput type="number" formControlName="annualInterestRate" step="0.01" placeholder="Ex: 8.5">
             <span matSuffix class="currency-suffix">%</span>
             <mat-error>Obligatoire</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Valeur de la garantie (DT)</mat-label>
-            <input matInput type="number" formControlName="collateralValue">
+            <input matInput type="number" formControlName="collateralValue" placeholder="Ex: 100000">
             <span matSuffix class="currency-suffix">DT</span>
           </mat-form-field>
         </div>
@@ -186,8 +188,7 @@
             <mat-icon>assessment</mat-icon>
             Résultats des ratios
           </h2>
-          <!-- ✅ CORRECTION: Supprimer le pipe date sur ratioResult -->
-          <span class="calculation-date">Résultats du calcul</span>
+          <span class="calculation-date">Calcul effectué</span>
         </div>
 
         <!-- Résumé des données -->
