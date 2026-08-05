@@ -14,7 +14,7 @@ export * from './kyc.model';
 
 // Fraud & Risk
 export * from './fraud.model';
-export * from './risk.model';
+export * from './risk-analysis.model';
 
 // Notification
 export * from './notification.model';

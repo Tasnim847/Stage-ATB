@@ -1,0 +1,110 @@
+<div class="audit-container">
+  <div class="section-header">
+    <div>
+      <h2>Historique des modifications</h2>
+      <p class="description">Toutes les modifications de configuration sont tracées ici</p>
+    </div>
+    <button class="btn-outline" (click)="refreshLogs()" [disabled]="loading">
+      <mat-icon>refresh</mat-icon>
+      {{ loading ? 'Chargement...' : 'Rafraîchir' }}
+    </button>
+  </div>
+
+  <!-- Affichage du chargement -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des logs...</span>
+  </div>
+
+  <!-- Contenu -->
+  <ng-container *ngIf="!loading">
+    <div class="filters">
+      <div class="filter-group">
+        <label>Catégorie</label>
+        <select [(ngModel)]="selectedCategory" (change)="applyFilters()" class="filter-select" name="category">
+          <option value="">Toutes</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Utilisateur</label>
+        <input type="text" 
+               [(ngModel)]="searchUser" 
+               (input)="applyFilters()"
+               placeholder="Rechercher..."
+               class="filter-input"
+               name="searchUser">
+      </div>
+
+      <div class="filter-group">
+        <label>Date</label>
+        <input type="date" 
+               [(ngModel)]="selectedDate" 
+               (change)="applyFilters()"
+               class="filter-input"
+               name="selectedDate">
+      </div>
+
+      <button class="btn-clear" (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        Effacer les filtres
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table mat-table [dataSource]="filteredLogs" class="audit-table">
+        
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let log">{{ log.date | date:'dd/MM/yyyy HH:mm' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="userName">
+          <th mat-header-cell *matHeaderCellDef>Utilisateur</th>
+          <td mat-cell *matCellDef="let log">{{ log.userName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="userRole">
+          <th mat-header-cell *matHeaderCellDef>Rôle</th>
+          <td mat-cell *matCellDef="let log">
+            <span class="role-badge">{{ log.userRole }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef>Catégorie</th>
+          <td mat-cell *matCellDef="let log">
+            <span class="category-badge">{{ log.category }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let log">{{ log.action }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="details">
+          <th mat-header-cell *matHeaderCellDef>Détails</th>
+          <td mat-cell *matCellDef="let log" class="details-cell">{{ log.details }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <div class="table-empty" *ngIf="filteredLogs && filteredLogs.length === 0">
+        <mat-icon>history</mat-icon>
+        <p>Aucun enregistrement trouvé</p>
+      </div>
+    </div>
+
+    <div class="table-footer">
+      <span class="total-count">Total: {{ filteredLogs ? filteredLogs.length : 0 }} enregistrements</span>
+      <button class="btn-outline" (click)="exportLogs()">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </ng-container>
+</div>

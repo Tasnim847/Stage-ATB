@@ -1,0 +1,190 @@
+.risk-analysis-container {
+  padding: 20px;
+  background: #f5f7fa;
+  min-height: 100vh;
+  position: relative;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 16px;
+}
+
+.loading-overlay span {
+  font-size: 16px;
+  color: #1a2332;
+  font-weight: 500;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-left h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a2332;
+  margin: 0;
+}
+
+.header-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #2d7bf6;
+}
+
+.subtitle {
+  color: #6b7a8f;
+  margin: 4px 0 0 40px;
+  font-size: 14px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #2d7bf6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1a5fc7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 123, 246, 0.3);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #2d7bf6;
+  border: 1px solid #2d7bf6;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #e8f0fe;
+}
+
+.risk-tabs {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.risk-tabs ::ng-deep .mat-tab-header {
+  background: #f8f9fb;
+  border-bottom: 1px solid #e8edf2;
+  padding: 0 16px;
+}
+
+.risk-tabs ::ng-deep .mat-tab-label {
+  height: 56px;
+  font-weight: 500;
+  color: #5a6a7a;
+  opacity: 1;
+  gap: 8px;
+}
+
+.risk-tabs ::ng-deep .mat-tab-label .mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.risk-tabs ::ng-deep .mat-tab-label.mat-tab-label-active {
+  color: #2d7bf6;
+}
+
+.risk-tabs ::ng-deep .mat-ink-bar {
+  background: #2d7bf6;
+  height: 3px;
+}
+
+.tab-badge {
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 4px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .risk-tabs ::ng-deep .mat-tab-label {
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .tab-content {
+    padding: 16px;
+  }
+}

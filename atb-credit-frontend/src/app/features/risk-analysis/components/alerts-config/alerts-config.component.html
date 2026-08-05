@@ -1,0 +1,73 @@
+<div class="alerts-container">
+  <div class="section-header">
+    <div>
+      <h2>Configuration des alertes</h2>
+      <p class="description">Définissez les notifications à envoyer pour chaque événement</p>
+    </div>
+    <button class="btn-primary" (click)="addAlert()">
+      <mat-icon>add</mat-icon>
+      Ajouter une alerte
+    </button>
+  </div>
+
+  <div class="alerts-grid">
+    <div *ngFor="let alert of alerts" 
+         class="alert-card"
+         [class.inactive]="!alert.isActive"
+         [style.border-color]="getPriorityColor(alert.priority)">
+      
+      <div class="alert-header">
+        <div class="alert-info">
+          <span class="alert-event">{{ getAlertEventLabel(alert.event) }}</span>
+          <span class="alert-priority" [style.background]="getPriorityColor(alert.priority)">
+            {{ alert.priority }}
+          </span>
+        </div>
+        <mat-slide-toggle 
+          [name]="'toggle-' + alert.id"
+          [(ngModel)]="alert.isActive"
+          (change)="toggleAlert(alert)">
+        </mat-slide-toggle>
+      </div>
+
+      <p class="alert-description">{{ alert.description }}</p>
+
+      <div class="alert-config">
+        <div class="config-row">
+          <label>Destinataires</label>
+          <div class="recipients">
+            <span *ngFor="let recipient of alert.recipients" 
+                  class="recipient-tag">
+              {{ recipient }}
+            </span>
+          </div>
+        </div>
+
+        <div class="config-row">
+          <label>Notifications</label>
+          <div class="methods">
+            <span *ngFor="let method of alert.notificationMethods" 
+                  class="method-tag">
+              {{ method }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert-actions">
+        <button class="icon-btn" (click)="editAlert(alert)" title="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button class="icon-btn delete-btn" (click)="deleteAlert(alert)" title="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="alerts-empty" *ngIf="alerts.length === 0">
+    <mat-icon>notifications_off</mat-icon>
+    <p>Aucune alerte configurée</p>
+    <button class="btn-primary" (click)="addAlert()">Créer votre première alerte</button>
+  </div>
+</div>

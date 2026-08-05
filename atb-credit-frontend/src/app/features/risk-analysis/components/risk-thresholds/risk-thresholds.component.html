@@ -1,0 +1,143 @@
+<div class="thresholds-container">
+  <!-- En-tête -->
+  <div class="section-header">
+    <div>
+      <h2>Paramétrage des seuils de risque</h2>
+      <p class="description">Définissez les plages de score et les niveaux de risque associés</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-reset" (click)="resetDefaults()" [disabled]="loading">
+        <mat-icon>restore</mat-icon>
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement...</span>
+  </div>
+
+  <!-- Grille des seuils -->
+  <div class="thresholds-grid" *ngIf="!loading">
+    <div *ngFor="let threshold of thresholds; let i = index" 
+         class="threshold-card"
+         [style.border-color]="threshold.color"
+         [class.inactive]="!threshold.isActive">
+      
+      <!-- En-tête de la carte -->
+      <div class="threshold-header">
+        <div class="level-indicator" [style.background]="threshold.color">
+          {{ threshold.level }}
+        </div>
+        <span class="level-label">{{ threshold.label }}</span>
+        <mat-slide-toggle 
+          [name]="'toggle-' + i"
+          [(ngModel)]="threshold.isActive"
+          (change)="onToggle(threshold)">
+        </mat-slide-toggle>
+      </div>
+
+      <!-- Plage de scores -->
+      <div class="threshold-range">
+        <div class="range-inputs">
+          <div class="input-group">
+            <label>Score min</label>
+            <input type="number" 
+                   [name]="'min-' + i"
+                   [(ngModel)]="threshold.minScore" 
+                   (change)="onChange()"
+                   min="0" max="100"
+                   class="score-input">
+          </div>
+          <span class="range-separator">→</span>
+          <div class="input-group">
+            <label>Score max</label>
+            <input type="number" 
+                   [name]="'max-' + i"
+                   [(ngModel)]="threshold.maxScore" 
+                   (change)="onChange()"
+                   min="0" max="100"
+                   class="score-input">
+          </div>
+        </div>
+
+        <!-- Slider personnalisé -->
+        <div class="slider-container">
+          <div class="slider-track">
+            <div class="slider-fill" 
+                 [style.width.%]="((threshold.minScore + threshold.maxScore) / 2)"
+                 [style.background]="threshold.color">
+            </div>
+          </div>
+          <div class="slider-labels">
+            <span>{{ threshold.minScore }}</span>
+            <span class="slider-middle-value" [ngStyle]="{'color': threshold.color}">
+              {{ (threshold.minScore + threshold.maxScore) / 2 }}
+            </span>
+            <span>{{ threshold.maxScore }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="threshold-config">
+        <div class="config-row">
+          <label>Couleur</label>
+          <input type="color" 
+                 [name]="'color-' + i"
+                 [(ngModel)]="threshold.color" 
+                 (change)="onChange()"
+                 class="color-picker">
+          <span class="color-hex">{{ threshold.color }}</span>
+        </div>
+
+        <div class="config-row">
+          <label>Niveau d'alerte</label>
+          <select [name]="'alert-' + i" [(ngModel)]="threshold.alertLevel" (change)="onChange()">
+            <option [value]="AlertLevel.NONE">Aucune</option>
+            <option [value]="AlertLevel.ANALYST">Analyste</option>
+            <option [value]="AlertLevel.MANAGER">Responsable</option>
+            <option [value]="AlertLevel.ADMIN">Administrateur</option>
+            <option [value]="AlertLevel.ALL">Tous</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-primary" (click)="saveThresholds()" [disabled]="!hasChanges || loading">
+      <mat-icon>save</mat-icon>
+      Enregistrer les modifications
+    </button>
+    <span class="save-status success" *ngIf="saved">✓ Modifications enregistrées</span>
+    <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+    <span class="changes-indicator" *ngIf="hasChanges && !saved && !error">
+      ⚠️ Modifications non enregistrées
+    </span>
+  </div>
+
+  <!-- Visualisation -->
+  <div class="visualization">
+    <h3>Aperçu des niveaux de risque</h3>
+    <div class="risk-gradient">
+      <div *ngFor="let threshold of thresholds" 
+           class="gradient-segment"
+           [style.width.%]="(threshold.maxScore - threshold.minScore + 1)"
+           [style.background]="threshold.color"
+           [style.left.%]="threshold.minScore">
+        <span class="segment-label">{{ threshold.label }}</span>
+        <span class="segment-score">{{ threshold.minScore }}-{{ threshold.maxScore }}</span>
+      </div>
+    </div>
+    <div class="gradient-legend">
+      <span *ngFor="let threshold of thresholds" class="legend-item">
+        <span class="legend-color" [style.background]="threshold.color"></span>
+        {{ threshold.label }} ({{ threshold.minScore }}-{{ threshold.maxScore }})
+      </span>
+    </div>
+  </div>
+</div>

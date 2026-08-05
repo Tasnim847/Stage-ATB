@@ -1,1 +1,56 @@
-<p>risk-analysis works!</p>
+<div class="risk-analysis-container">
+  <!-- Chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement en cours...</span>
+  </div>
+
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon class="header-icon">security</mat-icon>
+        Analyse des risques
+      </h1>
+      <p class="subtitle">Configuration et paramétrage du moteur d'analyse des risques</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="refreshAll()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Rafraîchir
+      </button>
+      <button class="btn btn-outline" (click)="resetToDefaults()" [disabled]="loading">
+        <mat-icon>restore</mat-icon>
+        Réinitialiser
+      </button>
+      <button class="btn btn-primary" (click)="exportConfiguration()" [disabled]="loading">
+        <mat-icon>download</mat-icon>
+        Exporter
+      </button>
+      <button class="btn btn-primary" (click)="importConfiguration()" [disabled]="loading">
+        <mat-icon>upload</mat-icon>
+        Importer
+      </button>
+    </div>
+  </div>
+
+  <!-- Onglets -->
+  <mat-tab-group 
+    [selectedIndex]="selectedTab"
+    (selectedIndexChange)="onTabChange($event)"
+    class="risk-tabs"
+    animationDuration="300ms">
+    
+    <mat-tab *ngFor="let tab of tabs" [label]="tab.label">
+      <ng-template mat-tab-label>
+        <mat-icon>{{ tab.icon }}</mat-icon>
+        {{ tab.label }}
+        <span class="tab-badge" *ngIf="tab.badge">{{ tab.badge }}</span>
+      </ng-template>
+      
+      <div class="tab-content">
+        <ng-container [ngComponentOutlet]="tab.component"></ng-container>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
