@@ -1,0 +1,96 @@
+<div class="ratios-container">
+  <!-- En-tête -->
+  <div class="section-header">
+    <div>
+      <h2>Paramétrage des ratios financiers</h2>
+      <p class="description">Définissez les limites acceptées pour chaque ratio</p>
+    </div>
+    <button class="btn-outline" (click)="resetDefaults()" [disabled]="loading">
+      <mat-icon>restore</mat-icon>
+      Réinitialiser
+    </button>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des ratios...</span>
+  </div>
+
+  <!-- Grille des ratios -->
+  <div class="ratios-grid" *ngIf="!loading">
+    <div *ngFor="let ratio of ratios" class="ratio-card" [class.inactive]="!ratio.isActive">
+      <!-- En-tête -->
+      <div class="ratio-header">
+        <div class="ratio-info">
+          <span class="ratio-name">{{ ratio.name }}</span>
+          <span class="ratio-key">{{ ratio.key }}</span>
+        </div>
+        <mat-slide-toggle 
+          [name]="'toggle-' + ratio.id"
+          [(ngModel)]="ratio.isActive"
+          (change)="onChange()">
+        </mat-slide-toggle>
+      </div>
+
+      <!-- Description -->
+      <p class="ratio-description">{{ ratio.description }}</p>
+      
+      <!-- Valeurs -->
+      <div class="ratio-values">
+        <div class="value-group">
+          <label>Valeur maximale</label>
+          <div class="value-input">
+            <input type="number" 
+                   [name]="'max-' + ratio.id"
+                   [(ngModel)]="ratio.maxValue" 
+                   (change)="onChange()"
+                   step="0.1"
+                   class="ratio-input">
+            <span class="unit">{{ ratio.unit }}</span>
+          </div>
+        </div>
+
+        <div class="value-group" *ngIf="ratio.minValue !== undefined">
+          <label>Valeur minimale</label>
+          <div class="value-input">
+            <input type="number" 
+                   [name]="'min-' + ratio.id"
+                   [(ngModel)]="ratio.minValue" 
+                   (change)="onChange()"
+                   step="0.1"
+                   class="ratio-input">
+            <span class="unit">{{ ratio.unit }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicateur de seuil critique -->
+      <div class="ratio-indicator" [style.background]="getIndicatorColor(ratio)">
+        <span class="indicator-label">{{ getIndicatorLabel(ratio) }}</span>
+        <span class="indicator-value" *ngIf="ratio.criticalMax">
+          > {{ ratio.criticalMax }}{{ ratio.unit }}
+        </span>
+        <span class="indicator-value" *ngIf="ratio.criticalMin">
+          < {{ ratio.criticalMin }}{{ ratio.unit }}
+        </span>
+        <span class="indicator-value" *ngIf="!ratio.criticalMax && !ratio.criticalMin">
+          Aucun seuil critique
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-primary" (click)="saveRatios()" [disabled]="!hasChanges || loading">
+      <mat-icon>save</mat-icon>
+      Enregistrer les modifications
+    </button>
+    <span class="save-status success" *ngIf="saved">✓ Modifications enregistrées</span>
+    <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+    <span class="changes-indicator" *ngIf="hasChanges && !saved && !error">
+      ⚠️ Modifications non enregistrées
+    </span>
+  </div>
+</div>

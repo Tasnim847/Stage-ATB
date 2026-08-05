@@ -1,0 +1,107 @@
+<div class="ai-config-container">
+  <div class="section-header">
+    <div>
+      <h2>Configuration du modèle IA</h2>
+      <p class="description">Paramétrez le moteur d'intelligence artificielle pour l'analyse des risques</p>
+    </div>
+    <button class="btn-outline" (click)="resetDefaults()">
+      <mat-icon>restore</mat-icon>
+      Réinitialiser
+    </button>
+  </div>
+
+  <div class="config-card" *ngIf="config">
+    <div class="config-grid">
+      <div class="config-group">
+        <label>Fournisseur IA</label>
+        <select [(ngModel)]="config.provider" (change)="onChange()" class="form-select" name="provider">
+          <option value="OpenAI">OpenAI</option>
+          <option value="Azure OpenAI">Azure OpenAI</option>
+          <option value="Ollama">Ollama</option>
+          <option value="Modèle local">Modèle local</option>
+        </select>
+      </div>
+
+      <div class="config-group">
+        <label>Modèle</label>
+        <input type="text" 
+               [(ngModel)]="config.model" 
+               (change)="onChange()"
+               placeholder="gpt-4, llama2, etc."
+               class="form-input"
+               name="model">
+      </div>
+
+      <div class="config-group">
+        <label>Température (0.0 - 1.0)</label>
+        <div class="temperature-slider-container">
+          <input type="range" 
+                 min="0" 
+                 max="1" 
+                 step="0.1"
+                 [(ngModel)]="config.temperature"
+                 (change)="onChange()"
+                 class="temperature-range"
+                 name="temperature">
+          <span class="slider-value">{{ config.temperature }}</span>
+        </div>
+      </div>
+
+      <div class="config-group full-width">
+        <label>Prompt système</label>
+        <textarea [(ngModel)]="config.systemPrompt" 
+                  (change)="onChange()"
+                  rows="4"
+                  class="form-textarea"
+                  placeholder="Définissez le prompt système pour l'IA..."
+                  name="systemPrompt"></textarea>
+      </div>
+
+      <div class="config-group">
+        <label>Langue</label>
+        <select [(ngModel)]="config.language" (change)="onChange()" class="form-select" name="language">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+
+      <div class="config-group">
+        <label>Score minimal</label>
+        <input type="number" 
+               [(ngModel)]="config.minScore" 
+               (change)="onChange()"
+               min="0" max="100"
+               class="form-input"
+               name="minScore">
+      </div>
+
+      <div class="config-group">
+        <label>Explication obligatoire</label>
+        <mat-slide-toggle 
+          [(ngModel)]="config.explanationRequired"
+          (change)="onChange()"
+          name="explanationRequired">
+        </mat-slide-toggle>
+      </div>
+
+      <div class="config-group">
+        <label>Modèle actif</label>
+        <mat-slide-toggle 
+          [(ngModel)]="config.isActive"
+          (change)="onChange()"
+          name="isActive">
+        </mat-slide-toggle>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" (click)="saveConfig()" [disabled]="!hasChanges">
+        <mat-icon>save</mat-icon>
+        Enregistrer la configuration
+      </button>
+      <span class="save-status success" *ngIf="saved">✓ Configuration enregistrée</span>
+      <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+    </div>
+  </div>
+</div>

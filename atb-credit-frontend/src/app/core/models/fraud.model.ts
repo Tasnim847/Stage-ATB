@@ -1,4 +1,4 @@
-import { RiskLevel } from "./risk.model";
+import { RiskLevel } from "./risk-analysis.model";
 
 /**
  * Requête d'alerte fraude

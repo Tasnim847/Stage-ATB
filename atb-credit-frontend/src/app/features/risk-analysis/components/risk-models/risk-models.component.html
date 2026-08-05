@@ -1,0 +1,145 @@
+<div class="models-container">
+  <!-- En-tête -->
+  <div class="section-header">
+    <div>
+      <h2>Modèles de risque</h2>
+      <p class="description">Configurez les modèles utilisés pour l'analyse des risques</p>
+    </div>
+    <button class="btn-primary" (click)="addModel()" [disabled]="loading">
+      <mat-icon>add</mat-icon>
+      Ajouter un modèle
+    </button>
+  </div>
+
+  <!-- Formulaire d'ajout/modification -->
+  <div class="form-container" *ngIf="showForm">
+    <div class="form-card">
+      <h3>{{ isEditing ? 'Modifier le modèle' : 'Ajouter un modèle' }}</h3>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nom du modèle *</label>
+          <input type="text" 
+                 [(ngModel)]="formData.name" 
+                 placeholder="Ex: Modèle Risque de Crédit"
+                 class="form-input"
+                 name="modelName">
+        </div>
+
+        <div class="form-group">
+          <label>Type</label>
+          <select [(ngModel)]="formData.type" class="form-select" name="modelType">
+            <option *ngFor="let type of riskModelTypes" [value]="type">
+              {{ getModelTypeLabel(type) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea [(ngModel)]="formData.description" 
+                    placeholder="Description du modèle..."
+                    class="form-textarea"
+                    rows="3"
+                    name="modelDescription"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Priorité</label>
+          <input type="number" 
+                 [(ngModel)]="formData.priority" 
+                 min="0"
+                 class="form-input"
+                 name="modelPriority">
+        </div>
+
+        <div class="form-group">
+          <label>Actif</label>
+          <mat-slide-toggle 
+            [(ngModel)]="formData.isActive"
+            name="modelActive">
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="closeForm()" type="button">
+          Annuler
+        </button>
+        <button class="btn-primary" (click)="saveModel()" [disabled]="loading">
+          <mat-icon>{{ isEditing ? 'save' : 'add' }}</mat-icon>
+          {{ isEditing ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="loading && !showForm">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des modèles...</span>
+  </div>
+
+  <!-- Grille des modèles -->
+  <div class="models-grid" *ngIf="!loading || showForm">
+    <div *ngFor="let model of models" 
+         class="model-card"
+         [class.inactive]="!model.isActive">
+      
+      <div class="model-header">
+        <div class="model-icon" [style.background]="getModelColor(model.type)">
+          <mat-icon>{{ getModelIcon(model.type) }}</mat-icon>
+        </div>
+        <div class="model-info">
+          <span class="model-name">{{ model.name }}</span>
+          <span class="model-type">{{ getModelTypeLabel(model.type) }}</span>
+        </div>
+        <mat-slide-toggle 
+          [name]="'toggle-' + model.id"
+          [(ngModel)]="model.isActive"
+          (change)="toggleModel(model)">
+        </mat-slide-toggle>
+      </div>
+
+      <div class="model-body">
+        <p class="model-description">{{ model.description || 'Aucune description' }}</p>
+        
+        <div class="model-meta">
+          <div class="meta-item">
+            <span class="label">Priorité</span>
+            <span class="priority-badge">{{ model.priority }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Statut</span>
+            <span class="status-badge" [class.active]="model.isActive">
+              {{ model.isActive ? 'Actif' : 'Inactif' }}
+            </span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Mis à jour</span>
+            <span class="date">{{ model.updatedAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="model-actions">
+        <button class="icon-btn" (click)="editModel(model)" title="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button class="icon-btn" (click)="duplicateModel(model)" title="Dupliquer">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <button class="icon-btn delete-btn" (click)="deleteModel(model)" title="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message vide -->
+  <div class="models-empty" *ngIf="models.length === 0 && !loading && !showForm">
+    <mat-icon>model_training</mat-icon>
+    <p>Aucun modèle configuré</p>
+    <button class="btn-primary" (click)="addModel()">Ajouter votre premier modèle</button>
+  </div>
+</div>

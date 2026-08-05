@@ -1,0 +1,67 @@
+<div class="fraud-container">
+  <div class="section-header">
+    <div>
+      <h2>Détection de fraude</h2>
+      <p class="description">Définissez les règles et leurs poids pour la détection de fraude</p>
+    </div>
+    <button class="btn-outline" (click)="resetDefaults()">
+      <mat-icon>restore</mat-icon>
+      Réinitialiser
+    </button>
+  </div>
+
+  <div class="fraud-grid">
+    <div *ngFor="let rule of rules" class="fraud-card" [class.inactive]="!rule.isActive">
+      <div class="fraud-header">
+        <div class="fraud-info">
+          <span class="fraud-name">{{ rule.name }}</span>
+          <span class="fraud-weight">Poids: {{ rule.weight }}</span>
+        </div>
+        <mat-slide-toggle 
+          [name]="'toggle-' + rule.id"
+          [(ngModel)]="rule.isActive"
+          (change)="toggleRule(rule)">
+        </mat-slide-toggle>
+      </div>
+
+      <p class="fraud-description">{{ rule.description }}</p>
+
+      <div class="fraud-threshold">
+        <label>Seuil de détection</label>
+        <div class="threshold-slider-container">
+          <input type="range" 
+                 [name]="'threshold-' + rule.id"
+                 min="0" 
+                 max="100" 
+                 step="1"
+                 [(ngModel)]="rule.threshold"
+                 (change)="onChange()"
+                 class="threshold-range">
+          <span class="threshold-value">{{ rule.threshold }}%</span>
+        </div>
+      </div>
+
+      <div class="fraud-actions">
+        <button class="icon-btn" (click)="editRule(rule)" title="Modifier">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button class="icon-btn delete-btn" (click)="deleteRule(rule)" title="Supprimer">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" (click)="addRule()">
+      <mat-icon>add</mat-icon>
+      Ajouter une règle
+    </button>
+    <button class="btn-primary" (click)="saveRules()" [disabled]="!hasChanges">
+      <mat-icon>save</mat-icon>
+      Enregistrer
+    </button>
+    <span class="save-status success" *ngIf="saved">✓ Modifications enregistrées</span>
+    <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+  </div>
+</div>
