@@ -1,4 +1,3 @@
-// features/financial-analysis/financial-analyzer/financial-analyzer.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,7 +17,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatChipsModule } from '@angular/material/chips';
 
 // Services
 import { FinancialAnalysisService } from '@core/services/financial-analysis.service';
@@ -53,7 +51,6 @@ import { TndCurrencyPipe } from '@shared/pipes/tnd-currency.pipe';
     MatSnackBarModule,
     MatTooltipModule,
     MatProgressBarModule,
-    MatChipsModule,
     TndCurrencyPipe
   ]
 })
@@ -138,33 +135,15 @@ export class FinancialAnalyzerComponent implements OnInit {
       this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
         next: (data) => {
           this.creditRequests = data || [];
-          if (data && data.length > 0) {
-            this.analysisForm.patchValue({ creditRequestId: data[0].id });
-            this.loadClientData(clientId);
-          }
         },
         error: () => {
           this.creditRequests = [];
-          this.snackBar.open('Erreur lors du chargement des demandes', 'Fermer', { duration: 3000 });
         }
       });
     } else {
       this.creditRequests = [];
       this.analysisForm.patchValue({ creditRequestId: '' });
     }
-  }
-
-  loadClientData(clientId: string): void {
-    this.clientService.getClientById(clientId).subscribe({
-      next: (client) => {
-        if (client.monthlyIncome) {
-          this.analysisForm.patchValue({ monthlyNetIncome: client.monthlyIncome });
-        }
-      },
-      error: () => {
-        // Ignorer l'erreur
-      }
-    });
   }
 
   onCreditRequestSelect(): void {
@@ -180,16 +159,13 @@ export class FinancialAnalyzerComponent implements OnInit {
             });
           }
         },
-        error: () => {
-          // Ignorer l'erreur
-        }
+        error: () => {}
       });
     }
   }
 
   onSubmit(): void {
     if (this.analysisForm.invalid) {
-      // ✅ CORRECTION: Ajouter le type explicitement
       const errors: string[] = [];
       Object.keys(this.analysisForm.controls).forEach(key => {
         const control = this.analysisForm.get(key);
@@ -256,10 +232,6 @@ export class FinancialAnalyzerComponent implements OnInit {
     }
   }
 
-  // ============================================
-  // MÉTHODES D'AFFICHAGE
-  // ============================================
-  
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
       'FAIBLE': 'good',
