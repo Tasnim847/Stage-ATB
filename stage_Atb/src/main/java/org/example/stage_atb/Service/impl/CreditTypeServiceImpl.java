@@ -1,4 +1,3 @@
-// Service/impl/CreditTypeServiceImpl.java
 package org.example.stage_atb.Service.impl;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,8 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public List<CreditTypeResponseDTO> getActiveCreditTypes() {
-        log.info("Getting active credit types");
+        log.info("📋 Récupération des types de crédit actifs");
+
         // ✅ Les documents sont chargés via EntityGraph
         List<CreditType> creditTypes = creditTypeRepository.findActiveOrderByName();
         List<CreditTypeResponseDTO> dtos = creditTypeMapper.toResponseDTOList(creditTypes);
@@ -45,10 +45,12 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public CreditTypeResponseDTO getCreditTypeById(String id) {
-        log.info("Getting credit type by id: {}", id);
+        log.info("🔍 Récupération du type de crédit par ID: {}", id);
+
         // ✅ Les documents sont chargés via EntityGraph
         CreditType creditType = creditTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Credit type not found"));
+                .orElseThrow(() -> new RuntimeException("Type de crédit non trouvé avec l'id: " + id));
+
         CreditTypeResponseDTO dto = creditTypeMapper.toResponseDTO(creditType);
 
         // ✅ Ajouter les durées disponibles
@@ -61,14 +63,16 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public CreditType getCreditTypeEntity(String id) {
+        log.info("🔍 Récupération de l'entité CreditType par ID: {}", id);
+
         // ✅ Les documents sont chargés via EntityGraph
         return creditTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Credit type not found"));
+                .orElseThrow(() -> new RuntimeException("Type de crédit non trouvé avec l'id: " + id));
     }
 
     @Override
     public CreditTypeResponseDTO getCreditTypeWithParams(String id) {
-        log.info("Getting credit type with params for id: {}", id);
+        log.info("📋 Récupération du type de crédit avec paramètres pour l'id: {}", id);
 
         CreditType creditType = getCreditTypeEntity(id);
         CreditTypeResponseDTO dto = creditTypeMapper.toResponseDTO(creditType);
@@ -83,12 +87,16 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public boolean validateAmount(String creditTypeId, Double amount) {
+        log.info("✅ Validation du montant {} pour le type de crédit: {}", amount, creditTypeId);
+
         CreditType creditType = getCreditTypeEntity(creditTypeId);
         return amount >= creditType.getMinAmount() && amount <= creditType.getMaxAmount();
     }
 
     @Override
     public boolean validateDuration(String creditTypeId, Integer durationMonths) {
+        log.info("✅ Validation de la durée {} pour le type de crédit: {}", durationMonths, creditTypeId);
+
         CreditType creditType = getCreditTypeEntity(creditTypeId);
         return durationMonths >= creditType.getMinDurationMonths() &&
                 durationMonths <= creditType.getMaxDurationMonths();
@@ -96,6 +104,8 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public List<Integer> getAvailableDurations(String creditTypeId) {
+        log.info("📋 Récupération des durées disponibles pour le type de crédit: {}", creditTypeId);
+
         return durationConfigRepository
                 .findByCreditTypeIdAndIsActiveTrueOrderByDurationMonthsAsc(creditTypeId)
                 .stream()
@@ -105,6 +115,8 @@ public class CreditTypeServiceImpl implements ICreditTypeService {
 
     @Override
     public List<String> getRequiredDocuments(String creditTypeId) {
+        log.info("📋 Récupération des documents requis pour le type de crédit: {}", creditTypeId);
+
         CreditType creditType = getCreditTypeEntity(creditTypeId);
         // ✅ Les documents sont déjà chargés via EntityGraph
         return creditType.getRequiredDocuments();

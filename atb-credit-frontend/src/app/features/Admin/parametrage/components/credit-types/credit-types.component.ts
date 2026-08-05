@@ -1,5 +1,4 @@
-// components/credit-types/credit-types.component.ts
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +15,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ParametrageService, CreditType } from '@app/core/services/parametrage.service';
 import { CreditTypesDialogComponent } from '../credit-types-dialog/credit-types-dialog.component';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-credit-types',
@@ -38,11 +38,12 @@ import { Router } from '@angular/router';
   templateUrl: './credit-types.component.html',
   styleUrls: ['./credit-types.component.css']
 })
-export class CreditTypesComponent implements OnInit {
+export class CreditTypesComponent implements OnInit, OnDestroy {
   private parametrageService = inject(ParametrageService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private destroy$ = new Subject<void>();
 
   data: CreditType[] = [];
   filteredData: CreditType[] = [];
@@ -58,22 +59,30 @@ export class CreditTypesComponent implements OnInit {
     this.loadData();
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadData() {
     this.loading = true;
-    this.parametrageService.getAllCreditTypes().subscribe({
-      next: (data) => {
-        this.data = data;
-        this.applyFilters();
-        this.loading = false;
-      },
-      error: () => {
-        // Données mock
-        this.data = this.getMockData();
-        this.applyFilters();
-        this.loading = false;
-        this.snackBar.open('Utilisation des données de test', 'Fermer', { duration: 3000 });
-      }
-    });
+    this.parametrageService.getAllCreditTypes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.data = data;
+          this.applyFilters();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Erreur chargement:', err);
+          // Données mock
+          this.data = this.getMockData();
+          this.applyFilters();
+          this.loading = false;
+          this.snackBar.open('Utilisation des données de test', 'Fermer', { duration: 3000 });
+        }
+      });
   }
 
   private getMockData(): CreditType[] {
@@ -92,7 +101,7 @@ export class CreditTypesComponent implements OnInit {
         isActive: true,
         requiresCollateral: false,
         requiresGuarantor: false,
-        requiredDocuments: ['ID', 'INCOME', 'RIB'],
+        requiredDocuments: ['ID', 'INCOME_PROOF', 'BANK_STATEMENT'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
@@ -110,7 +119,7 @@ export class CreditTypesComponent implements OnInit {
         isActive: true,
         requiresCollateral: true,
         requiresGuarantor: false,
-        requiredDocuments: ['ID', 'INCOME', 'RIB', 'VEHICLE'],
+        requiredDocuments: ['ID', 'INCOME_PROOF', 'BANK_STATEMENT'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
@@ -128,7 +137,7 @@ export class CreditTypesComponent implements OnInit {
         isActive: true,
         requiresCollateral: true,
         requiresGuarantor: true,
-        requiredDocuments: ['ID', 'INCOME', 'RIB', 'PROPERTY'],
+        requiredDocuments: ['ID', 'INCOME_PROOF', 'BANK_STATEMENT', 'TAX_RETURN'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
@@ -146,7 +155,7 @@ export class CreditTypesComponent implements OnInit {
         isActive: false,
         requiresCollateral: true,
         requiresGuarantor: false,
-        requiredDocuments: ['ID', 'INCOME', 'RIB', 'BUSINESS'],
+        requiredDocuments: ['ID', 'INCOME_PROOF', 'BANK_STATEMENT', 'BUSINESS_REGISTRATION'],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -226,28 +235,30 @@ export class CreditTypesComponent implements OnInit {
   }
 
   toggleStatus(item: CreditType) {
-    this.parametrageService.toggleCreditTypeStatus(item.id).subscribe({
-      next: (updated) => {
-        const index = this.data.findIndex(d => d.id === updated.id);
-        if (index !== -1) this.data[index] = updated;
-        this.applyFilters();
-        this.snackBar.open(
-          `Type "${updated.name}" ${updated.isActive ? 'activé' : 'désactivé'}`,
-          'Fermer',
-          { duration: 3000 }
-        );
-      },
-      error: () => {
-        // Simuler localement
-        item.isActive = !item.isActive;
-        this.applyFilters();
-        this.snackBar.open(
-          `Type "${item.name}" ${item.isActive ? 'activé' : 'désactivé'}`,
-          'Fermer',
-          { duration: 3000 }
-        );
-      }
-    });
+    this.parametrageService.toggleCreditTypeStatus(item.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          const index = this.data.findIndex(d => d.id === updated.id);
+          if (index !== -1) this.data[index] = updated;
+          this.applyFilters();
+          this.snackBar.open(
+            `Type "${updated.name}" ${updated.isActive ? 'activé' : 'désactivé'}`,
+            'Fermer',
+            { duration: 3000 }
+          );
+        },
+        error: () => {
+          // Simuler localement
+          item.isActive = !item.isActive;
+          this.applyFilters();
+          this.snackBar.open(
+            `Type "${item.name}" ${item.isActive ? 'activé' : 'désactivé'}`,
+            'Fermer',
+            { duration: 3000 }
+          );
+        }
+      });
   }
 
   openCreateDialog() {
@@ -282,18 +293,20 @@ export class CreditTypesComponent implements OnInit {
 
   deleteCreditType(item: CreditType) {
     if (confirm(`Voulez-vous vraiment supprimer le type "${item.name}" ?`)) {
-      this.parametrageService.deleteCreditType(item.id).subscribe({
-        next: () => {
-          this.loadData();
-          this.snackBar.open('Type de crédit supprimé avec succès', 'Fermer', { duration: 3000 });
-        },
-        error: () => {
-          // Suppression locale
-          this.data = this.data.filter(d => d.id !== item.id);
-          this.applyFilters();
-          this.snackBar.open('Type de crédit supprimé', 'Fermer', { duration: 3000 });
-        }
-      });
+      this.parametrageService.deleteCreditType(item.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loadData();
+            this.snackBar.open('Type de crédit supprimé avec succès', 'Fermer', { duration: 3000 });
+          },
+          error: () => {
+            // Suppression locale
+            this.data = this.data.filter(d => d.id !== item.id);
+            this.applyFilters();
+            this.snackBar.open('Type de crédit supprimé', 'Fermer', { duration: 3000 });
+          }
+        });
     }
   }
 

@@ -1,4 +1,3 @@
-// components/ratio-calculator/ratio-calculator.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -104,7 +103,7 @@ export class RatioCalculatorComponent implements OnInit {
         this.clients = data || [];
         this.isLoading = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
         this.snackBar.open('Erreur lors du chargement des clients', 'Fermer', { duration: 5000 });
       }
@@ -117,13 +116,9 @@ export class RatioCalculatorComponent implements OnInit {
       this.creditRequestService.getCreditRequestsByClient(clientId).subscribe({
         next: (data) => {
           this.creditRequests = data || [];
-          if (data && data.length > 0) {
-            this.ratioForm.patchValue({ creditRequestId: data[0].id });
-          }
         },
         error: () => {
           this.creditRequests = [];
-          this.snackBar.open('Erreur lors du chargement des demandes', 'Fermer', { duration: 3000 });
         }
       });
     } else {
@@ -145,16 +140,13 @@ export class RatioCalculatorComponent implements OnInit {
             });
           }
         },
-        error: () => {
-          // Ignorer l'erreur
-        }
+        error: () => {}
       });
     }
   }
 
   onSubmit(): void {
     if (this.ratioForm.invalid) {
-      // ✅ CORRECTION: Ajouter le type explicitement
       const errors: string[] = [];
       Object.keys(this.ratioForm.controls).forEach(key => {
         const control = this.ratioForm.get(key);
@@ -217,10 +209,6 @@ export class RatioCalculatorComponent implements OnInit {
     });
   }
 
-  // ============================================
-  // MÉTHODES D'AFFICHAGE
-  // ============================================
-  
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
       'FAIBLE': 'good',

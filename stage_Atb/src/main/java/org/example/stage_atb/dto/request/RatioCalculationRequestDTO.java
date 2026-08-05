@@ -1,4 +1,3 @@
-// dto/request/RatioCalculationRequestDTO.java
 package org.example.stage_atb.dto.request;
 
 import lombok.AllArgsConstructor;
@@ -14,28 +13,61 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class RatioCalculationRequestDTO {
 
+    // ============================================
+    // INFORMATIONS CLIENT
+    // ============================================
     private String clientId;
     private String creditRequestId;
 
-    // Revenus
-    private BigDecimal monthlyNetIncome;
-    private BigDecimal otherMonthlyIncome;
-    private BigDecimal monthlyCharges;
-    private BigDecimal existingCreditPayments;
+    // ============================================
+    // REVENUS
+    // ============================================
+    @Builder.Default
+    private BigDecimal monthlyNetIncome = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal otherMonthlyIncome = BigDecimal.ZERO;
+    private BigDecimal annualIncome;
+    private BigDecimal monthlyEpargne;
 
-    // Crédit
+    // ============================================
+    // CHARGES
+    // ============================================
+    @Builder.Default
+    private BigDecimal monthlyCharges = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal existingCreditPayments = BigDecimal.ZERO;
+    private BigDecimal totalMonthlyDebts;
+
+    // ============================================
+    // CRÉDIT DEMANDÉ
+    // ============================================
     private BigDecimal creditAmount;
     private Integer durationMonths;
     private BigDecimal annualInterestRate;
     private BigDecimal collateralValue;
+    private BigDecimal guaranteeValue;
 
-    // Données professionnelles
+    // ============================================
+    // PATRIMOINE
+    // ============================================
     private BigDecimal totalAssets;
     private BigDecimal totalLiabilities;
     private BigDecimal currentAssets;
     private BigDecimal currentLiabilities;
+    private BigDecimal shareholdersEquity;
+
+    // ============================================
+    // DONNÉES PROFESSIONNELLES
+    // ============================================
     private BigDecimal ebit;
     private BigDecimal financialCharges;
     private BigDecimal availableCashFlow;
     private BigDecimal annualDebtService;
+    private BigDecimal totalFinancialDebts;
+
+    // ============================================
+    // ÉPARGNE
+    // ============================================
+    private BigDecimal monthlySavings;
+    private BigDecimal totalSavings;
 }

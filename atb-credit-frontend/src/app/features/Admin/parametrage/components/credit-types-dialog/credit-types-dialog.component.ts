@@ -1,5 +1,4 @@
-// components/credit-types-dialog/credit-types-dialog.component.ts
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -12,6 +11,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ParametrageService, CreditType, CreateCreditTypeDTO } from '@app/core/services/parametrage.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-credit-types-dialog',
@@ -32,10 +32,12 @@ import { ParametrageService, CreditType, CreateCreditTypeDTO } from '@app/core/s
   templateUrl: './credit-types-dialog.component.html',
   styleUrls: ['./credit-types-dialog.component.css']
 })
-export class CreditTypesDialogComponent implements OnInit {
+export class CreditTypesDialogComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   isEdit = false;
   loading = false;
+  private destroy$ = new Subject<void>();
+  
   categories = this.parametrageService.getCreditCategories();
   documentTypes = this.parametrageService.getDocumentTypes();
   selectedDocuments: string[] = [];
@@ -57,6 +59,11 @@ export class CreditTypesDialogComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   initForm() {
     this.form = this.fb.group({
       code: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
@@ -74,20 +81,12 @@ export class CreditTypesDialogComponent implements OnInit {
     });
 
     // Validation: maxDuration >= minDuration
-    this.form.get('maxDurationMonths')?.valueChanges.subscribe(() => {
-      this.validateDurations();
-    });
-    this.form.get('minDurationMonths')?.valueChanges.subscribe(() => {
-      this.validateDurations();
-    });
+    this.form.get('maxDurationMonths')?.valueChanges.subscribe(() => this.validateDurations());
+    this.form.get('minDurationMonths')?.valueChanges.subscribe(() => this.validateDurations());
 
     // Validation: maxAmount >= minAmount
-    this.form.get('maxAmount')?.valueChanges.subscribe(() => {
-      this.validateAmounts();
-    });
-    this.form.get('minAmount')?.valueChanges.subscribe(() => {
-      this.validateAmounts();
-    });
+    this.form.get('maxAmount')?.valueChanges.subscribe(() => this.validateAmounts());
+    this.form.get('minAmount')?.valueChanges.subscribe(() => this.validateAmounts());
   }
 
   validateDurations() {
@@ -125,7 +124,7 @@ export class CreditTypesDialogComponent implements OnInit {
   }
 
   addDocument(doc: string) {
-    if (!this.selectedDocuments.includes(doc)) {
+    if (doc && !this.selectedDocuments.includes(doc)) {
       this.selectedDocuments.push(doc);
       this.form.get('requiredDocuments')?.setValue(this.selectedDocuments);
     }
@@ -147,29 +146,33 @@ export class CreditTypesDialogComponent implements OnInit {
     const formData = this.form.value;
 
     if (this.isEdit && this.data.creditType) {
-      this.parametrageService.updateCreditType(this.data.creditType.id, formData).subscribe({
-        next: () => {
-          this.loading = false;
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          console.error('Erreur mise à jour:', err);
-          this.loading = false;
-          this.snackBar.open('Erreur lors de la mise à jour', 'Fermer', { duration: 3000 });
-        }
-      });
+      this.parametrageService.updateCreditType(this.data.creditType.id, formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loading = false;
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            console.error('Erreur mise à jour:', err);
+            this.loading = false;
+            this.snackBar.open('Erreur lors de la mise à jour', 'Fermer', { duration: 3000 });
+          }
+        });
     } else {
-      this.parametrageService.createCreditType(formData).subscribe({
-        next: () => {
-          this.loading = false;
-          this.dialogRef.close(true);
-        },
-        error: (err) => {
-          console.error('Erreur création:', err);
-          this.loading = false;
-          this.snackBar.open('Erreur lors de la création', 'Fermer', { duration: 3000 });
-        }
-      });
+      this.parametrageService.createCreditType(formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.loading = false;
+            this.dialogRef.close(true);
+          },
+          error: (err) => {
+            console.error('Erreur création:', err);
+            this.loading = false;
+            this.snackBar.open('Erreur lors de la création', 'Fermer', { duration: 3000 });
+          }
+        });
     }
   }
 
@@ -185,7 +188,6 @@ export class CreditTypesDialogComponent implements OnInit {
     return this.isEdit ? 'Modifier' : 'Créer';
   }
 
-  // Ajoutez cette méthode dans le dialog
   getDocumentLabel(value: string): string {
     const found = this.documentTypes.find(d => d.value === value);
     return found ? found.label : value;
