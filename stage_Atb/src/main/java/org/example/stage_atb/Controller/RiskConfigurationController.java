@@ -85,8 +85,8 @@ public class RiskConfigurationController {
     }
 
     // ============================================
-    // 3. RATIOS FINANCIERS
-    // ============================================
+// 3. RATIOS FINANCIERS
+// ============================================
 
     @GetMapping("/ratios")
     public ResponseEntity<List<FinancialRatioResponse>> getFinancialRatios() {
@@ -94,12 +94,44 @@ public class RiskConfigurationController {
         return ResponseEntity.ok(riskConfigurationService.getFinancialRatios());
     }
 
+    // ✅ AJOUTER CETTE MÉTHODE POUR LA CRÉATION
+    @PostMapping("/ratios")
+    public ResponseEntity<FinancialRatioResponse> addFinancialRatio(
+            @Valid @RequestBody FinancialRatioRequest request) {
+        log.info("➕ POST /api/risk/ratios - Création d'un nouveau ratio: {}", request.getName());
+        // ✅ Supprimer getKey() car il n'existe plus dans le DTO
+        log.info("📝 Données reçues: name={}, maxValue={}, unit={}",
+                request.getName(), request.getMaxValue(), request.getUnit());
+        FinancialRatioResponse response = riskConfigurationService.addFinancialRatio(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PutMapping("/ratios/{id}")
     public ResponseEntity<FinancialRatioResponse> updateFinancialRatio(
             @PathVariable String id,
             @Valid @RequestBody FinancialRatioRequest request) {
         log.info("✏️ PUT /api/risk/ratios/{} - Mise à jour du ratio", id);
-        return ResponseEntity.ok(riskConfigurationService.updateFinancialRatio(id, request));
+
+        // ✅ Supprimer getKey() car il n'existe plus dans le DTO
+        log.info("📝 Données reçues:");
+        log.info("   - name: {}", request.getName());
+        // log.info("   - key: {}", request.getKey()); // ❌ SUPPRIMER
+        log.info("   - maxValue: {}", request.getMaxValue());
+        log.info("   - minValue: {}", request.getMinValue());
+        log.info("   - unit: {}", request.getUnit());
+        log.info("   - priority: {}", request.getPriority());
+        log.info("   - isActive: {}", request.getIsActive());
+        log.info("   - criticalMin: {}", request.getCriticalMin());
+        log.info("   - criticalMax: {}", request.getCriticalMax());
+
+        try {
+            FinancialRatioResponse response = riskConfigurationService.updateFinancialRatio(id, request);
+            log.info("✅ Ratio mis à jour avec succès: {}", response.getId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de la mise à jour du ratio: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     // ============================================

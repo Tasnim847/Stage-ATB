@@ -168,16 +168,60 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
     }
 
     // ============================================
-    // 3. RATIOS FINANCIERS
-    // ============================================
+// 3. RATIOS FINANCIERS
+// ============================================
 
     @Override
     public List<FinancialRatioResponse> getFinancialRatios() {
         log.info("📋 Récupération de tous les ratios financiers");
-        return financialRatioRepository.findByIsActiveTrueOrderByPriorityAsc()
-                .stream()
+
+        // ✅ Vérifier si la table est vide et créer les données par défaut
+        List<FinancialRatio> existingRatios = financialRatioRepository.findAll();
+        if (existingRatios.isEmpty()) {
+            log.info("⚠️ Aucun ratio trouvé, création des ratios par défaut");
+            initDefaultFinancialRatios();
+            existingRatios = financialRatioRepository.findAll();
+        }
+
+        return existingRatios.stream()
                 .map(financialRatioMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public FinancialRatioResponse addFinancialRatio(FinancialRatioRequest request) {
+        log.info("➕ Création d'un nouveau ratio financier: {}", request.getName());
+
+        FinancialRatio entity = financialRatioMapper.toEntity(request);
+        entity.setId(UUID.randomUUID().toString());
+
+        // ✅ Générer automatiquement la clé à partir du nom
+        if (entity.getKey() == null || entity.getKey().isEmpty()) {
+            entity.setKey(generateKeyFromName(request.getName()));
+        }
+
+        entity = financialRatioRepository.save(entity);
+
+        logAudit("CREATE", "RATIO", entity.getId(), null, entity.getName());
+        return financialRatioMapper.toResponse(entity);
+    }
+
+    // ✅ Méthode pour générer une clé à partir du nom
+    private String generateKeyFromName(String name) {
+        if (name == null) return "ratio_" + UUID.randomUUID().toString().substring(0, 8);
+
+        return name
+                .toLowerCase()
+                .trim()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[éèêë]", "e")
+                .replaceAll("[àâä]", "a")
+                .replaceAll("[ôö]", "o")
+                .replaceAll("[ûü]", "u")
+                .replaceAll("[îï]", "i")
+                .replaceAll("[ç]", "c")
+                .replaceAll("[^a-z0-9_]", "");
     }
 
     @Override
@@ -187,10 +231,11 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
         FinancialRatio entity = financialRatioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ratio financier non trouvé avec l'id: " + id));
 
-        String oldValue = entity.getMaxValue().toString();
+        String oldName = entity.getName();
+
+        // ✅ Mettre à jour les champs
         entity.setName(request.getName());
         entity.setDescription(request.getDescription());
-        entity.setKey(request.getKey());
         entity.setMinValue(request.getMinValue());
         entity.setMaxValue(request.getMaxValue());
         entity.setCriticalMin(request.getCriticalMin());
@@ -199,10 +244,80 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
         entity.setIsActive(request.getIsActive());
         entity.setPriority(request.getPriority());
 
+        // ✅ Si la clé est null ou vide, la générer
+        if (entity.getKey() == null || entity.getKey().isEmpty()) {
+            entity.setKey(generateKeyFromName(entity.getName()));
+        }
+
         entity = financialRatioRepository.save(entity);
 
-        logAudit("UPDATE", "RATIO", entity.getId(), oldValue, entity.getMaxValue().toString());
+        logAudit("UPDATE", "RATIO", entity.getId(), oldName, entity.getName());
         return financialRatioMapper.toResponse(entity);
+    }
+
+    private void initDefaultFinancialRatios() {
+        log.info("📝 Initialisation des ratios financiers par défaut");
+
+        List<FinancialRatio> defaultRatios = Arrays.asList(
+                FinancialRatio.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Taux d'endettement maximal")
+                        .description("Pourcentage maximum d'endettement autorisé par rapport aux revenus")
+                        .key("debt_ratio")
+                        .minValue(null)
+                        .maxValue(40.0)
+                        .criticalMin(null)
+                        .criticalMax(45.0)
+                        .unit("%")
+                        .isActive(true)
+                        .priority(1)
+                        // ❌ SUPPRIMER createdAt et updatedAt car gérés par JPA
+                        // .createdAt(LocalDateTime.now())
+                        // .updatedAt(LocalDateTime.now())
+                        .build(),
+                FinancialRatio.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Capacité de remboursement minimale")
+                        .description("Pourcentage minimum de capacité de remboursement requise")
+                        .key("repayment_capacity")
+                        .minValue(25.0)
+                        .maxValue(100.0)
+                        .criticalMin(20.0)
+                        .criticalMax(null)
+                        .unit("%")
+                        .isActive(true)
+                        .priority(2)
+                        .build(),
+                FinancialRatio.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Ratio de liquidité minimal")
+                        .description("Ratio de liquidité générale minimum acceptable")
+                        .key("liquidity_ratio")
+                        .minValue(1.2)
+                        .maxValue(10.0)
+                        .criticalMin(1.0)
+                        .criticalMax(null)
+                        .unit("")
+                        .isActive(true)
+                        .priority(3)
+                        .build(),
+                FinancialRatio.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Ratio de solvabilité minimal")
+                        .description("Ratio de solvabilité minimum acceptable")
+                        .key("solvency_ratio")
+                        .minValue(20.0)
+                        .maxValue(100.0)
+                        .criticalMin(15.0)
+                        .criticalMax(null)
+                        .unit("%")
+                        .isActive(true)
+                        .priority(4)
+                        .build()
+        );
+
+        financialRatioRepository.saveAll(defaultRatios);
+        log.info("✅ Ratios financiers par défaut créés avec succès");
     }
 
     // ============================================

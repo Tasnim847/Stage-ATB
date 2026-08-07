@@ -27,8 +27,9 @@ public interface IRiskConfigurationService {
 
     // ============================================
     // 3. RATIOS FINANCIERS
-    // ============================================
+   // ============================================
     List<FinancialRatioResponse> getFinancialRatios();
+    FinancialRatioResponse addFinancialRatio(FinancialRatioRequest request);  // ✅ AJOUTER
     FinancialRatioResponse updateFinancialRatio(String id, FinancialRatioRequest request);
 
     // ============================================

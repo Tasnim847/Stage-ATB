@@ -1,9 +1,9 @@
 package org.example.stage_atb.dto.request;
 
-
 import lombok.Data;
-import jakarta.validation.constraints.NotBlank;  // ✅ CHANGÉ
-import jakarta.validation.constraints.NotNull;  // ✅ CHANGÉ
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 @Data
 public class FinancialRatioRequest {
 
@@ -11,9 +11,6 @@ public class FinancialRatioRequest {
     private String name;
 
     private String description;
-
-    @NotBlank(message = "La clé est obligatoire")
-    private String key;
 
     private Double minValue;
 
@@ -23,8 +20,9 @@ public class FinancialRatioRequest {
     private Double criticalMin;
     private Double criticalMax;
 
-    @NotBlank(message = "L'unité est obligatoire")
-    private String unit;
+    // ✅ Permettre une chaîne vide avec @NotNull
+    @NotNull(message = "L'unité est obligatoire")
+    private String unit = "";
 
     private Boolean isActive = true;
 
