@@ -4,29 +4,31 @@
       <h2>Configuration des alertes</h2>
       <p class="description">Définissez les notifications à envoyer pour chaque événement</p>
     </div>
-    <button class="btn-primary" (click)="addAlert()">
+    <button class="btn-primary" (click)="addAlert()" [disabled]="loading">
       <mat-icon>add</mat-icon>
       Ajouter une alerte
     </button>
   </div>
 
-  <div class="alerts-grid">
+  <div class="alerts-grid" *ngIf="!loading">
     <div *ngFor="let alert of alerts" 
          class="alert-card"
          [class.inactive]="!alert.isActive"
-         [style.border-color]="getPriorityColor(alert.priority)">
+         [style.border-left-color]="getPriorityColor(alert.priority)">
       
       <div class="alert-header">
         <div class="alert-info">
           <span class="alert-event">{{ getAlertEventLabel(alert.event) }}</span>
-          <span class="alert-priority" [style.background]="getPriorityColor(alert.priority)">
-            {{ alert.priority }}
+          <span class="alert-priority" 
+                [style.background]="getPriorityColor(alert.priority)"
+                matTooltip="Priorité {{ getPriorityLabel(alert.priority) }}">
+            {{ getPriorityLabel(alert.priority) }}
           </span>
         </div>
         <mat-slide-toggle 
-          [name]="'toggle-' + alert.id"
-          [(ngModel)]="alert.isActive"
-          (change)="toggleAlert(alert)">
+          [checked]="alert.isActive"
+          (change)="toggleAlert(alert)"
+          color="primary">
         </mat-slide-toggle>
       </div>
 
@@ -34,38 +36,49 @@
 
       <div class="alert-config">
         <div class="config-row">
-          <label>Destinataires</label>
+          <label>
+            <mat-icon>people</mat-icon>
+            Destinataires
+          </label>
           <div class="recipients">
             <span *ngFor="let recipient of alert.recipients" 
                   class="recipient-tag">
-              {{ recipient }}
+              {{ getRecipientLabel(recipient) }}
             </span>
           </div>
         </div>
 
         <div class="config-row">
-          <label>Notifications</label>
+          <label>
+            <mat-icon>notifications_active</mat-icon>
+            Notifications
+          </label>
           <div class="methods">
             <span *ngFor="let method of alert.notificationMethods" 
                   class="method-tag">
-              {{ method }}
+              <mat-icon>{{ getMethodIcon(method) }}</mat-icon>
+              {{ getMethodLabel(method) }}
             </span>
           </div>
         </div>
       </div>
 
       <div class="alert-actions">
-        <button class="icon-btn" (click)="editAlert(alert)" title="Modifier">
+        <button class="icon-btn" (click)="editAlert(alert)" title="Modifier" [disabled]="loading">
           <mat-icon>edit</mat-icon>
         </button>
-        <button class="icon-btn delete-btn" (click)="deleteAlert(alert)" title="Supprimer">
+        <button class="icon-btn delete-btn" (click)="deleteAlert(alert)" title="Supprimer" [disabled]="loading">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="alerts-empty" *ngIf="alerts.length === 0">
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div class="alerts-empty" *ngIf="!loading && alerts.length === 0">
     <mat-icon>notifications_off</mat-icon>
     <p>Aucune alerte configurée</p>
     <button class="btn-primary" (click)="addAlert()">Créer votre première alerte</button>

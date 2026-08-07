@@ -1,0 +1,224 @@
+<div class="dialog-container">
+  <!-- En-tête -->
+  <div class="dialog-header" [class.edit-mode]="isEditMode">
+    <div class="header-icon">
+      <mat-icon>{{ isEditMode ? 'edit_notifications' : 'add_alert' }}</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2>{{ isEditMode ? 'Modifier l\'alerte' : 'Nouvelle alerte' }}</h2>
+      <p class="header-subtitle">
+        {{ isEditMode ? 'Modifiez les paramètres de l\'alerte existante' : 'Configurez une nouvelle alerte pour un événement spécifique' }}
+      </p>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="alertForm" (ngSubmit)="onSubmit()">
+    <div class="dialog-body">
+      <!-- Section: Informations principales -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>info</mat-icon>
+          <span>Informations générales</span>
+        </div>
+
+        <div class="form-row">
+          <!-- Événement -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Événement déclencheur</mat-label>
+            <mat-select formControlName="event" panelClass="custom-select-panel">
+              <mat-option *ngFor="let event of availableEvents" [value]="event.value">
+                <div class="option-content">
+                  <span class="event-dot" [class]="getEventClass(event.value)"></span>
+                  <span>{{ event.label }}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">event</mat-icon>
+            <mat-hint>Choisissez l'événement qui déclenchera cette alerte</mat-hint>
+            <mat-error *ngIf="alertForm.get('event')?.hasError('required')">
+              L'événement est obligatoire
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3" 
+                      placeholder="Décrivez le contexte de l'alerte et les actions à entreprendre"></textarea>
+            <mat-icon matPrefix class="field-icon">description</mat-icon>
+            <mat-hint align="start">Décrivez clairement l'alerte</mat-hint>
+            <mat-hint align="end">{{ alertForm.get('description')?.value?.length || 0 }} / 500</mat-hint>
+            <mat-error *ngIf="alertForm.get('description')?.hasError('required')">
+              La description est obligatoire
+            </mat-error>
+            <mat-error *ngIf="alertForm.get('description')?.hasError('maxlength')">
+              La description ne doit pas dépasser 500 caractères
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Section: Configuration -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>settings</mat-icon>
+          <span>Configuration de l'alerte</span>
+        </div>
+
+        <div class="form-row two-columns">
+          <!-- Priorité -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Priorité</mat-label>
+            <mat-select formControlName="priority" panelClass="custom-select-panel">
+              <mat-option *ngFor="let priority of availablePriorities" [value]="priority.value">
+                <div class="option-content">
+                  <span class="priority-dot" [style.background]="getPriorityColor(priority.value)"></span>
+                  <span>{{ priority.label }}</span>
+                  <span class="priority-badge" [style.background]="getPriorityColor(priority.value)">
+                    {{ priority.value }}
+                  </span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">priority_high</mat-icon>
+            <mat-hint>Détermine l'urgence de l'alerte</mat-hint>
+            <mat-error *ngIf="alertForm.get('priority')?.hasError('required')">
+              La priorité est obligatoire
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Statut -->
+          <div class="status-toggle-wrapper">
+            <div class="status-toggle">
+              <mat-slide-toggle formControlName="isActive" color="primary" class="custom-toggle">
+                <span class="toggle-label">
+                  <mat-icon>{{ alertForm.get('isActive')?.value ? 'check_circle' : 'cancel' }}</mat-icon>
+                  <span class="toggle-status" [class.active]="alertForm.get('isActive')?.value">
+                    {{ alertForm.get('isActive')?.value ? 'Alerte active' : 'Alerte inactive' }}
+                  </span>
+                </span>
+              </mat-slide-toggle>
+              <p class="toggle-hint">
+                {{ alertForm.get('isActive')?.value ? 'Les notifications seront envoyées' : 'Les notifications ne seront pas envoyées' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Destinataires et notifications -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>notifications_active</mat-icon>
+          <span>Destinataires et notifications</span>
+        </div>
+
+        <div class="form-row two-columns">
+          <!-- Destinataires -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Destinataires</mat-label>
+            <mat-select formControlName="recipients" multiple panelClass="custom-select-panel">
+              <mat-option *ngFor="let recipient of availableRecipients" [value]="recipient.value">
+                <div class="option-content">
+                  <mat-icon class="recipient-icon">{{ getRecipientIcon(recipient.value) }}</mat-icon>
+                  <span>{{ recipient.label }}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">people</mat-icon>
+            <mat-hint>Sélectionnez les personnes à notifier</mat-hint>
+            <mat-error *ngIf="alertForm.get('recipients')?.hasError('required')">
+              Au moins un destinataire est obligatoire
+            </mat-error>
+            <mat-error *ngIf="alertForm.get('recipients')?.hasError('minlength')">
+              Sélectionnez au moins un destinataire
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Méthodes de notification -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Méthodes de notification</mat-label>
+            <mat-select formControlName="notificationMethods" multiple panelClass="custom-select-panel">
+              <mat-option *ngFor="let method of availableMethods" [value]="method.value">
+                <div class="option-content">
+                  <mat-icon class="method-icon">{{ method.icon }}</mat-icon>
+                  <span>{{ method.label }}</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">notifications_active</mat-icon>
+            <mat-hint>Choisissez comment les destinataires seront notifiés</mat-hint>
+            <mat-error *ngIf="alertForm.get('notificationMethods')?.hasError('required')">
+              Au moins une méthode de notification est obligatoire
+            </mat-error>
+            <mat-error *ngIf="alertForm.get('notificationMethods')?.hasError('minlength')">
+              Sélectionnez au moins une méthode de notification
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Résumé des sélections -->
+      <div class="selection-summary" *ngIf="hasSelections()">
+        <div class="summary-header">
+          <mat-icon>checklist</mat-icon>
+          <span>Résumé de la configuration</span>
+        </div>
+        <div class="summary-content">
+          <div class="summary-item" *ngIf="alertForm.get('recipients')?.value?.length > 0">
+            <span class="summary-label">
+              <mat-icon>people</mat-icon>
+              Destinataires
+            </span>
+            <div class="summary-tags">
+              <span *ngFor="let recipient of alertForm.get('recipients')?.value" 
+                    class="summary-tag recipient-tag">
+                <mat-icon>{{ getRecipientIcon(recipient) }}</mat-icon>
+                {{ getRecipientLabel(recipient) }}
+              </span>
+            </div>
+          </div>
+          <div class="summary-item" *ngIf="alertForm.get('notificationMethods')?.value?.length > 0">
+            <span class="summary-label">
+              <mat-icon>notifications_active</mat-icon>
+              Méthodes de notification
+            </span>
+            <div class="summary-tags">
+              <span *ngFor="let method of alertForm.get('notificationMethods')?.value" 
+                    class="summary-tag method-tag">
+                <mat-icon>{{ getMethodIcon(method) }}</mat-icon>
+                {{ getMethodLabel(method) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="dialog-footer">
+      <div class="footer-left">
+        <span class="footer-hint">
+          <mat-icon>info_outline</mat-icon>
+          Tous les champs marqués d'un <span class="required-star">*</span> sont obligatoires
+        </span>
+      </div>
+      <div class="footer-actions">
+        <button type="button" mat-stroked-button (click)="onCancel()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+        <button type="submit" mat-flat-button color="primary" 
+                [disabled]="alertForm.invalid || alertForm.pristine" class="submit-btn">
+          <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          {{ isEditMode ? 'Enregistrer les modifications' : 'Créer l\'alerte' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

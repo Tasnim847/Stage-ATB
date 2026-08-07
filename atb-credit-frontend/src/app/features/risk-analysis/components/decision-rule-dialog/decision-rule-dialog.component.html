@@ -1,0 +1,108 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2>
+      <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+      {{ isEditMode ? 'Modifier la règle' : 'Ajouter une règle' }}
+    </h2>
+    <button mat-icon-button (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="ruleForm" (ngSubmit)="onSubmit()">
+    <div class="dialog-content">
+      <!-- Nom -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nom de la règle</mat-label>
+        <input matInput formControlName="name" placeholder="Ex: Refus automatique - Endettement élevé">
+        <mat-icon matPrefix>label</mat-icon>
+        <mat-error *ngIf="ruleForm.get('name')?.hasError('required')">
+          Le nom est obligatoire
+        </mat-error>
+        <mat-error *ngIf="ruleForm.get('name')?.hasError('minlength')">
+          Le nom doit contenir au moins 3 caractères
+        </mat-error>
+        <mat-error *ngIf="ruleForm.get('name')?.hasError('maxlength')">
+          Le nom ne doit pas dépasser 100 caractères
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="2" 
+                  placeholder="Description de la règle"></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        <mat-error *ngIf="ruleForm.get('description')?.hasError('maxlength')">
+          La description ne doit pas dépasser 500 caractères
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Condition -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Condition</mat-label>
+        <input matInput formControlName="condition" 
+               placeholder="Ex: taux_endettement > 40">
+        <mat-icon matPrefix>code</mat-icon>
+        <mat-hint>Utilisez la syntaxe: variable opérateur valeur. Ex: score > 80</mat-hint>
+        <mat-error *ngIf="ruleForm.get('condition')?.hasError('required')">
+          La condition est obligatoire
+        </mat-error>
+        <mat-error *ngIf="ruleForm.get('condition')?.hasError('minlength')">
+          La condition doit contenir au moins 3 caractères
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Action -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Action</mat-label>
+        <mat-select formControlName="action">
+          <mat-option *ngFor="let action of availableActions" [value]="action.value">
+            {{ action.label }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>play_arrow</mat-icon>
+        <mat-error *ngIf="ruleForm.get('action')?.hasError('required')">
+          L'action est obligatoire
+        </mat-error>
+      </mat-form-field>
+
+      <div class="form-row">
+        <!-- Priorité -->
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Priorité</mat-label>
+          <input matInput type="number" formControlName="priority" min="0">
+          <mat-icon matPrefix>sort</mat-icon>
+          <mat-hint>Plus le nombre est petit, plus la priorité est élevée</mat-hint>
+          <mat-error *ngIf="ruleForm.get('priority')?.hasError('required')">
+            La priorité est obligatoire
+          </mat-error>
+          <mat-error *ngIf="ruleForm.get('priority')?.hasError('min')">
+            La priorité doit être supérieure ou égale à 0
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Actif -->
+        <div class="toggle-container half-width">
+          <mat-slide-toggle formControlName="isActive" color="primary">
+            <span class="toggle-label">
+              <mat-icon>power_settings_new</mat-icon>
+              {{ ruleForm.get('isActive')?.value ? 'Règle active' : 'Règle inactive' }}
+            </span>
+          </mat-slide-toggle>
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" mat-button (click)="onCancel()">
+        Annuler
+      </button>
+      <button type="submit" mat-raised-button color="primary" 
+              [disabled]="ruleForm.invalid">
+        <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+      </button>
+    </div>
+  </form>
+</div>
