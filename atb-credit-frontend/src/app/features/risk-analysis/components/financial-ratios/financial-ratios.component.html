@@ -1,96 +1,422 @@
 <div class="ratios-container">
-  <!-- En-tête -->
+  <!-- ============================================
+       EN-TÊTE
+       ============================================ -->
   <div class="section-header">
     <div>
       <h2>Paramétrage des ratios financiers</h2>
-      <p class="description">Définissez les limites acceptées pour chaque ratio</p>
+      <p class="description">Définissez les limites acceptées et les seuils critiques pour chaque ratio</p>
     </div>
-    <button class="btn-outline" (click)="resetDefaults()" [disabled]="loading">
-      <mat-icon>restore</mat-icon>
-      Réinitialiser
-    </button>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="resetDefaults()" [disabled]="loading">
+        <mat-icon>restore</mat-icon>
+        Réinitialiser
+      </button>
+    </div>
   </div>
 
-  <!-- Chargement -->
+  <!-- ============================================
+       CHARGEMENT
+       ============================================ -->
   <div class="loading-container" *ngIf="loading">
     <mat-spinner diameter="40"></mat-spinner>
     <span>Chargement des ratios...</span>
   </div>
 
-  <!-- Grille des ratios -->
-  <div class="ratios-grid" *ngIf="!loading">
-    <div *ngFor="let ratio of ratios" class="ratio-card" [class.inactive]="!ratio.isActive">
-      <!-- En-tête -->
-      <div class="ratio-header">
-        <div class="ratio-info">
-          <span class="ratio-name">{{ ratio.name }}</span>
-          <span class="ratio-key">{{ ratio.key }}</span>
-        </div>
-        <mat-slide-toggle 
-          [name]="'toggle-' + ratio.id"
-          [(ngModel)]="ratio.isActive"
-          (change)="onChange()">
-        </mat-slide-toggle>
+  <!-- ============================================
+       SECTION: CALCUL DES RATIOS
+       ============================================ -->
+  <div class="calculation-section" *ngIf="!loading">
+    <div class="section-title">
+      <mat-icon>calculate</mat-icon>
+      Calculer les ratios financiers
+    </div>
+
+    <div class="calc-form">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Client</mat-label>
+          <mat-select [(ngModel)]="selectedClientId" (selectionChange)="onClientChange()" name="client">
+            <mat-option value="">Sélectionner un client</mat-option>
+            <mat-option *ngFor="let client of clients" [value]="client.id">
+              {{ client.firstName }} {{ client.lastName }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Demande de crédit</mat-label>
+          <mat-select [(ngModel)]="selectedCreditRequestId" (selectionChange)="onCreditRequestSelect()" name="creditRequest">
+            <mat-option value="">Aucune (simulation)</mat-option>
+            <mat-option *ngFor="let request of creditRequests" [value]="request.id">
+              {{ request.requestNumber || request.id }} - {{ request.amount | number:'1.0-0' }} DT
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
 
-      <!-- Description -->
-      <p class="ratio-description">{{ ratio.description }}</p>
-      
-      <!-- Valeurs -->
-      <div class="ratio-values">
-        <div class="value-group">
-          <label>Valeur maximale</label>
-          <div class="value-input">
-            <input type="number" 
-                   [name]="'max-' + ratio.id"
-                   [(ngModel)]="ratio.maxValue" 
-                   (change)="onChange()"
-                   step="0.1"
-                   class="ratio-input">
-            <span class="unit">{{ ratio.unit }}</span>
-          </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Revenu mensuel net (DT)</label>
+          <input type="number" [(ngModel)]="formData.monthlyNetIncome" class="form-input" name="monthlyNetIncome" placeholder="Ex: 3000">
         </div>
-
-        <div class="value-group" *ngIf="ratio.minValue !== undefined">
-          <label>Valeur minimale</label>
-          <div class="value-input">
-            <input type="number" 
-                   [name]="'min-' + ratio.id"
-                   [(ngModel)]="ratio.minValue" 
-                   (change)="onChange()"
-                   step="0.1"
-                   class="ratio-input">
-            <span class="unit">{{ ratio.unit }}</span>
-          </div>
+        <div class="form-group">
+          <label>Autres revenus (DT)</label>
+          <input type="number" [(ngModel)]="formData.otherMonthlyIncome" class="form-input" name="otherMonthlyIncome" placeholder="Ex: 500">
+        </div>
+        <div class="form-group">
+          <label>Charges mensuelles (DT)</label>
+          <input type="number" [(ngModel)]="formData.monthlyCharges" class="form-input" name="monthlyCharges" placeholder="Ex: 800">
+        </div>
+        <div class="form-group">
+          <label>Crédits existants (DT)</label>
+          <input type="number" [(ngModel)]="formData.existingCreditPayments" class="form-input" name="existingCreditPayments" placeholder="Ex: 400">
+        </div>
+        <div class="form-group">
+          <label>Montant du crédit (DT)</label>
+          <input type="number" [(ngModel)]="formData.creditAmount" class="form-input" name="creditAmount" placeholder="Ex: 50000">
+        </div>
+        <div class="form-group">
+          <label>Durée (mois)</label>
+          <input type="number" [(ngModel)]="formData.durationMonths" class="form-input" name="durationMonths" placeholder="Ex: 60">
+        </div>
+        <div class="form-group">
+          <label>Taux d'intérêt (%)</label>
+          <input type="number" [(ngModel)]="formData.annualInterestRate" class="form-input" name="annualInterestRate" step="0.1" placeholder="Ex: 8.5">
+        </div>
+        <div class="form-group">
+          <label>Garantie (DT)</label>
+          <input type="number" [(ngModel)]="formData.collateralValue" class="form-input" name="collateralValue" placeholder="Ex: 100000">
         </div>
       </div>
 
-      <!-- Indicateur de seuil critique -->
-      <div class="ratio-indicator" [style.background]="getIndicatorColor(ratio)">
-        <span class="indicator-label">{{ getIndicatorLabel(ratio) }}</span>
-        <span class="indicator-value" *ngIf="ratio.criticalMax">
-          > {{ ratio.criticalMax }}{{ ratio.unit }}
-        </span>
-        <span class="indicator-value" *ngIf="ratio.criticalMin">
-          < {{ ratio.criticalMin }}{{ ratio.unit }}
-        </span>
-        <span class="indicator-value" *ngIf="!ratio.criticalMax && !ratio.criticalMin">
-          Aucun seuil critique
-        </span>
+      <button class="btn-calculate" (click)="calculateRatios()" [disabled]="isCalculating">
+        <mat-icon *ngIf="!isCalculating">calculate</mat-icon>
+        <mat-spinner *ngIf="isCalculating" diameter="20"></mat-spinner>
+        {{ isCalculating ? 'Calcul en cours...' : 'Calculer les ratios' }}
+      </button>
+    </div>
+
+    <!-- ============================================
+         RÉSULTATS DES RATIOS CALCULÉS
+         ============================================ -->
+    <div *ngIf="ratioResult" class="results-section">
+      <mat-divider></mat-divider>
+
+      <div class="results-header">
+        <h3>
+          <mat-icon>assessment</mat-icon>
+          Résultats des ratios
+        </h3>
+        <span class="client-name">Client: {{ ratioResult.clientId }}</span>
+      </div>
+
+      <!-- Score global -->
+      <div class="score-card">
+        <div class="score-value" style="color: #2d7bf6;">
+          {{ ratioResult.debtRatio ? 100 - (ratioResult.debtRatio * 2) : 0 }}
+        </div>
+        <div class="score-label">Score Global (estimé)</div>
+        <div class="score-risk" style="color: #6b7a8f;">À calculer</div>
+        <div class="score-health" style="color: #6b7a8f;">Analyse en cours</div>
+      </div>
+
+      <!-- Grille des ratios -->
+      <div class="ratios-grid">
+        <!-- 1. Taux d'endettement -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.debtRatioStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Taux d'endettement</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.debtRatioStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.debtRatio | number:'1.2-2' }}%</div>
+          <div class="ratio-status">{{ ratioResult.debtRatioStatus }}</div>
+          <div class="ratio-formula">(Mensualités / Revenus) × 100</div>
+        </div>
+
+        <!-- 2. Capacité de remboursement -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.repaymentCapacityStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Capacité de remboursement</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.repaymentCapacityStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.repaymentCapacity | number:'1.0-0' }} DT</div>
+          <div class="ratio-status">{{ ratioResult.repaymentCapacityStatus }}</div>
+          <div class="ratio-formula">Revenus - Charges - Mensualités</div>
+        </div>
+
+        <!-- 3. Reste à vivre -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.residualIncomeStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Reste à vivre</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.residualIncomeStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.residualIncome | number:'1.0-0' }} DT</div>
+          <div class="ratio-status">{{ ratioResult.residualIncomeStatus }}</div>
+          <div class="ratio-formula">Revenus - Charges - Mensualités</div>
+        </div>
+
+        <!-- 4. Ratio solvabilité -->
+        <div class="ratio-item" *ngIf="ratioResult.solvencyRatio" [class]="getStatusClass(ratioResult.solvencyRatioStatus || '')">
+          <div class="ratio-header">
+            <span class="ratio-name">Solvabilité</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.solvencyRatioStatus || '') }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.solvencyRatio | number:'1.2-2' }}</div>
+          <div class="ratio-status">{{ ratioResult.solvencyRatioStatus }}</div>
+          <div class="ratio-formula">Actifs / Dettes</div>
+        </div>
+
+        <!-- 5. Ratio liquidité -->
+        <div class="ratio-item" *ngIf="ratioResult.currentRatio" [class]="getStatusClass(ratioResult.currentRatioStatus || '')">
+          <div class="ratio-header">
+            <span class="ratio-name">Liquidité</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.currentRatioStatus || '') }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.currentRatio | number:'1.2-2' }}</div>
+          <div class="ratio-status">{{ ratioResult.currentRatioStatus }}</div>
+          <div class="ratio-formula">Actif courant / Passif courant</div>
+        </div>
+
+        <!-- 6. LTV -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.ltvStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Loan To Value (LTV)</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.ltvStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.ltv | number:'1.2-2' }}%</div>
+          <div class="ratio-status">{{ ratioResult.ltvStatus }}</div>
+          <div class="ratio-formula">(Crédit / Valeur du bien) × 100</div>
+        </div>
+
+        <!-- 7. LTI -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.ltiStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Loan To Income (LTI)</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.ltiStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.lti | number:'1.2-2' }}%</div>
+          <div class="ratio-status">{{ ratioResult.ltiStatus }}</div>
+          <div class="ratio-formula">(Crédit / Revenu annuel) × 100</div>
+        </div>
+
+        <!-- 8. Couverture des garanties -->
+        <div class="ratio-item" [class]="ratioResult.coverageRatio > 100 ? 'good' : 'warning'">
+          <div class="ratio-header">
+            <span class="ratio-name">Couverture des garanties</span>
+            <mat-icon>{{ ratioResult.coverageRatio > 100 ? 'check_circle' : 'warning' }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.coverageRatio | number:'1.2-2' }}%</div>
+          <div class="ratio-status">{{ ratioResult.coverageRatio > 100 ? 'SUFFISANTE' : 'INSUFFISANTE' }}</div>
+          <div class="ratio-formula">(Garanties / Crédit) × 100</div>
+        </div>
+
+        <!-- 9. DSCR -->
+        <div class="ratio-item" *ngIf="ratioResult.dscr" [class]="getStatusClass(ratioResult.dscrStatus || '')">
+          <div class="ratio-header">
+            <span class="ratio-name">DSCR</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.dscrStatus || '') }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.dscr | number:'1.2-2' }}</div>
+          <div class="ratio-status">{{ ratioResult.dscrStatus }}</div>
+          <div class="ratio-formula">Cash Flow / Dette annuelle</div>
+        </div>
+
+        <!-- 10. Ratio mensualité/revenu -->
+        <div class="ratio-item" [class]="getStatusClass(ratioResult.monthlyPaymentRatioStatus)">
+          <div class="ratio-header">
+            <span class="ratio-name">Ratio mensualité/revenu</span>
+            <mat-icon>{{ getStatusIcon(ratioResult.monthlyPaymentRatioStatus) }}</mat-icon>
+          </div>
+          <div class="ratio-value">{{ ratioResult.monthlyPaymentRatio | number:'1.2-2' }}%</div>
+          <div class="ratio-status">{{ ratioResult.monthlyPaymentRatioStatus }}</div>
+          <div class="ratio-formula">(Mensualité / Salaire) × 100</div>
+        </div>
+      </div>
+
+      <!-- Recommandation -->
+      <div class="recommendation-box">
+        <h4>
+          <mat-icon>lightbulb</mat-icon>
+          Recommandation
+        </h4>
+        <p>
+          <ng-container *ngIf="ratioResult.debtRatio < 30">
+            ✅ Taux d'endettement favorable. 
+          </ng-container>
+          <ng-container *ngIf="ratioResult.debtRatio >= 30 && ratioResult.debtRatio <= 35">
+            ⚠️ Taux d'endettement acceptable. 
+          </ng-container>
+          <ng-container *ngIf="ratioResult.debtRatio > 35 && ratioResult.debtRatio <= 40">
+            🔶 Taux d'endettement à surveiller. 
+          </ng-container>
+          <ng-container *ngIf="ratioResult.debtRatio > 40">
+            🔴 Taux d'endettement élevé à réduire. 
+          </ng-container>
+
+          <ng-container *ngIf="ratioResult.repaymentCapacity >= 1000">
+            ✅ Bonne capacité de remboursement. 
+          </ng-container>
+          <ng-container *ngIf="ratioResult.repaymentCapacity < 1000 && ratioResult.repaymentCapacity >= 500">
+            ⚠️ Capacité de remboursement moyenne. 
+          </ng-container>
+          <ng-container *ngIf="ratioResult.repaymentCapacity < 500">
+            🔴 Capacité de remboursement limitée. 
+          </ng-container>
+
+          <ng-container *ngIf="ratioResult.ltv <= 70">
+            ✅ Bonne couverture de garantie.
+          </ng-container>
+          <ng-container *ngIf="ratioResult.ltv > 70 && ratioResult.ltv <= 80">
+            ⚠️ Couverture de garantie à surveiller.
+          </ng-container>
+          <ng-container *ngIf="ratioResult.ltv > 80">
+            🔴 Couverture de garantie insuffisante.
+          </ng-container>
+        </p>
+      </div>
+
+      <!-- Détails du crédit -->
+      <div class="credit-details">
+        <h4>💳 Détails du crédit</h4>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Mensualité</span>
+            <span class="value">{{ ratioResult.monthlyPayment | number:'1.0-0' }} DT</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Coût total</span>
+            <span class="value">{{ ratioResult.totalCost | number:'1.0-0' }} DT</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Intérêts totaux</span>
+            <span class="value">{{ ratioResult.totalInterest | number:'1.0-0' }} DT</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Actions -->
-  <div class="actions">
-    <button class="btn-primary" (click)="saveRatios()" [disabled]="!hasChanges || loading">
-      <mat-icon>save</mat-icon>
-      Enregistrer les modifications
-    </button>
-    <span class="save-status success" *ngIf="saved">✓ Modifications enregistrées</span>
-    <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
-    <span class="changes-indicator" *ngIf="hasChanges && !saved && !error">
-      ⚠️ Modifications non enregistrées
-    </span>
+  <!-- ============================================
+       SECTION: CONFIGURATION DES SEUILS
+       ============================================ -->
+  <div class="ratios-config-section" *ngIf="!loading">
+    <div class="section-title">
+      <mat-icon>settings</mat-icon>
+      Configuration des seuils
+    </div>
+    <p class="section-description">Définissez les valeurs minimales, maximales et les seuils critiques pour chaque ratio financier</p>
+
+    <!-- État vide -->
+    <div *ngIf="ratios.length === 0" class="empty-state">
+      <mat-icon>settings</mat-icon>
+      <h3>Aucun ratio configuré</h3>
+      <p>Commencez par créer les ratios financiers par défaut</p>
+      <button class="btn-primary" (click)="createDefaultRatios()" [disabled]="loading">
+        <mat-icon>add</mat-icon>
+        Créer les ratios par défaut
+      </button>
+    </div>
+
+    <!-- Grille des ratios -->
+    <div *ngIf="ratios.length > 0" class="ratios-grid">
+      <div *ngFor="let ratio of ratios" class="ratio-card" [class.inactive]="!ratio.isActive">
+        <!-- En-tête de la carte -->
+        <div class="ratio-header">
+          <div class="ratio-info">
+            <span class="ratio-name">{{ ratio.name }}</span>
+            <span class="ratio-key">{{ ratio.key }}</span>
+          </div>
+          <mat-slide-toggle 
+            [name]="'toggle-' + ratio.id"
+            [(ngModel)]="ratio.isActive"
+            (change)="onChange()">
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Description -->
+        <p class="ratio-description">{{ ratio.description }}</p>
+        
+        <!-- Valeurs -->
+        <div class="ratio-values">
+          <div class="value-group">
+            <label>Valeur maximale</label>
+            <div class="value-input">
+              <input type="number" 
+                     [name]="'max-' + ratio.id"
+                     [(ngModel)]="ratio.maxValue" 
+                     (change)="onChange()"
+                     step="0.1"
+                     class="ratio-input">
+              <span class="unit">{{ ratio.unit }}</span>
+            </div>
+          </div>
+
+          <div class="value-group" *ngIf="ratio.minValue !== undefined">
+            <label>Valeur minimale</label>
+            <div class="value-input">
+              <input type="number" 
+                     [name]="'min-' + ratio.id"
+                     [(ngModel)]="ratio.minValue" 
+                     (change)="onChange()"
+                     step="0.1"
+                     class="ratio-input">
+              <span class="unit">{{ ratio.unit }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seuils critiques -->
+        <div class="critical-values">
+          <div class="critical-group">
+            <label>Seuil critique (max)</label>
+            <input type="number" 
+                   [name]="'criticalMax-' + ratio.id"
+                   [(ngModel)]="ratio.criticalMax" 
+                   (change)="onChange()"
+                   step="0.1"
+                   class="critical-input"
+                   placeholder="Ex: 45">
+          </div>
+          <div class="critical-group">
+            <label>Seuil critique (min)</label>
+            <input type="number" 
+                   [name]="'criticalMin-' + ratio.id"
+                   [(ngModel)]="ratio.criticalMin" 
+                   (change)="onChange()"
+                   step="0.1"
+                   class="critical-input"
+                   placeholder="Ex: 20">
+          </div>
+        </div>
+
+        <!-- Indicateur -->
+        <div class="ratio-indicator" [style.background]="getIndicatorColor(ratio)">
+          <span class="indicator-label">{{ getIndicatorLabel(ratio) }}</span>
+          <span class="indicator-value" *ngIf="ratio.criticalMax">
+            > {{ ratio.criticalMax }}{{ ratio.unit }}
+          </span>
+          <span class="indicator-value" *ngIf="ratio.criticalMin">
+            < {{ ratio.criticalMin }}{{ ratio.unit }}
+          </span>
+          <span class="indicator-value" *ngIf="!ratio.criticalMax && !ratio.criticalMin">
+            Aucun seuil critique
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions" *ngIf="ratios.length > 0">
+      <button class="btn-primary" (click)="saveRatios()" [disabled]="!hasChanges || loading">
+        <mat-icon>save</mat-icon>
+        Enregistrer les modifications
+      </button>
+      <span class="save-status success" *ngIf="saved">✓ Modifications enregistrées</span>
+      <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+      <span class="changes-indicator" *ngIf="hasChanges && !saved && !error">
+        ⚠️ Modifications non enregistrées
+      </span>
+    </div>
   </div>
 </div>

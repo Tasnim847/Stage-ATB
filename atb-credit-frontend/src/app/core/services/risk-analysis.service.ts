@@ -168,31 +168,44 @@ export class RiskAnalysisService {
   }
 
   // ============================================
-  // 3. RATIOS FINANCIERS
-  // ============================================
-  getFinancialRatios(): Observable<FinancialRatioConfig[]> {
+// 3. RATIOS FINANCIERS
+// ============================================
+getFinancialRatios(): Observable<FinancialRatioConfig[]> {
     this.setLoading(true);
     return this.http.get<FinancialRatioConfig[]>(`${this.apiUrl}/ratios`)
-      .pipe(
-        tap(() => this.setLoading(false)),
-        catchError((error) => {
-          this.setLoading(false);
-          return this.handleError(error);
-        })
-      );
-  }
+        .pipe(
+            tap(() => this.setLoading(false)),
+            catchError((error) => {
+                this.setLoading(false);
+                return this.handleError(error);
+            })
+        );
+}
 
-  updateFinancialRatio(id: string, ratio: Partial<FinancialRatioConfig>): Observable<FinancialRatioConfig> {
+// ✅ AJOUTER CETTE MÉTHODE
+addFinancialRatio(ratio: Partial<FinancialRatioConfig>): Observable<FinancialRatioConfig> {
+    this.setLoading(true);
+    return this.http.post<FinancialRatioConfig>(`${this.apiUrl}/ratios`, ratio)
+        .pipe(
+            tap(() => this.setLoading(false)),
+            catchError((error) => {
+                this.setLoading(false);
+                return this.handleError(error);
+            })
+        );
+}
+
+updateFinancialRatio(id: string, ratio: Partial<FinancialRatioConfig>): Observable<FinancialRatioConfig> {
     this.setLoading(true);
     return this.http.put<FinancialRatioConfig>(`${this.apiUrl}/ratios/${id}`, ratio)
-      .pipe(
-        tap(() => this.setLoading(false)),
-        catchError((error) => {
-          this.setLoading(false);
-          return this.handleError(error);
-        })
-      );
-  }
+        .pipe(
+            tap(() => this.setLoading(false)),
+            catchError((error) => {
+                this.setLoading(false);
+                return this.handleError(error);
+            })
+        );
+}
 
   // ============================================
   // 4. RÈGLES DE DÉCISION
