@@ -1,109 +1,222 @@
 <div class="kyc-aml-container">
+  <!-- En-tête -->
   <div class="section-header">
     <div>
       <h2>Configuration KYC / AML</h2>
       <p class="description">Configurez les contrôles de vérification d'identité et anti-blanchiment</p>
     </div>
-    <button class="btn-outline" (click)="resetDefaults()">
-      <mat-icon>restore</mat-icon>
-      Réinitialiser
-    </button>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="loadConfigs()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Rafraîchir
+      </button>
+    </div>
   </div>
 
-  <div class="config-sections">
-    <!-- KYC Section -->
+  <!-- Chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement des configurations...</span>
+  </div>
+
+  <!-- Contenu -->
+  <div class="config-sections" *ngIf="!loading">
+    
+    <!-- ============================================ -->
+    <!-- SECTION KYC -->
+    <!-- ============================================ -->
     <div class="config-section">
-      <h3>
+      <div class="section-header-actions">
+        <div class="section-title-group">
+          <h3>
+            <mat-icon class="kyc-icon">verified_user</mat-icon>
+            Contrôles KYC
+          </h3>
+          <p class="section-desc">Vérifications d'identité et documents requis</p>
+        </div>
+        <span class="section-count">{{ kycConfigs.length }} configuration(s)</span>
+      </div>
+
+      <div class="configs-grid" *ngIf="kycConfigs.length > 0">
+        <div *ngFor="let config of kycConfigs" 
+             class="config-card" 
+             [class.inactive]="!config.isActive">
+          
+          <!-- En-tête de la carte -->
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="card-title">
+                <span class="config-name">{{ config.name }}</span>
+                <span class="config-badge required" *ngIf="config.required">Obligatoire</span>
+                <span class="config-badge optional" *ngIf="!config.required">Optionnel</span>
+                <span class="config-badge priority">Priorité {{ config.priority }}</span>
+              </div>
+              <div class="config-status" *ngIf="config.autoCheck">
+                <mat-icon>autorenew</mat-icon>
+                Auto-vérification
+              </div>
+            </div>
+            <div class="card-actions">
+              <mat-slide-toggle 
+                [checked]="config.isActive"
+                (change)="toggleConfig(config)"
+                color="primary"
+                [matTooltip]="config.isActive ? 'Désactiver' : 'Activer'">
+              </mat-slide-toggle>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <p class="config-desc">{{ config.description }}</p>
+
+          <!-- Métadonnées -->
+          <div class="config-meta">
+            <span class="meta-item">
+              <mat-icon>checklist</mat-icon>
+              {{ getActiveChecksCount(config.checks) }}/{{ config.checks.length }} actifs
+            </span>
+            <span class="meta-item">
+              <mat-icon>weight</mat-icon>
+              Poids total: {{ getTotalWeight(config.checks) }}
+            </span>
+            <span class="meta-item" *ngIf="config.autoCheck">
+              <mat-icon>autorenew</mat-icon>
+              Automatique
+            </span>
+          </div>
+
+          <!-- Liste des vérifications -->
+          <div class="checks-list" *ngIf="config.checks && config.checks.length > 0">
+            <div class="checks-title">
+              <span>Vérifications associées</span>
+              <span class="checks-count">{{ config.checks.length }}</span>
+            </div>
+            
+            <div *ngFor="let check of config.checks" class="check-item">
+              <div class="check-info">
+                <span class="check-name">{{ check.name }}</span>
+                <span class="check-type">{{ getCheckTypeLabel(check.type) }}</span>
+                <span class="check-weight">Poids: {{ check.weight }}</span>
+                <span class="check-status" [class.active]="check.isActive">
+                  {{ check.isActive ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
+              <mat-slide-toggle 
+                [checked]="check.isActive"
+                (change)="toggleCheck(config, check)"
+                color="primary"
+                size="small">
+              </mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- État vide -->
+      <div class="empty-state" *ngIf="kycConfigs.length === 0">
         <mat-icon>verified_user</mat-icon>
-        Contrôles KYC
-      </h3>
-      <p class="section-desc">Vérifications d'identité et documents requis</p>
-
-      <div class="checks-grid">
-        <div *ngFor="let config of kycConfigs" class="check-card">
-          <div class="check-header">
-            <span class="check-name">{{ config.name }}</span>
-            <mat-slide-toggle 
-              [name]="'toggle-kyc-' + config.id"
-              [(ngModel)]="config.isActive"
-              (change)="toggleConfig(config)">
-            </mat-slide-toggle>
-          </div>
-          
-          <p class="check-desc">{{ config.description }}</p>
-          
-          <div class="check-meta">
-            <span class="badge" [class.required]="config.required">
-              {{ config.required ? 'Obligatoire' : 'Optionnel' }}
-            </span>
-            <span class="badge priority">Priorité {{ config.priority }}</span>
-          </div>
-
-          <div class="check-checks" *ngIf="config.checks && config.checks.length > 0">
-            <div *ngFor="let check of config.checks" class="sub-check">
-              <span class="sub-check-name">{{ check.name }}</span>
-              <mat-slide-toggle 
-                [name]="'toggle-check-' + check.id"
-                [(ngModel)]="check.isActive"
-                (change)="toggleCheck(config, check)">
-              </mat-slide-toggle>
-              <span class="check-weight">Poids: {{ check.weight }}</span>
-            </div>
-          </div>
-        </div>
+        <p>Aucune configuration KYC trouvée</p>
+        <p class="empty-hint">Les configurations par défaut seront créées automatiquement</p>
       </div>
     </div>
 
-    <!-- AML Section -->
+    <!-- ============================================ -->
+    <!-- SECTION AML -->
+    <!-- ============================================ -->
     <div class="config-section">
-      <h3>
-        <mat-icon>gavel</mat-icon>
-        Contrôles AML
-      </h3>
-      <p class="section-desc">Vérifications anti-blanchiment et listes de surveillance</p>
+      <div class="section-header-actions">
+        <div class="section-title-group">
+          <h3>
+            <mat-icon class="aml-icon">gavel</mat-icon>
+            Contrôles AML
+          </h3>
+          <p class="section-desc">Vérifications anti-blanchiment et listes de surveillance</p>
+        </div>
+        <span class="section-count">{{ amlConfigs.length }} configuration(s)</span>
+      </div>
 
-      <div class="checks-grid">
-        <div *ngFor="let config of amlConfigs" class="check-card">
-          <div class="check-header">
-            <span class="check-name">{{ config.name }}</span>
-            <mat-slide-toggle 
-              [name]="'toggle-aml-' + config.id"
-              [(ngModel)]="config.isActive"
-              (change)="toggleConfig(config)">
-            </mat-slide-toggle>
-          </div>
+      <div class="configs-grid" *ngIf="amlConfigs.length > 0">
+        <div *ngFor="let config of amlConfigs" 
+             class="config-card" 
+             [class.inactive]="!config.isActive">
           
-          <p class="check-desc">{{ config.description }}</p>
-          
-          <div class="check-meta">
-            <span class="badge auto-check" *ngIf="config.autoCheck">
-              Auto-vérification
-            </span>
-            <span class="badge priority">Priorité {{ config.priority }}</span>
-          </div>
-
-          <div class="check-checks" *ngIf="config.checks && config.checks.length > 0">
-            <div *ngFor="let check of config.checks" class="sub-check">
-              <span class="sub-check-name">{{ check.name }}</span>
+          <!-- En-tête de la carte -->
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="card-title">
+                <span class="config-name">{{ config.name }}</span>
+                <span class="config-badge required" *ngIf="config.required">Obligatoire</span>
+                <span class="config-badge optional" *ngIf="!config.required">Optionnel</span>
+                <span class="config-badge priority">Priorité {{ config.priority }}</span>
+              </div>
+              <div class="config-status" *ngIf="config.autoCheck">
+                <mat-icon>autorenew</mat-icon>
+                Auto-vérification
+              </div>
+            </div>
+            <div class="card-actions">
               <mat-slide-toggle 
-                [name]="'toggle-check-' + check.id"
-                [(ngModel)]="check.isActive"
-                (change)="toggleCheck(config, check)">
+                [checked]="config.isActive"
+                (change)="toggleConfig(config)"
+                color="primary"
+                [matTooltip]="config.isActive ? 'Désactiver' : 'Activer'">
               </mat-slide-toggle>
-              <span class="check-weight">Poids: {{ check.weight }}</span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <p class="config-desc">{{ config.description }}</p>
+
+          <!-- Métadonnées -->
+          <div class="config-meta">
+            <span class="meta-item">
+              <mat-icon>checklist</mat-icon>
+              {{ getActiveChecksCount(config.checks) }}/{{ config.checks.length }} actifs
+            </span>
+            <span class="meta-item">
+              <mat-icon>weight</mat-icon>
+              Poids total: {{ getTotalWeight(config.checks) }}
+            </span>
+            <span class="meta-item" *ngIf="config.autoCheck">
+              <mat-icon>autorenew</mat-icon>
+              Automatique
+            </span>
+          </div>
+
+          <!-- Liste des vérifications -->
+          <div class="checks-list" *ngIf="config.checks && config.checks.length > 0">
+            <div class="checks-title">
+              <span>Vérifications associées</span>
+              <span class="checks-count">{{ config.checks.length }}</span>
+            </div>
+            
+            <div *ngFor="let check of config.checks" class="check-item">
+              <div class="check-info">
+                <span class="check-name">{{ check.name }}</span>
+                <span class="check-type">{{ getCheckTypeLabel(check.type) }}</span>
+                <span class="check-weight">Poids: {{ check.weight }}</span>
+                <span class="check-status" [class.active]="check.isActive">
+                  {{ check.isActive ? 'Actif' : 'Inactif' }}
+                </span>
+              </div>
+              <mat-slide-toggle 
+                [checked]="check.isActive"
+                (change)="toggleCheck(config, check)"
+                color="primary"
+                size="small">
+              </mat-slide-toggle>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="actions">
-    <button class="btn-primary" (click)="saveConfigs()" [disabled]="!hasChanges">
-      <mat-icon>save</mat-icon>
-      Enregistrer les modifications
-    </button>
-    <span class="save-status" *ngIf="saved">✓ Modifications enregistrées</span>
-    <span class="save-status error" *ngIf="error">❌ Erreur lors de l'enregistrement</span>
+      <!-- État vide -->
+      <div class="empty-state" *ngIf="amlConfigs.length === 0">
+        <mat-icon>gavel</mat-icon>
+        <p>Aucune configuration AML trouvée</p>
+        <p class="empty-hint">Les configurations par défaut seront créées automatiquement</p>
+      </div>
+    </div>
+
   </div>
 </div>

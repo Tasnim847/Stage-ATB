@@ -97,12 +97,7 @@ export class SidebarComponent {
     { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
     
     // Analyses
-{ 
-  path: '/risk-analysis', 
-  icon: 'security', 
-  label: 'Analyse des risques', 
-  badge: 0 
-},
+    { path: '/risk-analysis', icon: 'security', label: 'Analyse des risques', badge: 0 },
     { path: '/fraud-alerts', icon: 'security', label: 'Alertes fraude', badge: 2 },
     { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 4 },
     

@@ -416,6 +416,43 @@ updateFinancialRatio(id: string, ratio: Partial<FinancialRatioConfig>): Observab
   // ============================================
   // 8. FRAUDE DETECTION
   // ============================================
+
+  addFraudRule(rule: Partial<FraudRule>): Observable<FraudRule> {
+  this.setLoading(true);
+  return this.http.post<FraudRule>(`${this.apiUrl}/fraud-rules`, rule)
+    .pipe(
+      tap(() => this.setLoading(false)),
+      catchError((error) => {
+        this.setLoading(false);
+        return this.handleError(error);
+      })
+    );
+}
+
+deleteFraudRule(id: string): Observable<void> {
+  this.setLoading(true);
+  return this.http.delete<void>(`${this.apiUrl}/fraud-rules/${id}`)
+    .pipe(
+      tap(() => this.setLoading(false)),
+      catchError((error) => {
+        this.setLoading(false);
+        return this.handleError(error);
+      })
+    );
+}
+
+resetFraudRules(): Observable<FraudRule[]> {
+  this.setLoading(true);
+  return this.http.post<FraudRule[]>(`${this.apiUrl}/fraud-rules/reset`, {})
+    .pipe(
+      tap(() => this.setLoading(false)),
+      catchError((error) => {
+        this.setLoading(false);
+        return this.handleError(error);
+      })
+    );
+}
+
   getFraudRules(): Observable<FraudRule[]> {
     this.setLoading(true);
     return this.http.get<FraudRule[]>(`${this.apiUrl}/fraud-rules`)
@@ -534,4 +571,34 @@ updateFinancialRatio(id: string, ratio: Partial<FinancialRatioConfig>): Observab
   clearError(): void {
     this.errorSubject.next(null);
   }
+
+  // Ajouter ces méthodes dans RiskAnalysisService
+
+// ============================================
+// KYC / AML - CRUD COMPLET
+// ============================================
+
+addKycAmlConfig(config: Partial<KycAmlConfig>): Observable<KycAmlConfig> {
+  this.setLoading(true);
+  return this.http.post<KycAmlConfig>(`${this.apiUrl}/kyc-aml`, config)
+    .pipe(
+      tap(() => this.setLoading(false)),
+      catchError((error) => {
+        this.setLoading(false);
+        return this.handleError(error);
+      })
+    );
+}
+
+deleteKycAmlConfig(id: string): Observable<void> {
+  this.setLoading(true);
+  return this.http.delete<void>(`${this.apiUrl}/kyc-aml/${id}`)
+    .pipe(
+      tap(() => this.setLoading(false)),
+      catchError((error) => {
+        this.setLoading(false);
+        return this.handleError(error);
+      })
+    );
+}
 }

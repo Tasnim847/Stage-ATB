@@ -1,0 +1,178 @@
+<div class="dialog-container">
+  <!-- En-tête -->
+  <div class="dialog-header" [class.edit-mode]="isEditMode">
+    <div class="header-icon">
+      <mat-icon>{{ isEditMode ? 'edit' : 'security' }}</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2>{{ isEditMode ? 'Modifier la règle de fraude' : 'Nouvelle règle de fraude' }}</h2>
+      <p class="header-subtitle">
+        {{ isEditMode ? 'Modifiez les paramètres de la règle de fraude' : 'Créez une nouvelle règle pour la détection de fraude' }}
+      </p>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="ruleForm" (ngSubmit)="onSubmit()">
+    <div class="dialog-body">
+      <!-- Section: Informations -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>info</mat-icon>
+          <span>Informations de la règle</span>
+        </div>
+
+        <!-- Nom -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Nom de la règle</mat-label>
+          <input matInput formControlName="name" placeholder="Ex: Faux bulletin de salaire">
+          <mat-icon matPrefix class="field-icon">label</mat-icon>
+          <mat-error *ngIf="ruleForm.get('name')?.hasError('required')">
+            Le nom est obligatoire
+          </mat-error>
+          <mat-error *ngIf="ruleForm.get('name')?.hasError('minlength')">
+            Le nom doit contenir au moins 3 caractères
+          </mat-error>
+          <mat-error *ngIf="ruleForm.get('name')?.hasError('maxlength')">
+            Le nom ne doit pas dépasser 100 caractères
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Description -->
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="2" 
+                    placeholder="Décrivez la règle et ce qu'elle détecte"></textarea>
+          <mat-icon matPrefix class="field-icon">description</mat-icon>
+          <mat-hint align="end">{{ ruleForm.get('description')?.value?.length || 0 }} / 500</mat-hint>
+          <mat-error *ngIf="ruleForm.get('description')?.hasError('required')">
+            La description est obligatoire
+          </mat-error>
+          <mat-error *ngIf="ruleForm.get('description')?.hasError('maxlength')">
+            La description ne doit pas dépasser 500 caractères
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Section: Configuration -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>settings</mat-icon>
+          <span>Configuration</span>
+        </div>
+
+        <div class="form-row two-columns">
+          <!-- Poids -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Poids</mat-label>
+            <input matInput type="number" formControlName="weight" min="1" max="100">
+            <mat-icon matPrefix class="field-icon">weight</mat-icon>
+            <mat-hint>1-100, plus le poids est élevé plus la règle est importante</mat-hint>
+            <mat-error *ngIf="ruleForm.get('weight')?.hasError('required')">
+              Le poids est obligatoire
+            </mat-error>
+            <mat-error *ngIf="ruleForm.get('weight')?.hasError('min')">
+              Le poids doit être >= 1
+            </mat-error>
+            <mat-error *ngIf="ruleForm.get('weight')?.hasError('max')">
+              Le poids doit être <= 100
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Statut -->
+          <div class="status-toggle-wrapper">
+            <div class="status-toggle">
+              <mat-slide-toggle formControlName="isActive" color="primary">
+                <span class="toggle-label">
+                  <mat-icon>{{ ruleForm.get('isActive')?.value ? 'check_circle' : 'cancel' }}</mat-icon>
+                  <span class="toggle-status" [class.active]="ruleForm.get('isActive')?.value">
+                    {{ ruleForm.get('isActive')?.value ? 'Règle active' : 'Règle inactive' }}
+                  </span>
+                </span>
+              </mat-slide-toggle>
+              <p class="toggle-hint">
+                {{ ruleForm.get('isActive')?.value ? 'La règle sera appliquée lors des vérifications' : 'La règle ne sera pas appliquée' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Seuil -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>speed</mat-icon>
+          <span>Seuil de détection</span>
+        </div>
+
+        <div class="threshold-container">
+          <div class="threshold-header">
+            <span class="threshold-label">Seuil actuel</span>
+            <span class="threshold-value-display" [style.color]="getSeverityColor(thresholdValue)">
+              {{ thresholdValue }}%
+            </span>
+            <span class="threshold-severity">{{ getSeverityLabel(thresholdValue) }}</span>
+          </div>
+
+          <div class="threshold-slider-container">
+            <span class="slider-label">0%</span>
+            <mat-slider 
+              formControlName="threshold"
+              min="0" 
+              max="100" 
+              step="1"
+              discrete
+              [displayWith]="formatLabel"
+              class="threshold-slider">
+            </mat-slider>
+            <span class="slider-label">100%</span>
+          </div>
+
+          <div class="threshold-info">
+            <div class="threshold-info-item">
+              <span class="info-dot" style="background: #4CAF50;"></span>
+              <span>0-30%: Faible risque</span>
+            </div>
+            <div class="threshold-info-item">
+              <span class="info-dot" style="background: #FFC107;"></span>
+              <span>31-50%: Risque moyen</span>
+            </div>
+            <div class="threshold-info-item">
+              <span class="info-dot" style="background: #FF9800;"></span>
+              <span>51-70%: Risque élevé</span>
+            </div>
+            <div class="threshold-info-item">
+              <span class="info-dot" style="background: #e74c3c;"></span>
+              <span>71-100%: Risque critique</span>
+            </div>
+          </div>
+
+          <mat-hint>Définissez le seuil à partir duquel la règle est déclenchée</mat-hint>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="dialog-footer">
+      <div class="footer-left">
+        <span class="footer-hint">
+          <mat-icon>info_outline</mat-icon>
+          Tous les champs marqués d'un <span class="required-star">*</span> sont obligatoires
+        </span>
+      </div>
+      <div class="footer-actions">
+        <button type="button" mat-stroked-button (click)="onCancel()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+        <button type="submit" mat-flat-button color="primary" 
+                [disabled]="ruleForm.invalid" class="submit-btn">
+          <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

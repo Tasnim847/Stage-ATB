@@ -1,0 +1,473 @@
+/* ============================================
+   CONTENEUR PRINCIPAL
+   ============================================ */
+.dialog-container {
+  width: 100%;
+  max-width: 650px;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   EN-TÊTE
+   ============================================ */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+  border-bottom: 1px solid #f48fb1;
+  position: relative;
+}
+
+.dialog-header.edit-mode {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #c62828;
+  color: white;
+  flex-shrink: 0;
+}
+
+.dialog-header.edit-mode .header-icon {
+  background: #0d47a1;
+}
+
+.header-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a2332;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #6b7a8f;
+}
+
+.close-btn {
+  flex-shrink: 0;
+  color: #6b7a8f;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* ============================================
+   CORPS DU FORMULAIRE
+   ============================================ */
+.dialog-body {
+  padding: 24px 28px 16px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.dialog-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+  background: #c1c7cd;
+  border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb:hover {
+  background: #a0a8b0;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #c62828;
+}
+
+.section-title span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a2332;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================
+   CHAMPS DU FORMULAIRE
+   ============================================ */
+.form-row {
+  margin-bottom: 4px;
+}
+
+.form-row.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-field {
+  width: 100%;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.field-icon {
+  color: #6b7a8f;
+  margin-right: 8px;
+}
+
+/* ============================================
+   TOGGLE STATUT
+   ============================================ */
+.status-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 4px;
+}
+
+.status-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  width: 100%;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.toggle-label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #6b7a8f;
+}
+
+.toggle-status {
+  font-weight: 500;
+  color: #6b7a8f;
+  transition: color 0.3s;
+}
+
+.toggle-status.active {
+  color: #2e7d32;
+}
+
+.toggle-hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7a8f;
+  padding-left: 36px;
+}
+
+/* ============================================
+   SEUIL
+   ============================================ */
+.threshold-container {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.threshold-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.threshold-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.threshold-value-display {
+  font-size: 24px;
+  font-weight: 700;
+  min-width: 60px;
+}
+
+.threshold-severity {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 2px 12px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e9ecef;
+}
+
+.threshold-slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: #6b7a8f;
+  min-width: 30px;
+}
+
+.threshold-slider {
+  flex: 1;
+  width: 100%;
+}
+
+.threshold-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.threshold-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #495057;
+}
+
+.info-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   PIED DE PAGE
+   ============================================ */
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  border-top: 1px solid #e9ecef;
+  background: #fafafa;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7a8f;
+}
+
+.footer-hint mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.required-star {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  color: #6b7a8f;
+}
+
+.cancel-btn:hover {
+  background: rgba(107, 122, 143, 0.1);
+}
+
+.submit-btn {
+  min-width: 140px;
+  background: #c62828;
+  color: white;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-btn mat-icon {
+  margin-right: 4px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .dialog-container {
+    max-width: 100%;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .dialog-header {
+    padding: 16px 20px;
+  }
+
+  .header-content h2 {
+    font-size: 18px;
+  }
+
+  .dialog-body {
+    padding: 16px 20px;
+    max-height: 60vh;
+  }
+
+  .form-row.two-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .status-toggle-wrapper {
+    padding: 8px 0;
+  }
+
+  .threshold-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dialog-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 20px;
+  }
+
+  .footer-left {
+    justify-content: center;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+  }
+
+  .footer-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .submit-btn {
+    min-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .threshold-info {
+    grid-template-columns: 1fr;
+  }
+
+  .threshold-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================
+   OVERRIDES MATERIAL
+   ============================================ */
+::ng-deep .mat-mdc-form-field-hint {
+  color: #6b7a8f !important;
+}
+
+::ng-deep .mat-mdc-form-field-error {
+  font-size: 12px !important;
+}
+
+::ng-deep .mat-mdc-slider .mdc-slider__thumb {
+  background: #c62828 !important;
+}
+
+::ng-deep .mat-mdc-slider .mdc-slider__track--active {
+  background: #c62828 !important;
+}
+
+::ng-deep .mat-mdc-slide-toggle .mdc-form-field {
+  width: 100% !important;
+}
