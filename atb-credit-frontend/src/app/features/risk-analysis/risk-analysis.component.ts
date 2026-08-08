@@ -42,14 +42,7 @@ interface TabConfig {
     MatSnackBarModule,
     MatProgressSpinnerModule,
     RiskModelsComponent,
-    RiskThresholdsComponent,
-    FinancialRatiosComponent,
-    DecisionRulesComponent,
-    AlertsConfigComponent,
-    KycAmlConfigComponent,
-    AiModelConfigComponent,
-    FraudDetectionComponent,
-    AuditHistoryComponent
+    RiskThresholdsComponent
   ],
   templateUrl: './risk-analysis.component.html',
   styleUrls: ['./risk-analysis.component.css']
@@ -71,49 +64,6 @@ export class RiskAnalysisComponent implements OnInit, OnDestroy {
       label: 'Seuils de risque',
       icon: 'speed',
       component: RiskThresholdsComponent
-    },
-    {
-      key: 'ratios',
-      label: 'Ratios financiers',
-      icon: 'calculate',
-      component: FinancialRatiosComponent
-    },
-    {
-      key: 'rules',
-      label: 'Règles de décision',
-      icon: 'rule',
-      badge: 3,
-      component: DecisionRulesComponent
-    },
-    {
-      key: 'alerts',
-      label: 'Alertes',
-      icon: 'notifications_active',
-      component: AlertsConfigComponent
-    },
-    {
-      key: 'kyc-aml',
-      label: 'KYC / AML',
-      icon: 'verified_user',
-      component: KycAmlConfigComponent
-    },
-    {
-      key: 'ai',
-      label: 'Modèle IA',
-      icon: 'smart_toy',
-      component: AiModelConfigComponent
-    },
-    {
-      key: 'fraud',
-      label: 'Détection fraude',
-      icon: 'security',
-      component: FraudDetectionComponent
-    },
-    {
-      key: 'history',
-      label: 'Historique',
-      icon: 'history',
-      component: AuditHistoryComponent
     }
   ];
 

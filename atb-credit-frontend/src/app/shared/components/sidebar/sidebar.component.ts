@@ -76,7 +76,6 @@ export class SidebarComponent {
     
     // Demandes de crédit
     { path: '/admin/credit-requests', icon: 'assignment', label: 'Demandes de crédit', badge: 5 },
-    { path: '/admin/credit-requests/new', icon: 'add', label: 'Nouvelle demande (Admin)', badge: 0 },
     
     // Paramétrage
     {
@@ -94,29 +93,32 @@ export class SidebarComponent {
 
     // ✅ ANALYSES FINANCIÈRES - ADMIN
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
-    { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
+    { path: '/risk-analysis', icon: 'security', label: 'Analyse des risques', badge: 0 },
+
+    { path: '/admin/financial-ratio', icon: 'calculate', label: 'Les ratios financière', badge: 0 },
     
     // Analyses
-    { path: '/risk-analysis', icon: 'security', label: 'Analyse des risques', badge: 0 },
     { path: '/fraud-alerts', icon: 'security', label: 'Alertes fraude', badge: 2 },
     { path: '/kyc', icon: 'verified_user', label: 'Vérification KYC', badge: 4 },
     
     // Paramétrage
-    { path: '/admin/credit-types', icon: 'credit_card', label: 'Types de crédit', badge: 0 },
-    { path: '/admin/rates', icon: 'percent', label: 'Taux d\'intérêt', badge: 0 },
     { path: '/admin/documents', icon: 'description', label: 'Documents obligatoires', badge: 0 },
     
     // IA & Configuration
     { path: '/admin/ai-config', icon: 'smart_toy', label: 'Configuration IA', badge: 0 },
     { path: '/admin/ocr-config', icon: 'text_snippet', label: 'Configuration OCR', badge: 0 },
-    
+    { path: '/admin/alert-config', icon: 'notifications_active', label: 'Configuration Alertes', badge: 0 }, // ✅ NOUVEAU
+
     // Rapports & Journal
-    { path: '/reports', icon: 'assessment', label: 'Rapports', badge: 0 },
+    { path: '/admin/décision', icon: 'rule', label: 'Règles de décision', badge: 0 },
     { path: '/admin/audit-logs', icon: 'history', label: 'Journal d\'audit', badge: 0 },
     
     // Notifications
     { path: '/notifications', icon: 'notifications', label: 'Notifications', badge: 8 },
     
+    //Historique
+    { path: '/admin/historie', icon: 'history', label: 'Historique', badge: 0 },
+
     // Paramètres
     { path: '/settings', icon: 'settings', label: 'Paramètres', badge: 0 }
   ];
@@ -229,7 +231,7 @@ export class SidebarComponent {
     
     // ✅ ANALYSES FINANCIÈRES - MANAGER
     { path: '/financial-analysis', icon: 'analytics', label: 'Analyse financière', badge: 0 },
-    { path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
+    //{ path: '/financial-analysis/calculate', icon: 'calculate', label: 'Calcul des ratios', badge: 0 },
     { path: '/risk-analysis', icon: 'warning', label: 'Analyse des risques', badge: 3 },
     { path: '/fraud-alerts', icon: 'security', label: 'Alertes fraude', badge: 2 },
     
