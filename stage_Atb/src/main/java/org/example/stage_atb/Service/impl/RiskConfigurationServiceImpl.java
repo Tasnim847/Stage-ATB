@@ -719,7 +719,7 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
                 .map(fraudRuleMapper::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
 
     // ============================================
     // 9. EXPORT / IMPORT / RESET

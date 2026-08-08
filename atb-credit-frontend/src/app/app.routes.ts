@@ -313,12 +313,56 @@ export const routes: Routes = [
       },
       {
         path: 'fraud-alerts',
-        loadComponent: () => import('./features/fraud-alerts/fraud-alerts.component')
-          .then(m => m.FraudAlertsComponent),
+        loadComponent: () => import('./features/risk-analysis/components/fraud-detection/fraud-detection.component')
+          .then(m => m.FraudDetectionComponent),
         canActivate: [roleGuard],
         data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
       },
+      {
+        path: 'kyc',
+        loadComponent: () => import('./features/risk-analysis/components/kyc-aml-config/kyc-aml-config.component')
+          .then(m => m.KycAmlConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ANALYST', 'MANAGER', 'ADMIN'] }
+      },
+      // 🤖 CONFIGURATION IA - NOUVELLE ROUTE
+      {
+        path: 'admin/ai-config',
+        loadComponent: () => import('./features/risk-analysis/components/ai-model-config/ai-model-config.component')
+          .then(m => m.AiModelConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }  // Seul l'admin peut configurer l'IA
+      },
+     // 🔔 CONFIGURATION ALERTES - NOUVELLE ROUTE
+      {
+        path: 'admin/alert-config',
+        loadComponent: () => import('./features/risk-analysis/components/alerts-config/alerts-config.component')
+          .then(m => m.AlertsConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/financial-ratio',
+        loadComponent: () => import('./features/risk-analysis/components/financial-ratios/financial-ratios.component')
+          .then(m => m.FinancialRatiosComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'admin/historie',
+        loadComponent: () => import('./features/risk-analysis/components/audit-history/audit-history.component')
+          .then(m => m.AuditHistoryComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
       
+      {
+        path: 'admin/décision',
+        loadComponent: () => import('./features/risk-analysis/components/decision-rules/decision-rules.component')
+          .then(m => m.DecisionRulesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
       // ============================================
       // CRÉDITS - ROUTES POUR ANALYSTE
       // ============================================
