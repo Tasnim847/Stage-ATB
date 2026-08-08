@@ -633,6 +633,93 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
                 String.valueOf(oldStatus), String.valueOf(active));
         return fraudRuleMapper.toResponse(entity);
     }
+    // Ajouter ces méthodes dans RiskConfigurationServiceImpl
+
+    @Override
+    public FraudRuleResponse addFraudRule(FraudRuleRequest request) {
+        log.info("➕ Création d'une nouvelle règle de fraude: {}", request.getName());
+
+        FraudRule entity = fraudRuleMapper.toEntity(request);
+        entity.setId(UUID.randomUUID().toString());
+        entity = fraudRuleRepository.save(entity);
+
+        logAudit("CREATE", "FRAUDE", entity.getId(), null, entity.getName());
+        return fraudRuleMapper.toResponse(entity);
+    }
+
+    @Override
+    public void deleteFraudRule(String id) {
+        log.info("🗑️ Suppression de la règle de fraude: {}", id);
+
+        FraudRule entity = fraudRuleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Règle de fraude non trouvée avec l'id: " + id));
+
+        String ruleName = entity.getName();
+        fraudRuleRepository.deleteById(id);
+
+        logAudit("DELETE", "FRAUDE", id, ruleName, null);
+    }
+
+    @Override
+    public List<FraudRuleResponse> resetFraudRules() {
+        log.info("🔄 Réinitialisation des règles de fraude");
+
+        // Supprimer toutes les règles existantes
+        fraudRuleRepository.deleteAll();
+
+        // Créer les règles par défaut
+        List<FraudRule> defaultRules = Arrays.asList(
+                FraudRule.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Revenus incohérents")
+                        .description("Incohérence entre les revenus déclarés et les justificatifs")
+                        .weight(20)
+                        .isActive(true)
+                        .threshold(60)
+                        .build(),
+                FraudRule.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Documents modifiés")
+                        .description("Détection de modifications suspectes sur les documents")
+                        .weight(30)
+                        .isActive(true)
+                        .threshold(50)
+                        .build(),
+                FraudRule.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Dossier dupliqué")
+                        .description("Demande de crédit identique déjà soumise")
+                        .weight(15)
+                        .isActive(true)
+                        .threshold(70)
+                        .build(),
+                FraudRule.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Faux relevé bancaire")
+                        .description("Relevé bancaire suspect ou falsifié")
+                        .weight(40)
+                        .isActive(true)
+                        .threshold(40)
+                        .build(),
+                FraudRule.builder()
+                        .id(UUID.randomUUID().toString())
+                        .name("Faux bulletin de salaire")
+                        .description("Bulletin de salaire suspect ou falsifié")
+                        .weight(35)
+                        .isActive(true)
+                        .threshold(45)
+                        .build()
+        );
+
+        List<FraudRule> savedRules = fraudRuleRepository.saveAll(defaultRules);
+
+        logAudit("RESET", "FRAUDE", "ALL", null, "Règles réinitialisées: " + savedRules.size());
+
+        return savedRules.stream()
+                .map(fraudRuleMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+    
 
     // ============================================
     // 9. EXPORT / IMPORT / RESET
@@ -827,5 +914,45 @@ public class RiskConfigurationServiceImpl implements IRiskConfigurationService {
         } catch (Exception e) {
             log.error("Erreur lors de l'enregistrement du log d'audit", e);
         }
+    }
+
+    // Ajouter ces méthodes dans RiskConfigurationServiceImpl
+
+    @Override
+    public KycAmlConfigResponse addKycAmlConfig(KycAmlConfigRequest request) {
+        log.info("➕ Création d'une nouvelle configuration KYC/AML: {}", request.getName());
+
+        KycAmlConfig entity = kycAmlMapper.toEntity(request);
+        entity.setId(UUID.randomUUID().toString());
+
+        // Initialiser les checks
+        if (request.getChecks() != null) {
+            List<KycAmlCheck> checks = new ArrayList<>();
+            for (KycAmlCheckRequest checkRequest : request.getChecks()) {
+                KycAmlCheck check = kycAmlMapper.toCheckEntity(checkRequest);
+                check.setId(UUID.randomUUID().toString());
+                check.setKycAmlConfig(entity);
+                checks.add(check);
+            }
+            entity.setChecks(checks);
+        }
+
+        entity = kycAmlConfigRepository.save(entity);
+
+        logAudit("CREATE", "KYC_AML", entity.getId(), null, entity.getName());
+        return kycAmlMapper.toResponse(entity);
+    }
+
+    @Override
+    public void deleteKycAmlConfig(String id) {
+        log.info("🗑️ Suppression de la configuration KYC/AML: {}", id);
+
+        KycAmlConfig entity = kycAmlConfigRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Configuration KYC/AML non trouvée avec l'id: " + id));
+
+        String configName = entity.getName();
+        kycAmlConfigRepository.deleteById(id);
+
+        logAudit("DELETE", "KYC_AML", id, configName, null);
     }
 }

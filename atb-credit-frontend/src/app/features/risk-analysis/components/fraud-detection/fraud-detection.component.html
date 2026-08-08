@@ -1,63 +1,115 @@
 <div class="fraud-container">
+  <!-- En-tête -->
   <div class="section-header">
     <div>
       <h2>Détection de fraude</h2>
       <p class="description">Définissez les règles et leurs poids pour la détection de fraude</p>
     </div>
-    <button class="btn-outline" (click)="resetDefaults()">
-      <mat-icon>restore</mat-icon>
-      Réinitialiser
-    </button>
+    <div class="header-actions">
+      <button class="btn-outline" (click)="resetDefaults()" [disabled]="loading">
+        <mat-icon>restore</mat-icon>
+        Réinitialiser
+      </button>
+      <button class="btn-outline" (click)="loadRules()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Rafraîchir
+      </button>
+    </div>
   </div>
 
-  <div class="fraud-grid">
-    <div *ngFor="let rule of rules" class="fraud-card" [class.inactive]="!rule.isActive">
+  <!-- Chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Chargement...</span>
+  </div>
+
+  <!-- Grille des règles -->
+  <div class="fraud-grid" *ngIf="!loading">
+    <div *ngFor="let rule of rules" 
+         class="fraud-card" 
+         [class.inactive]="!rule.isActive"
+         [class.severity-low]="getThresholdSeverity(rule.threshold) === 'low'"
+         [class.severity-medium]="getThresholdSeverity(rule.threshold) === 'medium'"
+         [class.severity-high]="getThresholdSeverity(rule.threshold) === 'high'"
+         [class.severity-critical]="getThresholdSeverity(rule.threshold) === 'critical'">
+      
+      <!-- En-tête de la carte -->
       <div class="fraud-header">
         <div class="fraud-info">
           <span class="fraud-name">{{ rule.name }}</span>
-          <span class="fraud-weight">Poids: {{ rule.weight }}</span>
+          <span class="fraud-weight" [style.color]="getThresholdColor(rule.threshold)">
+            Poids: {{ rule.weight }}
+          </span>
+          <span class="fraud-severity" [style.background]="getThresholdColor(rule.threshold)">
+            {{ getThresholdLabel(rule.threshold) }}
+          </span>
         </div>
         <mat-slide-toggle 
-          [name]="'toggle-' + rule.id"
-          [(ngModel)]="rule.isActive"
-          (change)="toggleRule(rule)">
+          [checked]="rule.isActive"
+          (change)="toggleRule(rule)"
+          color="primary"
+          [matTooltip]="rule.isActive ? 'Désactiver' : 'Activer'">
         </mat-slide-toggle>
       </div>
 
+      <!-- Description -->
       <p class="fraud-description">{{ rule.description }}</p>
 
+      <!-- Seuil -->
       <div class="fraud-threshold">
-        <label>Seuil de détection</label>
+        <div class="threshold-header">
+          <label>Seuil de détection</label>
+          <span class="threshold-value" [style.color]="getThresholdColor(rule.threshold)">
+            {{ rule.threshold }}%
+          </span>
+        </div>
         <div class="threshold-slider-container">
           <input type="range" 
-                 [name]="'threshold-' + rule.id"
                  min="0" 
                  max="100" 
                  step="1"
                  [(ngModel)]="rule.threshold"
                  (change)="onChange()"
-                 class="threshold-range">
-          <span class="threshold-value">{{ rule.threshold }}%</span>
+                 class="threshold-range"
+                 [style.background]="'linear-gradient(to right, ' + getThresholdColor(0) + ' 0%, ' + getThresholdColor(100) + ' 100%)'"
+                 [matTooltip]="'Seuil: ' + rule.threshold + '%'">
+          <div class="threshold-markers">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
         </div>
       </div>
 
+      <!-- Actions -->
       <div class="fraud-actions">
-        <button class="icon-btn" (click)="editRule(rule)" title="Modifier">
+        <button class="icon-btn" (click)="editRule(rule)" title="Modifier" [disabled]="loading">
           <mat-icon>edit</mat-icon>
         </button>
-        <button class="icon-btn delete-btn" (click)="deleteRule(rule)" title="Supprimer">
+        <button class="icon-btn delete-btn" (click)="deleteRule(rule)" title="Supprimer" [disabled]="loading">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="actions">
+  <!-- État vide -->
+  <div class="empty-state" *ngIf="!loading && rules.length === 0">
+    <mat-icon>security</mat-icon>
+    <p>Aucune règle de fraude configurée</p>
     <button class="btn-primary" (click)="addRule()">
       <mat-icon>add</mat-icon>
       Ajouter une règle
     </button>
-    <button class="btn-primary" (click)="saveRules()" [disabled]="!hasChanges">
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn-primary" (click)="addRule()" [disabled]="loading">
+      <mat-icon>add</mat-icon>
+      Ajouter une règle
+    </button>
+    <button class="btn-primary" (click)="saveRules()" [disabled]="!hasChanges || loading">
       <mat-icon>save</mat-icon>
       Enregistrer
     </button>

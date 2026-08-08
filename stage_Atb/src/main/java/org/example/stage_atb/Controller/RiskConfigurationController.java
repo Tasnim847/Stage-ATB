@@ -254,6 +254,23 @@ public class RiskConfigurationController {
         return ResponseEntity.ok(riskConfigurationService.toggleKycAmlCheck(configId, checkId, active));
     }
 
+    // Ajouter ces endpoints dans RiskConfigurationController
+
+    @PostMapping("/kyc-aml")
+    public ResponseEntity<KycAmlConfigResponse> addKycAmlConfig(
+            @Valid @RequestBody KycAmlConfigRequest request) {
+        log.info("➕ POST /api/risk/kyc-aml - Création d'une configuration KYC/AML: {}", request.getName());
+        KycAmlConfigResponse response = riskConfigurationService.addKycAmlConfig(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/kyc-aml/{id}")
+    public ResponseEntity<Void> deleteKycAmlConfig(@PathVariable String id) {
+        log.info("🗑️ DELETE /api/risk/kyc-aml/{} - Suppression de la configuration KYC/AML", id);
+        riskConfigurationService.deleteKycAmlConfig(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // ============================================
     // 7. IA CONFIG
     // ============================================
@@ -340,4 +357,28 @@ public class RiskConfigurationController {
         riskConfigurationService.resetToDefaults();
         return ResponseEntity.ok().build();
     }
+
+    // Ajouter ces endpoints dans RiskConfigurationController
+
+    @PostMapping("/fraud-rules")
+    public ResponseEntity<FraudRuleResponse> addFraudRule(
+            @Valid @RequestBody FraudRuleRequest request) {
+        log.info("➕ POST /api/risk/fraud-rules - Création d'une règle de fraude: {}", request.getName());
+        FraudRuleResponse response = riskConfigurationService.addFraudRule(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/fraud-rules/{id}")
+    public ResponseEntity<Void> deleteFraudRule(@PathVariable String id) {
+        log.info("🗑️ DELETE /api/risk/fraud-rules/{} - Suppression de la règle de fraude", id);
+        riskConfigurationService.deleteFraudRule(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/fraud-rules/reset")
+    public ResponseEntity<List<FraudRuleResponse>> resetFraudRules() {
+        log.info("🔄 POST /api/risk/fraud-rules/reset - Réinitialisation des règles de fraude");
+        return ResponseEntity.ok(riskConfigurationService.resetFraudRules());
+    }
+
 }

@@ -1,0 +1,230 @@
+<div class="dialog-container">
+  <!-- En-tête -->
+  <div class="dialog-header" [class.edit-mode]="isEditMode">
+    <div class="header-icon">
+      <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+    </div>
+    <div class="header-content">
+      <h2>{{ isEditMode ? 'Modifier la configuration' : 'Nouvelle configuration' }}</h2>
+      <p class="header-subtitle">
+        {{ isEditMode ? 'Modifiez les paramètres de la configuration KYC/AML' : 'Créez une nouvelle configuration KYC/AML' }}
+      </p>
+    </div>
+    <button mat-icon-button class="close-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form [formGroup]="configForm" (ngSubmit)="onSubmit()">
+    <div class="dialog-body">
+      <!-- Section: Informations générales -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>info</mat-icon>
+          <span>Informations générales</span>
+        </div>
+
+        <div class="form-row">
+          <!-- Catégorie -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Catégorie</mat-label>
+            <mat-select formControlName="category">
+              <mat-option *ngFor="let cat of categories" [value]="cat.value">
+                {{ cat.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">category</mat-icon>
+            <mat-error *ngIf="configForm.get('category')?.hasError('required')">
+              La catégorie est obligatoire
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Nom -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="name" placeholder="Ex: Vérification CIN">
+            <mat-icon matPrefix class="field-icon">label</mat-icon>
+            <mat-error *ngIf="configForm.get('name')?.hasError('required')">
+              Le nom est obligatoire
+            </mat-error>
+            <mat-error *ngIf="configForm.get('name')?.hasError('minlength')">
+              Le nom doit contenir au moins 3 caractères
+            </mat-error>
+            <mat-error *ngIf="configForm.get('name')?.hasError('maxlength')">
+              Le nom ne doit pas dépasser 100 caractères
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="2" 
+                      placeholder="Description de la configuration"></textarea>
+            <mat-icon matPrefix class="field-icon">description</mat-icon>
+            <mat-hint align="end">{{ configForm.get('description')?.value?.length || 0 }} / 500</mat-hint>
+            <mat-error *ngIf="configForm.get('description')?.hasError('maxlength')">
+              La description ne doit pas dépasser 500 caractères
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Section: Configuration -->
+      <div class="form-section">
+        <div class="section-title">
+          <mat-icon>settings</mat-icon>
+          <span>Paramètres</span>
+        </div>
+
+        <div class="form-row three-columns">
+          <!-- Priorité -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Priorité</mat-label>
+            <input matInput type="number" formControlName="priority" min="0">
+            <mat-icon matPrefix class="field-icon">sort</mat-icon>
+            <mat-error *ngIf="configForm.get('priority')?.hasError('required')">
+              La priorité est obligatoire
+            </mat-error>
+            <mat-error *ngIf="configForm.get('priority')?.hasError('min')">
+              La priorité doit être >= 0
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Options -->
+          <div class="toggle-group">
+            <mat-slide-toggle formControlName="required" color="primary">
+              <span class="toggle-label">
+                <mat-icon>lock</mat-icon>
+                {{ configForm.get('required')?.value ? 'Obligatoire' : 'Optionnel' }}
+              </span>
+            </mat-slide-toggle>
+          </div>
+
+          <div class="toggle-group">
+            <mat-slide-toggle formControlName="autoCheck" color="primary">
+              <span class="toggle-label">
+                <mat-icon>autorenew</mat-icon>
+                {{ configForm.get('autoCheck')?.value ? 'Auto-vérification' : 'Manuel' }}
+              </span>
+            </mat-slide-toggle>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <mat-slide-toggle formControlName="isActive" color="primary" class="full-toggle">
+            <span class="toggle-label">
+              <mat-icon>{{ configForm.get('isActive')?.value ? 'check_circle' : 'cancel' }}</mat-icon>
+              {{ configForm.get('isActive')?.value ? 'Configuration active' : 'Configuration inactive' }}
+            </span>
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <!-- Section: Checks -->
+      <div class="form-section">
+        <div class="section-header-actions">
+          <div class="section-title">
+            <mat-icon>checklist</mat-icon>
+            <span>Vérifications</span>
+            <span class="badge">{{ checksArray.length }}</span>
+          </div>
+          <button type="button" class="btn-add" (click)="addCheck()">
+            <mat-icon>add</mat-icon>
+            Ajouter
+          </button>
+        </div>
+
+        <div class="checks-container" formArrayName="checks">
+          <div *ngFor="let check of checksArray.controls; let i = index" 
+               class="check-item" [formGroupName]="i">
+            
+            <div class="check-header">
+              <span class="check-number">#{{ i + 1 }}</span>
+              <div class="check-fields">
+                <mat-form-field appearance="outline" class="check-name">
+                  <mat-label>Nom</mat-label>
+                  <input matInput formControlName="name" placeholder="Ex: Authenticité">
+                  <mat-error *ngIf="check.get('name')?.hasError('required')">
+                    Obligatoire
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="check-type">
+                  <mat-label>Type</mat-label>
+                  <mat-select formControlName="type">
+                    <mat-option value="document">Document</mat-option>
+                    <mat-option value="database">Base de données</mat-option>
+                    <mat-option value="date">Date</mat-option>
+                    <mat-option value="manual">Manuel</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="check-weight">
+                  <mat-label>Poids</mat-label>
+                  <input matInput type="number" formControlName="weight" min="1" max="100">
+                  <mat-hint>1-100</mat-hint>
+                  <mat-error *ngIf="check.get('weight')?.hasError('required')">
+                    Obligatoire
+                  </mat-error>
+                  <mat-error *ngIf="check.get('weight')?.hasError('min')">
+                    Min 1
+                  </mat-error>
+                  <mat-error *ngIf="check.get('weight')?.hasError('max')">
+                    Max 100
+                  </mat-error>
+                </mat-form-field>
+
+                <div class="check-toggle">
+                  <mat-slide-toggle formControlName="isActive" color="primary">
+                    <span class="toggle-label-small">
+                      {{ check.get('isActive')?.value ? 'Actif' : 'Inactif' }}
+                    </span>
+                  </mat-slide-toggle>
+                </div>
+              </div>
+
+              <button type="button" class="btn-remove" (click)="removeCheck(i)" 
+                      [disabled]="checksArray.length <= 1">
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="checks-empty" *ngIf="checksArray.length === 0">
+            <mat-icon>checklist</mat-icon>
+            <p>Aucune vérification configurée</p>
+            <button type="button" class="btn-add" (click)="addCheck()">
+              <mat-icon>add</mat-icon>
+              Ajouter une vérification
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="dialog-footer">
+      <div class="footer-left">
+        <span class="footer-hint">
+          <mat-icon>info_outline</mat-icon>
+          Tous les champs marqués d'un <span class="required-star">*</span> sont obligatoires
+        </span>
+      </div>
+      <div class="footer-actions">
+        <button type="button" mat-stroked-button (click)="onCancel()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Annuler
+        </button>
+        <button type="submit" mat-flat-button color="primary" 
+                [disabled]="configForm.invalid" class="submit-btn">
+          <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+          {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

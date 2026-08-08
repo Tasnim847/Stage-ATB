@@ -58,6 +58,14 @@ public interface IRiskConfigurationService {
     KycAmlConfigResponse updateKycAmlConfig(String id, KycAmlConfigRequest request);
     KycAmlConfigResponse toggleKycAmlCheck(String configId, String checkId, Boolean active);
 
+    // Ajouter ces méthodes dans IRiskConfigurationService
+
+    // ============================================
+// 6. KYC / AML - CRUD COMPLET
+// ============================================
+    KycAmlConfigResponse addKycAmlConfig(KycAmlConfigRequest request);
+    void deleteKycAmlConfig(String id);
+
     // ============================================
     // 7. IA CONFIG
     // ============================================
@@ -70,6 +78,9 @@ public interface IRiskConfigurationService {
     List<FraudRuleResponse> getFraudRules();
     FraudRuleResponse updateFraudRule(String id, FraudRuleRequest request);
     FraudRuleResponse toggleFraudRule(String id, Boolean active);
+    FraudRuleResponse addFraudRule(FraudRuleRequest request);
+    void deleteFraudRule(String id);
+    List<FraudRuleResponse> resetFraudRules();
 
     // ============================================
     // 9. EXPORT / IMPORT / RESET

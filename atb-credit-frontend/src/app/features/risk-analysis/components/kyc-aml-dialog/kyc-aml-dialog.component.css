@@ -1,0 +1,594 @@
+/* ============================================
+   CONTENEUR PRINCIPAL
+   ============================================ */
+.dialog-container {
+  width: 100%;
+  max-width: 800px;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   EN-TÊTE
+   ============================================ */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-bottom: 1px solid #a5d6a7;
+  position: relative;
+}
+
+.dialog-header.edit-mode {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #2e7d32;
+  color: white;
+  flex-shrink: 0;
+}
+
+.dialog-header.edit-mode .header-icon {
+  background: #0d47a1;
+}
+
+.header-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a2332;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #6b7a8f;
+}
+
+.close-btn {
+  flex-shrink: 0;
+  color: #6b7a8f;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* ============================================
+   CORPS DU FORMULAIRE
+   ============================================ */
+.dialog-body {
+  padding: 24px 28px 16px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.dialog-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+  background: #c1c7cd;
+  border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb:hover {
+  background: #a0a8b0;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-title mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #2e7d32;
+}
+
+.section-title span {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a2332;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: #2e7d32;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* ============================================
+   CHAMPS DU FORMULAIRE
+   ============================================ */
+.form-row {
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+.form-row.three-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.form-field {
+  width: 100%;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.field-icon {
+  color: #6b7a8f;
+  margin-right: 8px;
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  padding: 0 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.toggle-group .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #495057;
+}
+
+.toggle-group .toggle-label mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #6b7a8f;
+}
+
+.full-toggle {
+  width: 100%;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #495057;
+}
+
+.toggle-label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #6b7a8f;
+}
+
+/* ============================================
+   SECTION CHECKS
+   ============================================ */
+.section-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-header-actions .section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 16px;
+  background: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-add:hover {
+  background: #1b5e20;
+}
+
+.btn-add mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.checks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.check-item {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s;
+}
+
+.check-item:hover {
+  border-color: #bdbdbd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.check-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.check-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #495057;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.check-fields {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.check-name {
+  margin-bottom: -1.25em;
+}
+
+.check-type {
+  margin-bottom: -1.25em;
+}
+
+.check-weight {
+  margin-bottom: -1.25em;
+}
+
+.check-toggle {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 8px;
+}
+
+.toggle-label-small {
+  font-size: 12px;
+  color: #6b7a8f;
+}
+
+.btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #e74c3c;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.btn-remove:hover:not(:disabled) {
+  background: #fde8e8;
+}
+
+.btn-remove:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-remove mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.checks-empty {
+  text-align: center;
+  padding: 32px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+.checks-empty mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #adb5bd;
+  margin-bottom: 8px;
+}
+
+.checks-empty p {
+  color: #6b7a8f;
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+/* ============================================
+   PIED DE PAGE
+   ============================================ */
+.dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  border-top: 1px solid #e9ecef;
+  background: #fafafa;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7a8f;
+}
+
+.footer-hint mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.required-star {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  color: #6b7a8f;
+}
+
+.cancel-btn:hover {
+  background: rgba(107, 122, 143, 0.1);
+}
+
+.submit-btn {
+  min-width: 140px;
+  background: #2e7d32;
+  color: white;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submit-btn mat-icon {
+  margin-right: 4px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .dialog-container {
+    max-width: 100%;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .dialog-header {
+    padding: 16px 20px;
+  }
+
+  .header-content h2 {
+    font-size: 18px;
+  }
+
+  .dialog-body {
+    padding: 16px 20px;
+    max-height: 60vh;
+  }
+
+  .form-row.three-columns {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .toggle-group {
+    height: auto;
+    padding: 8px 12px;
+    justify-content: flex-start;
+  }
+
+  .check-fields {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .check-toggle {
+    height: auto;
+    padding: 4px 0;
+  }
+
+  .check-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .check-number {
+    align-self: flex-start;
+  }
+
+  .dialog-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 20px;
+  }
+
+  .footer-left {
+    justify-content: center;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+  }
+
+  .footer-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .submit-btn {
+    min-width: unset;
+  }
+
+  .section-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .btn-add {
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   OVERRIDES MATERIAL
+   ============================================ */
+::ng-deep .mat-mdc-form-field-hint {
+  color: #6b7a8f !important;
+}
+
+::ng-deep .mat-mdc-form-field-error {
+  font-size: 12px !important;
+}
+
+::ng-deep .mat-mdc-slide-toggle .mdc-form-field {
+  width: 100% !important;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  min-height: 40px !important;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
