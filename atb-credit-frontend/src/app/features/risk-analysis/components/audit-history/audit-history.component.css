@@ -1,52 +1,101 @@
-.audit-container {
-  padding: 8px 0;
+/* ============================================
+   AUDIT HISTORY - ATB CREDIT INTELLIGENCE
+   Design harmonisé avec KYC/AML - Fond blanc
+   ============================================ */
+
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* ============================================
+   EN-TÊTE DE SECTION - FOND BLANC
+   ============================================ */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.10);
 }
 
 .section-header h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a2332;
   margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.5px;
 }
 
-.description {
-  color: #6b7a8f;
-  margin: 4px 0 0;
+.section-header h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 26px;
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  margin-right: 12px;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.section-header .description {
+  margin: 4px 0 0 16px;
   font-size: 14px;
+  color: #888;
+  font-weight: 400;
 }
 
 .btn-outline {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid #e8edf2;
-  border-radius: 8px;
-  background: white;
-  color: #5a6a7a;
+  padding: 8px 18px;
+  border: 1.5px solid #FFEBEE;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: transparent;
+  color: #555;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #f5f7fa;
-  border-color: #d0d7e0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.12);
+  border-color: #FFCDD2;
+  background: #FFF8F8;
 }
 
 .btn-outline:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
+.btn-outline mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   CHARGEMENT
+   ============================================ */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -54,151 +103,773 @@
   justify-content: center;
   padding: 60px 20px;
   gap: 16px;
-  color: #6b7a8f;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
 }
 
+.loading-container span {
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading-container mat-spinner ::ng-deep circle {
+  stroke: #C62828 !important;
+}
+
+/* ============================================
+   FILTRES - FOND BLANC
+   ============================================ */
 .filters {
   display: flex;
-  gap: 16px;
   flex-wrap: wrap;
-  padding: 16px;
-  background: #f8f9fb;
-  border-radius: 12px;
+  gap: 16px 20px;
+  padding: 18px 24px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #FFEBEE;
   margin-bottom: 20px;
   align-items: flex-end;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 150px;
+  flex: 1;
+  min-width: 140px;
 }
 
 .filter-group label {
   font-size: 12px;
-  font-weight: 500;
-  color: #6b7a8f;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .filter-select,
 .filter-input {
   padding: 8px 12px;
-  border: 1px solid #d0d7e0;
-  border-radius: 6px;
+  border: 1.5px solid #FFEBEE;
+  border-radius: 8px;
   font-size: 14px;
-  background: white;
+  font-family: inherit;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  color: #1a1a1a;
+  width: 100%;
 }
 
 .filter-select:focus,
 .filter-input:focus {
-  border-color: #2d7bf6;
   outline: none;
+  border-color: #C62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.10);
+}
+
+.filter-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.filter-input::placeholder {
+  color: #bbb;
 }
 
 .btn-clear {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 8px 16px;
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  border: 1.5px solid #FFCDD2;
+  border-radius: 8px;
   font-size: 13px;
-  transition: all 0.2s;
-  height: 38px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  background: #FFF8F8;
+  color: #C62828;
+  height: 40px;
 }
 
 .btn-clear:hover {
-  background: #c0392b;
+  background: #FFEBEE;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(198, 40, 40, 0.12);
 }
 
+.btn-clear mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   TABLEAU - FOND BLANC
+   ============================================ */
 .table-container {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e8edf2;
-  overflow: auto;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #FFEBEE;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .audit-table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.audit-table th {
-  background: #f8f9fb;
-  font-weight: 600;
-  color: #1a2332;
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 2px solid #e8edf2;
-  font-size: 13px;
-}
-
-.audit-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #e8edf2;
   font-size: 14px;
-  color: #1a2332;
 }
 
-.audit-table tr:hover td {
-  background: #f8f9fb;
-}
-
-.role-badge {
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+/* En-têtes de tableau */
+::ng-deep .audit-table .mat-mdc-header-cell {
+  padding: 14px 16px;
+  font-size: 12px;
   font-weight: 600;
-  background: #e8edf2;
-  color: #5a6a7a;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #FFF8F8;
+  border-bottom: 2px solid #FFEBEE;
 }
 
-.category-badge {
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #e8f0fe;
-  color: #2d7bf6;
+/* Cellules de tableau */
+::ng-deep .audit-table .mat-mdc-cell {
+  padding: 12px 16px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #FFEBEE;
+}
+
+::ng-deep .audit-table .mat-mdc-row:hover {
+  background: #FFF8F8;
+  transition: background 0.2s ease;
+}
+
+::ng-deep .audit-table .mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: none;
 }
 
 .details-cell {
   max-width: 300px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  color: #666;
+  font-size: 13px;
 }
 
+/* ============================================
+   BADGES
+   ============================================ */
+.role-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #E3F2FD;
+  color: #0D47A1;
+}
+
+.category-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #F3E5F5;
+  color: #7B1FA2;
+}
+
+/* Couleurs spécifiques par catégorie */
+.category-badge[data-category="Modèles"] {
+  background: #E3F2FD;
+  color: #0D47A1;
+}
+
+.category-badge[data-category="Seuils"] {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.category-badge[data-category="Règles"] {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.category-badge[data-category="IA"] {
+  background: #F3E5F5;
+  color: #7B1FA2;
+}
+
+.category-badge[data-category="Alertes"] {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.category-badge[data-category="Détection"] {
+  background: #FFF8E1;
+  color: #F57F17;
+}
+
+/* ============================================
+   TABLEAU VIDE
+   ============================================ */
 .table-empty {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 60px 20px;
-  color: #6b7a8f;
+  text-align: center;
 }
 
 .table-empty mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #d0d7e0;
+  color: #FFCDD2;
 }
 
 .table-empty p {
-  font-size: 16px;
-  margin: 16px 0;
+  color: #888;
+  margin: 8px 0 0 0;
+  font-size: 15px;
 }
 
+/* ============================================
+   PIED DE TABLEAU
+   ============================================ */
 .table-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
+  padding: 14px 24px;
+  background: #FFF8F8;
+  border-top: 1px solid #FFEBEE;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .total-count {
   font-size: 14px;
-  color: #6b7a8f;
+  color: #888;
+  font-weight: 500;
+}
+
+.table-footer .btn-outline {
+  font-size: 13px;
+  padding: 6px 16px;
+}
+
+/* ============================================
+   SCROLLBAR - ATB ROUGE
+   ============================================ */
+.audit-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.audit-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+  border-radius: 10px;
+}
+
+.audit-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
+}
+
+.audit-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .section-header .description {
+    margin-left: 0;
+  }
+
+  .filters {
+    padding: 16px 18px;
+  }
+
+  .filter-group {
+    min-width: 120px;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-header-cell,
+  ::ng-deep .audit-table .mat-mdc-cell {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .details-cell {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .audit-container {
+    padding: 16px;
+    background: #fafafa;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .section-header h2 {
+    font-size: 20px;
+  }
+
+  .section-header h2::before {
+    height: 22px;
+  }
+
+  .section-header .description {
+    font-size: 13px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .filter-group {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .btn-clear {
+    width: 100%;
+    justify-content: center;
+    height: 38px;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+
+  .table-footer .btn-outline {
+    width: 100%;
+    justify-content: center;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-header-cell {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-cell {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .details-cell {
+    max-width: 120px;
+    font-size: 12px;
+  }
+
+  .role-badge,
+  .category-badge {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .audit-container {
+    padding: 12px;
+    background: #fafafa;
+  }
+
+  .section-header {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+  }
+
+  .section-header h2::before {
+    height: 18px;
+    width: 3px;
+  }
+
+  .section-header .description {
+    font-size: 12px;
+  }
+
+  .btn-outline {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .btn-outline mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .filters {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .filter-group label {
+    font-size: 11px;
+  }
+
+  .filter-select,
+  .filter-input {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .btn-clear {
+    font-size: 12px;
+    padding: 6px 12px;
+    height: 36px;
+  }
+
+  .table-container {
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-header-cell {
+    padding: 6px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-cell {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .details-cell {
+    max-width: 80px;
+    font-size: 11px;
+  }
+
+  .role-badge,
+  .category-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .table-footer {
+    padding: 10px 14px;
+  }
+
+  .total-count {
+    font-size: 12px;
+  }
+
+  .table-empty {
+    padding: 40px 16px;
+  }
+
+  .table-empty mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .table-empty p {
+    font-size: 13px;
+  }
+
+  .loading-container {
+    padding: 40px 16px;
+  }
+
+  .loading-container span {
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filters,
+.table-container,
+.table-footer {
+  animation: slideUp 0.3s ease forwards;
+}
+
+.filters { animation-delay: 0.05s; }
+.table-container { animation-delay: 0.10s; }
+.table-footer { animation-delay: 0.15s; }
+
+/* ============================================
+   SNACKBAR - ATB ROUGE
+   ============================================ */
+::ng-deep .success-snackbar {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #C8E6C9 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .error-snackbar {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .success-snackbar .mat-simple-snackbar-action,
+::ng-deep .error-snackbar .mat-simple-snackbar-action {
+  color: inherit !important;
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+::ng-deep .mat-tooltip {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .audit-container {
+    padding: 0;
+    background: #ffffff;
+    max-width: 100%;
+  }
+
+  .section-header {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    padding: 16px 20px;
+  }
+
+  .btn-outline {
+    display: none !important;
+  }
+
+  .filters {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    padding: 12px 16px;
+  }
+
+  .btn-clear {
+    display: none !important;
+  }
+
+  .table-container {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-header-cell {
+    background: #f5f5f5 !important;
+    border-bottom: 2px solid #e0e0e0 !important;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-cell {
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-row:hover {
+    background: transparent !important;
+  }
+
+  .table-footer {
+    border: 1px solid #e0e0e0;
+    border-top: none;
+  }
+
+  .loading-container {
+    display: none !important;
+  }
+
+  .table-empty {
+    padding: 40px 20px;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .audit-container {
+    background: #fafafa;
+  }
+
+  .section-header {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  .section-header h2 {
+    color: #8B1A1A;
+  }
+
+  .section-header .description {
+    color: #888;
+  }
+
+  .btn-outline {
+    color: #555;
+    border-color: #FFEBEE;
+  }
+
+  .btn-outline:hover:not(:disabled) {
+    background: #FFF8F8;
+    border-color: #FFCDD2;
+  }
+
+  .filters {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  .filter-group label {
+    color: #888;
+  }
+
+  .filter-select,
+  .filter-input {
+    background: #ffffff;
+    border-color: #FFEBEE;
+    color: #1a1a1a;
+  }
+
+  .filter-select:focus,
+  .filter-input:focus {
+    border-color: #C62828;
+    box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.10);
+  }
+
+  .filter-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  }
+
+  .btn-clear {
+    background: #FFF8F8;
+    border-color: #FFCDD2;
+    color: #C62828;
+  }
+
+  .btn-clear:hover {
+    background: #FFEBEE;
+  }
+
+  .table-container {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-header-cell {
+    background: #FFF8F8;
+    color: #888;
+    border-bottom-color: #FFEBEE;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-cell {
+    color: #1a1a1a;
+    border-bottom-color: #FFEBEE;
+  }
+
+  ::ng-deep .audit-table .mat-mdc-row:hover {
+    background: #FFF8F8;
+  }
+
+  .details-cell {
+    color: #666;
+  }
+
+  .role-badge {
+    background: #E3F2FD;
+    color: #0D47A1;
+  }
+
+  .category-badge {
+    background: #F3E5F5;
+    color: #7B1FA2;
+  }
+
+  .table-footer {
+    background: #FFF8F8;
+    border-top-color: #FFEBEE;
+  }
+
+  .total-count {
+    color: #888;
+  }
+
+  .table-empty mat-icon {
+    color: #FFCDD2;
+  }
+
+  .table-empty p {
+    color: #888;
+  }
+
+  .loading-container {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  .loading-container span {
+    color: #888;
+  }
+
+  .loading-container mat-spinner ::ng-deep circle {
+    stroke: #C62828 !important;
+  }
+
+  .audit-container::-webkit-scrollbar-track {
+    background: #FFF8F8;
+  }
+
+  .audit-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #C62828, #EF5350);
+  }
+
+  ::ng-deep .mat-tooltip {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+  }
 }

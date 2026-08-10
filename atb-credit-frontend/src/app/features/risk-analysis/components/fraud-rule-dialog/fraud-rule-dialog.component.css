@@ -1,42 +1,47 @@
+/* fraud-rule-dialog.component.css */
+
 /* ============================================
-   CONTENEUR PRINCIPAL
+   CONTENEUR PRINCIPAL - HARMONIE ROUGE ÉLÉGANT
    ============================================ */
 .dialog-container {
   width: 100%;
-  max-width: 650px;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-30px) scale(0.95);
+    transform: scale(0.96) translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
 /* ============================================
-   EN-TÊTE
+   EN-TÊTE DU DIALOGUE
    ============================================ */
 .dialog-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
-  border-bottom: 1px solid #f48fb1;
+  padding: 24px 28px 20px 28px;
+  background: linear-gradient(135deg, #FFF8F8, #FFFAFA);
+  border-bottom: 2px solid #FFEBEE;
   position: relative;
 }
 
 .dialog-header.edit-mode {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  background: linear-gradient(135deg, #FFF3E0, #FFF8F8);
 }
 
 .header-icon {
@@ -45,17 +50,14 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 12px;
-  background: #c62828;
-  color: white;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #C62828, #E53935);
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.3);
   flex-shrink: 0;
 }
 
-.dialog-header.edit-mode .header-icon {
-  background: #0d47a1;
-}
-
 .header-icon mat-icon {
+  color: white;
   font-size: 28px;
   width: 28px;
   height: 28px;
@@ -68,58 +70,65 @@
 
 .header-content h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  color: #1a2332;
-  line-height: 1.2;
+  font-size: 20px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.3px;
 }
 
-.header-subtitle {
-  margin: 4px 0 0;
+.header-content .header-subtitle {
+  margin: 4px 0 0 0;
   font-size: 14px;
-  color: #6b7a8f;
+  color: #888;
+  font-weight: 400;
 }
 
 .close-btn {
-  flex-shrink: 0;
-  color: #6b7a8f;
-  transition: all 0.2s;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #999;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  color: #e74c3c;
-  background: rgba(231, 76, 60, 0.1);
+  color: #C62828;
+  transform: rotate(90deg);
+  background: rgba(198, 40, 40, 0.08);
+  border-radius: 50%;
 }
 
 /* ============================================
-   CORPS DU FORMULAIRE
+   CORPS DU DIALOGUE
    ============================================ */
 .dialog-body {
-  padding: 24px 28px 16px;
-  max-height: 65vh;
+  flex: 1;
   overflow-y: auto;
+  padding: 24px 28px 8px 28px;
+  max-height: calc(90vh - 200px);
 }
 
+/* Scrollbar personnalisée */
 .dialog-body::-webkit-scrollbar {
   width: 6px;
 }
 
 .dialog-body::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
+  background: #FFF8F8;
+  border-radius: 10px;
 }
 
 .dialog-body::-webkit-scrollbar-thumb {
-  background: #c1c7cd;
-  border-radius: 3px;
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
 }
 
 .dialog-body::-webkit-scrollbar-thumb:hover {
-  background: #a0a8b0;
+  background: #C62828;
 }
 
 /* ============================================
-   SECTIONS
+   SECTIONS DU FORMULAIRE
    ============================================ */
 .form-section {
   margin-bottom: 24px;
@@ -133,30 +142,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
   margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #FFEBEE;
 }
 
 .section-title mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: #c62828;
-}
-
-.section-title span {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1a2332;
-  letter-spacing: 0.3px;
+  color: #C62828;
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
 }
 
 /* ============================================
-   CHAMPS DU FORMULAIRE
+   CHAMPS DE FORMULAIRE
    ============================================ */
 .form-row {
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .form-row.two-columns {
@@ -173,30 +178,57 @@
   grid-column: 1 / -1;
 }
 
+/* MatFormField personnalisé */
+::ng-deep .form-field .mat-mdc-form-field-outline {
+  border-color: #FFEBEE !important;
+  border-width: 1.5px !important;
+}
+
+::ng-deep .form-field .mdc-text-field--focused .mat-mdc-form-field-outline {
+  border-color: #C62828 !important;
+}
+
+::ng-deep .form-field .mat-mdc-form-field-label {
+  color: #888 !important;
+}
+
+::ng-deep .form-field .mdc-text-field--focused .mat-mdc-form-field-label {
+  color: #C62828 !important;
+}
+
+::ng-deep .form-field .mat-mdc-select-value-text {
+  color: #1a1a1a !important;
+}
+
 .field-icon {
-  color: #6b7a8f;
+  color: #bbb;
   margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+::ng-deep .form-field .mdc-text-field--focused .field-icon {
+  color: #C62828 !important;
+}
+
+::ng-deep .form-field .mat-mdc-form-field-hint {
+  color: #999 !important;
 }
 
 /* ============================================
-   TOGGLE STATUT
+   TOGGLE DE STATUT
    ============================================ */
 .status-toggle-wrapper {
   display: flex;
   align-items: center;
-  height: 100%;
-  padding: 0 4px;
+  padding: 8px 0 0 0;
 }
 
 .status-toggle {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  width: 100%;
 }
 
 .toggle-label {
@@ -204,104 +236,149 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
 }
 
 .toggle-label mat-icon {
   font-size: 20px;
   width: 20px;
   height: 20px;
-  color: #6b7a8f;
+  color: #999;
 }
 
-.toggle-status {
-  font-weight: 500;
-  color: #6b7a8f;
-  transition: color 0.3s;
+.toggle-label .toggle-status.active {
+  color: #2E7D32;
 }
 
-.toggle-status.active {
-  color: #2e7d32;
+.toggle-label .toggle-status:not(.active) {
+  color: #999;
 }
 
 .toggle-hint {
-  margin: 0;
+  margin: 0 0 0 44px;
   font-size: 12px;
-  color: #6b7a8f;
-  padding-left: 36px;
+  color: #999;
+}
+
+/* Toggle switch personnalisé */
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: #C62828 !important;
+}
+
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: white !important;
+}
+
+::ng-deep .mat-slide-toggle-bar {
+  height: 22px !important;
+  width: 42px !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .mat-slide-toggle-thumb {
+  height: 18px !important;
+  width: 18px !important;
 }
 
 /* ============================================
-   SEUIL
+   SEUIL DE DÉTECTION
    ============================================ */
 .threshold-container {
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  background: #FFF8F8;
+  border-radius: 12px;
+  padding: 20px 24px;
+  border: 1px solid #FFEBEE;
+  transition: all 0.3s ease;
+}
+
+.threshold-container:hover {
+  border-color: #FFCDD2;
 }
 
 .threshold-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .threshold-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  color: #495057;
+  color: #888;
 }
 
 .threshold-value-display {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   min-width: 60px;
 }
 
 .threshold-severity {
-  font-size: 13px;
-  font-weight: 500;
-  padding: 2px 12px;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid #e9ecef;
+  display: inline-block;
+  padding: 2px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #F5F5F5;
+  color: #999;
 }
 
 .threshold-slider-container {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 8px 0;
+  margin-bottom: 16px;
 }
 
 .slider-label {
   font-size: 12px;
-  color: #6b7a8f;
-  min-width: 30px;
+  font-weight: 500;
+  color: #999;
+  min-width: 28px;
 }
 
-.threshold-slider {
-  flex: 1;
-  width: 100%;
+/* MatSlider personnalisé */
+::ng-deep .threshold-slider .mat-mdc-slider-track-background {
+  background: #FFEBEE !important;
+}
+
+::ng-deep .threshold-slider .mat-mdc-slider-track-fill {
+  background: linear-gradient(90deg, #4CAF50, #FFC107, #FF9800, #e74c3c) !important;
+}
+
+::ng-deep .threshold-slider .mat-mdc-slider-thumb {
+  background: #C62828 !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.3) !important;
+}
+
+::ng-deep .threshold-slider .mat-mdc-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+::ng-deep .threshold-slider .mat-mdc-slider-value-indicator {
+  background: #C62828 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
 }
 
 .threshold-info {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 16px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e9ecef;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .threshold-info-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: #495057;
+  font-size: 11px;
+  color: #888;
 }
 
 .info-dot {
@@ -318,64 +395,121 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 28px;
-  border-top: 1px solid #e9ecef;
-  background: #fafafa;
-  gap: 16px;
+  padding: 16px 28px 24px 28px;
+  border-top: 2px solid #FFEBEE;
+  background: #FFFAFA;
   flex-wrap: wrap;
+  gap: 12px;
 }
 
 .footer-left {
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
 .footer-hint {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 12px;
-  color: #6b7a8f;
+  color: #999;
 }
 
 .footer-hint mat-icon {
   font-size: 16px;
   width: 16px;
   height: 16px;
+  color: #bbb;
 }
 
 .required-star {
-  color: #e74c3c;
+  color: #C62828;
   font-weight: 700;
 }
 
 .footer-actions {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
+/* ============================================
+   BOUTONS D'ACTION
+   ============================================ */
 .cancel-btn {
-  color: #6b7a8f;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border: 1.5px solid #FFEBEE;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #555;
 }
 
 .cancel-btn:hover {
-  background: rgba(107, 122, 143, 0.1);
+  background: #FFF8F8;
+  border-color: #FFCDD2;
+  transform: translateY(-1px);
+}
+
+.cancel-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .submit-btn {
-  min-width: 140px;
-  background: #c62828;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #C62828, #E53935);
   color: white;
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.35);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(198, 40, 40, 0.45);
+  background: linear-gradient(135deg, #B71C1C, #D32F2F);
 }
 
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .submit-btn mat-icon {
-  margin-right: 4px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   ÉTATS D'ERREUR
+   ============================================ */
+::ng-deep .mat-form-field.ng-invalid.ng-touched .mat-mdc-form-field-outline {
+  border-color: #C62828 !important;
+}
+
+::ng-deep .mat-mdc-form-field-error {
+  color: #C62828 !important;
+  font-size: 12px !important;
 }
 
 /* ============================================
@@ -384,90 +518,430 @@
 @media (max-width: 768px) {
   .dialog-container {
     max-width: 100%;
+    max-height: 100vh;
     border-radius: 0;
     margin: 0;
   }
 
   .dialog-header {
-    padding: 16px 20px;
+    padding: 20px 20px 16px 20px;
   }
 
-  .header-content h2 {
+  .dialog-header .header-content h2 {
     font-size: 18px;
   }
 
+  .dialog-header .header-content .header-subtitle {
+    font-size: 13px;
+  }
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .header-icon mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
   .dialog-body {
-    padding: 16px 20px;
-    max-height: 60vh;
+    padding: 20px 20px 8px 20px;
+    max-height: calc(100vh - 200px);
   }
 
   .form-row.two-columns {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 16px;
   }
 
   .status-toggle-wrapper {
-    padding: 8px 0;
+    padding: 4px 0 0 0;
+  }
+
+  .threshold-container {
+    padding: 16px 18px;
+  }
+
+  .threshold-header {
+    gap: 10px;
+  }
+
+  .threshold-value-display {
+    font-size: 24px;
+    min-width: 50px;
   }
 
   .threshold-info {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .threshold-info-item {
+    font-size: 10px;
   }
 
   .dialog-footer {
     flex-direction: column;
     align-items: stretch;
-    padding: 16px 20px;
+    padding: 14px 20px 20px 20px;
   }
 
   .footer-left {
+    order: 2;
     justify-content: center;
   }
 
   .footer-actions {
+    order: 1;
     flex-direction: column;
+    width: 100%;
   }
 
   .footer-actions button {
     width: 100%;
     justify-content: center;
   }
-
-  .submit-btn {
-    min-width: unset;
-  }
 }
 
 @media (max-width: 480px) {
-  .threshold-info {
-    grid-template-columns: 1fr;
+  .dialog-header {
+    padding: 16px 16px 14px 16px;
   }
 
-  .threshold-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .dialog-header .header-content h2 {
+    font-size: 16px;
+  }
+
+  .dialog-header .header-content .header-subtitle {
+    font-size: 12px;
+  }
+
+  .header-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-icon mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .close-btn {
+    top: 12px;
+    right: 12px;
+  }
+
+  .dialog-body {
+    padding: 16px 16px 8px 16px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .section-title mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .form-section {
+    margin-bottom: 18px;
+  }
+
+  ::ng-deep .form-field .mat-mdc-form-field-label {
+    font-size: 12px !important;
+  }
+
+  ::ng-deep .form-field .mat-mdc-input-element {
+    font-size: 13px !important;
+  }
+
+  .toggle-label {
+    font-size: 13px;
+  }
+
+  .toggle-hint {
+    font-size: 11px;
+  }
+
+  .threshold-container {
+    padding: 14px 14px;
+  }
+
+  .threshold-label {
+    font-size: 12px;
+  }
+
+  .threshold-value-display {
+    font-size: 20px;
+    min-width: 40px;
+  }
+
+  .threshold-severity {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+
+  .slider-label {
+    font-size: 10px;
+    min-width: 22px;
+  }
+
+  .threshold-info {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .threshold-info-item {
+    font-size: 9px;
+  }
+
+  .info-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dialog-footer {
+    padding: 12px 16px 16px 16px;
+  }
+
+  .footer-hint {
+    font-size: 11px;
+  }
+
+  .cancel-btn,
+  .submit-btn {
+    font-size: 13px;
+    padding: 8px 16px;
   }
 }
 
 /* ============================================
-   OVERRIDES MATERIAL
+   DARK MODE SUPPORT
    ============================================ */
-::ng-deep .mat-mdc-form-field-hint {
-  color: #6b7a8f !important;
+@media (prefers-color-scheme: dark) {
+  .dialog-container {
+    background: #111827;
+  }
+
+  .dialog-header {
+    background: linear-gradient(135deg, #1a2236, #111827);
+    border-bottom-color: #2a3348;
+  }
+
+  .dialog-header .header-content h2 {
+    color: #f0f4ff;
+  }
+
+  .dialog-header .header-content .header-subtitle {
+    color: #8a9aa8;
+  }
+
+  .close-btn {
+    color: #8a9aa8;
+  }
+
+  .close-btn:hover {
+    color: #EF5350;
+    background: rgba(239, 83, 80, 0.1);
+  }
+
+  .dialog-body {
+    background: #111827;
+  }
+
+  .section-title {
+    color: #f0f4ff;
+    border-bottom-color: #2a3348;
+  }
+
+  .section-title mat-icon {
+    color: #EF5350;
+  }
+
+  ::ng-deep .form-field .mat-mdc-form-field-outline {
+    border-color: #2a3348 !important;
+  }
+
+  ::ng-deep .form-field .mdc-text-field--focused .mat-mdc-form-field-outline {
+    border-color: #EF5350 !important;
+  }
+
+  ::ng-deep .form-field .mat-mdc-form-field-label {
+    color: #8a9aa8 !important;
+  }
+
+  ::ng-deep .form-field .mdc-text-field--focused .mat-mdc-form-field-label {
+    color: #EF5350 !important;
+  }
+
+  ::ng-deep .form-field .mat-mdc-input-element {
+    color: #f0f4ff !important;
+  }
+
+  ::ng-deep .form-field .mat-mdc-select-value-text {
+    color: #f0f4ff !important;
+  }
+
+  ::ng-deep .form-field .mat-mdc-form-field-hint {
+    color: #6b7a8f !important;
+  }
+
+  .field-icon {
+    color: #6b7a8f !important;
+  }
+
+  ::ng-deep .form-field .mdc-text-field--focused .field-icon {
+    color: #EF5350 !important;
+  }
+
+  .status-toggle-wrapper .toggle-label {
+    color: #f0f4ff;
+  }
+
+  .toggle-hint {
+    color: #6b7a8f;
+  }
+
+  ::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+    background-color: #EF5350 !important;
+  }
+
+  .threshold-container {
+    background: #1a2236;
+    border-color: #2a3348;
+  }
+
+  .threshold-container:hover {
+    border-color: #3d5166;
+  }
+
+  .threshold-label {
+    color: #8a9aa8;
+  }
+
+  .threshold-severity {
+    background: #1a2236;
+    color: #6b7a8f;
+  }
+
+  .slider-label {
+    color: #6b7a8f;
+  }
+
+  ::ng-deep .threshold-slider .mat-mdc-slider-track-background {
+    background: #2a3348 !important;
+  }
+
+  ::ng-deep .threshold-slider .mat-mdc-slider-thumb {
+    background: #EF5350 !important;
+  }
+
+  ::ng-deep .threshold-slider .mat-mdc-slider-value-indicator {
+    background: #EF5350 !important;
+  }
+
+  .threshold-info-item {
+    color: #8a9aa8;
+  }
+
+  .dialog-footer {
+    background: #0d1422;
+    border-top-color: #2a3348;
+  }
+
+  .footer-hint {
+    color: #6b7a8f;
+  }
+
+  .footer-hint mat-icon {
+    color: #4a5a6a;
+  }
+
+  .cancel-btn {
+    color: #b0c0d0;
+    border-color: #2a3348;
+  }
+
+  .cancel-btn:hover {
+    background: #1a2236;
+    border-color: #3d5166;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #2d5aa0, #3d7acc);
+    box-shadow: 0 4px 15px rgba(61, 122, 204, 0.35);
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1a4a8a, #2d6ab0);
+    box-shadow: 0 6px 25px rgba(61, 122, 204, 0.45);
+  }
+
+  ::ng-deep .mat-form-field.ng-invalid.ng-touched .mat-mdc-form-field-outline {
+    border-color: #EF5350 !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-error {
+    color: #EF5350 !important;
+  }
+
+  .dialog-body::-webkit-scrollbar-track {
+    background: #0d1422;
+  }
+
+  .dialog-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #2d5aa0, #3d7acc);
+  }
 }
 
-::ng-deep .mat-mdc-form-field-error {
-  font-size: 12px !important;
-}
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .dialog-container {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none !important;
+    border: 1px solid #e0e0e0;
+    max-height: none;
+  }
 
-::ng-deep .mat-mdc-slider .mdc-slider__thumb {
-  background: #c62828 !important;
-}
+  .dialog-header {
+    background: #f5f5f5 !important;
+    border-bottom: 2px solid #e0e0e0;
+  }
 
-::ng-deep .mat-mdc-slider .mdc-slider__track--active {
-  background: #c62828 !important;
-}
+  .close-btn {
+    display: none !important;
+  }
 
-::ng-deep .mat-mdc-slide-toggle .mdc-form-field {
-  width: 100% !important;
+  .dialog-footer {
+    border-top: 2px solid #e0e0e0;
+  }
+
+  .footer-actions button {
+    display: none !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-outline {
+    border-color: #e0e0e0 !important;
+  }
+
+  ::ng-deep .mat-mdc-input-element {
+    color: #1a1a1a !important;
+  }
+
+  .threshold-slider-container {
+    display: none !important;
+  }
+
+  .threshold-info {
+    display: none !important;
+  }
 }

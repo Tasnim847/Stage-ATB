@@ -1,17 +1,32 @@
+/* risk-analysis.component.css */
+
+/* ============================================
+   CONTENEUR PRINCIPAL - HARMONIE AVEC LE SITE
+   ============================================ */
 .risk-analysis-container {
-  padding: 20px;
-  background: #f5f7fa;
-  min-height: 100vh;
-  position: relative;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
 .loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,170 +36,568 @@
 }
 
 .loading-overlay span {
-  font-size: 16px;
-  color: #1a2332;
+  font-size: 14px;
   font-weight: 500;
+  color: #1a1a1a;
+  letter-spacing: 0.3px;
 }
 
+.loading-overlay mat-spinner ::ng-deep circle {
+  stroke: #C62828 !important;
+}
+
+/* ============================================
+   EN-TÊTE DE PAGE - ROUGE CLAIR ÉLÉGANT
+   ============================================ */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 16px;
+  background: white;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+  transition: all 0.3s ease;
+}
+
+.page-header:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.10);
+  border-color: #FFCDD2;
 }
 
 .header-left {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .header-left h1 {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a2332;
   margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.5px;
+}
+
+.header-left h1::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 28px;
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  margin-right: 6px;
+  border-radius: 4px;
+  vertical-align: middle;
 }
 
 .header-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-  color: #2d7bf6;
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+  color: #C62828;
 }
 
-.subtitle {
-  color: #6b7a8f;
-  margin: 4px 0 0 40px;
+.header-left .subtitle {
+  margin: 4px 0 0 22px;
   font-size: 14px;
+  color: #888;
+  font-weight: 400;
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
+/* ============================================
+   BOUTONS - HARMONIE AVEC LE SITE
+   ============================================ */
 .btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 8px 18px;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: white;
+  color: #555;
+  border: 1.5px solid #FFEBEE;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.12);
+  border-color: #FFCDD2;
+  background: #FFF8F8;
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .btn-primary {
-  background: #2d7bf6;
-  color: white;
+  background: linear-gradient(135deg, #C62828, #E53935) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.35) !important;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1a5fc7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45, 123, 246, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(198, 40, 40, 0.45) !important;
+  background: linear-gradient(135deg, #B71C1C, #D32F2F) !important;
 }
 
 .btn-outline {
   background: transparent;
-  color: #2d7bf6;
-  border: 1px solid #2d7bf6;
+  border: 1.5px solid #FFEBEE;
+  color: #555;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #e8f0fe;
+  background: #FFF8F8;
+  border-color: #FFCDD2;
 }
 
+/* ============================================
+   ONGLETS - CARTE BLANCHE AVEC BORDURE ROUGE
+   ============================================ */
 .risk-tabs {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+  transition: all 0.3s ease;
 }
 
-.risk-tabs ::ng-deep .mat-tab-header {
-  background: #f8f9fb;
-  border-bottom: 1px solid #e8edf2;
-  padding: 0 16px;
+.risk-tabs:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.08);
 }
 
-.risk-tabs ::ng-deep .mat-tab-label {
-  height: 56px;
+/* Personnalisation des onglets Material */
+::ng-deep .risk-tabs .mat-tab-header {
+  background: #FFFAFA;
+  border-bottom: 1px solid #FFEBEE;
+  padding: 0 24px;
+}
+
+::ng-deep .risk-tabs .mat-tab-label {
+  height: 52px;
+  padding: 0 20px;
+  font-size: 14px;
   font-weight: 500;
-  color: #5a6a7a;
+  color: #888;
   opacity: 1;
+  letter-spacing: 0.2px;
   gap: 8px;
+  transition: all 0.3s ease;
 }
 
-.risk-tabs ::ng-deep .mat-tab-label .mat-icon {
+::ng-deep .risk-tabs .mat-tab-label .mat-icon {
   font-size: 20px;
   width: 20px;
   height: 20px;
+  color: #bbb;
+  transition: color 0.3s ease;
 }
 
-.risk-tabs ::ng-deep .mat-tab-label.mat-tab-label-active {
-  color: #2d7bf6;
+::ng-deep .risk-tabs .mat-tab-label.mat-tab-label-active {
+  color: #8B1A1A;
 }
 
-.risk-tabs ::ng-deep .mat-ink-bar {
-  background: #2d7bf6;
+::ng-deep .risk-tabs .mat-tab-label.mat-tab-label-active .mat-icon {
+  color: #C62828;
+}
+
+::ng-deep .risk-tabs .mat-tab-label:hover {
+  color: #8B1A1A;
+  background: rgba(198, 40, 40, 0.04);
+}
+
+::ng-deep .risk-tabs .mat-tab-label:hover .mat-icon {
+  color: #C62828;
+}
+
+::ng-deep .risk-tabs .mat-ink-bar {
+  background: linear-gradient(90deg, #C62828, #EF5350);
   height: 3px;
+  border-radius: 3px 3px 0 0;
 }
 
+/* Badge sur les onglets */
 .tab-badge {
-  background: #e74c3c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: #C62828;
   color: white;
-  border-radius: 50%;
-  padding: 2px 6px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
+  border-radius: 20px;
   margin-left: 4px;
-  min-width: 18px;
-  text-align: center;
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.25);
 }
 
+/* ============================================
+   CONTENU DES ONGLETS
+   ============================================ */
 .tab-content {
-  padding: 24px;
+  padding: 28px 24px;
+  min-height: 500px;
+  background: white;
+  animation: slideUp 0.4s ease forwards;
 }
 
-@media (max-width: 768px) {
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   SCROLLBAR PERSONNALISÉE - ROUGE
+   ============================================ */
+.risk-analysis-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.risk-analysis-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+  border-radius: 10px;
+}
+
+.risk-analysis-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
+}
+
+.risk-analysis-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
   .page-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .header-left .subtitle {
+    margin-left: 0;
   }
 
   .header-actions {
+    justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .btn {
-    flex: 1;
+  .header-actions .btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .risk-analysis-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .header-left h1 {
+    font-size: 20px;
+  }
+
+  .header-left h1::before {
+    height: 22px;
+  }
+
+  .header-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-left .subtitle {
+    font-size: 13px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .header-actions .btn {
+    padding: 7px 14px;
+    font-size: 12px;
+    flex: 1 1 auto;
+    min-width: 100px;
     justify-content: center;
   }
 
-  .risk-tabs ::ng-deep .mat-tab-label {
+  .header-actions .btn mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-header {
     padding: 0 12px;
-    font-size: 12px;
+    overflow-x: auto;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-label {
+    padding: 0 14px;
+    font-size: 13px;
+    min-width: 60px;
+    height: 46px;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-label .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
   }
 
   .tab-content {
-    padding: 16px;
+    padding: 20px 16px;
+    min-height: 400px;
   }
+
+  .risk-tabs {
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .risk-analysis-container {
+    padding: 12px;
+  }
+
+  .page-header {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .header-left h1 {
+    font-size: 18px;
+    gap: 8px;
+  }
+
+  .header-left h1::before {
+    height: 18px;
+    width: 3px;
+  }
+
+  .header-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .header-left .subtitle {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-header {
+    padding: 0 8px;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-label {
+    padding: 0 10px;
+    font-size: 12px;
+    min-width: 44px;
+    height: 42px;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-label .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .tab-content {
+    padding: 16px 12px;
+    min-height: 350px;
+  }
+
+  .loading-overlay {
+    padding: 20px;
+  }
+
+  .loading-overlay span {
+    font-size: 13px;
+  }
+
+  .tab-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+    padding: 0 4px;
+  }
+}
+
+/* ============================================
+   SNACKBAR PERSONNALISÉE
+   ============================================ */
+::ng-deep .error-snackbar {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .error-snackbar .mat-simple-snackbar-action {
+  color: #B71C1C !important;
+}
+
+::ng-deep .mat-snack-bar-container {
+  border-radius: 12px !important;
+}
+
+/* ============================================
+   TABS SCROLL
+   ============================================ */
+::ng-deep .risk-tabs .mat-tab-header-pagination {
+  box-shadow: 0 0 12px rgba(198, 40, 40, 0.08);
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #FFEBEE;
+}
+
+::ng-deep .risk-tabs .mat-tab-header-pagination:hover {
+  background: #FFF8F8;
+  border-color: #FFCDD2;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .risk-analysis-container {
+    padding: 0;
+    background: white;
+    max-width: 100%;
+  }
+
+  .header-actions .btn {
+    display: none !important;
+  }
+
+  .loading-overlay {
+    display: none !important;
+  }
+
+  .risk-tabs {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-header {
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  ::ng-deep .risk-tabs .mat-tab-label {
+    color: #333 !important;
+  }
+
+  ::ng-deep .risk-tabs .mat-ink-bar {
+    background: #C62828 !important;
+  }
+
+  .tab-content {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .page-header {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    padding: 20px;
+  }
+
+  .header-left h1 {
+    color: #8B1A1A;
+  }
+}
+
+/* ============================================
+   UTILITAIRES
+   ============================================ */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+.gap-16 {
+  gap: 16px;
 }

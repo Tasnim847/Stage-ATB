@@ -1,64 +1,112 @@
+/* kyc-aml-config.component.css */
+
 /* ============================================
-   CONTENEUR PRINCIPAL
+   KYC/AML CONFIG - HARMONIE AVEC RISK ANALYSIS
    ============================================ */
+
 .kyc-aml-container {
-  padding: 20px;
-  max-width: 1200px;
+  padding: 24px;
+  max-width: 1400px;
   margin: 0 auto;
+  animation: fadeIn 0.4s ease-in;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================
-   EN-TÊTE
+   EN-TÊTE DE SECTION
    ============================================ */
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 16px;
+  background: white;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.10);
+  border-color: #FFCDD2;
 }
 
 .section-header h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  color: #1a2332;
+  font-size: 24px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.5px;
+}
+
+.section-header h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 26px;
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  margin-right: 12px;
+  border-radius: 4px;
+  vertical-align: middle;
 }
 
 .section-header .description {
-  margin: 4px 0 0;
-  color: #6b7a8f;
+  margin: 4px 0 0 16px;
   font-size: 14px;
+  color: #888;
+  font-weight: 400;
 }
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-outline {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: transparent;
-  color: #1a2332;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  font-size: 14px;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1.5px solid #FFEBEE;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background: transparent;
+  color: #555;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #f0f0f0;
-  border-color: #b0b7be;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.12);
+  border-color: #FFCDD2;
+  background: #FFF8F8;
 }
 
 .btn-outline:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn-outline mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ============================================
@@ -69,13 +117,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 0;
+  padding: 60px 20px;
   gap: 16px;
-  color: #6b7a8f;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+}
+
+.loading-overlay span {
+  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading-overlay mat-spinner ::ng-deep circle {
+  stroke: #C62828 !important;
 }
 
 /* ============================================
-   SECTIONS
+   SECTIONS DE CONFIGURATION
    ============================================ */
 .config-sections {
   display: flex;
@@ -85,60 +145,77 @@
 
 .config-section {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
-  padding: 24px;
-  transition: box-shadow 0.3s;
+  border-radius: 16px;
+  padding: 24px 28px;
+  border: 1px solid #FFEBEE;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.04);
+  transition: all 0.3s ease;
 }
 
 .config-section:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.08);
 }
 
+/* ============================================
+   EN-TÊTE DE SECTION
+   ============================================ */
 .section-header-actions {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
+.section-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .section-title-group h3 {
-  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1a2332;
+  color: #1a1a1a;
 }
 
-.kyc-icon {
-  color: #1976d2;
+.section-title-group h3 .kyc-icon {
+  color: #1565C0;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
 }
 
-.aml-icon {
-  color: #6f42c1;
+.section-title-group h3 .aml-icon {
+  color: #C62828;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
 }
 
 .section-desc {
-  margin: 4px 0 0 34px;
-  color: #6b7a8f;
+  margin: 0 0 0 34px;
   font-size: 13px;
+  color: #888;
 }
 
 .section-count {
-  padding: 4px 12px;
-  background: #f8f9fa;
-  border-radius: 20px;
   font-size: 13px;
-  color: #6b7a8f;
-  white-space: nowrap;
+  font-weight: 500;
+  color: #888;
+  padding: 4px 14px;
+  background: #FFF8F8;
+  border-radius: 20px;
+  border: 1px solid #FFEBEE;
 }
 
 /* ============================================
-   GRILLE DES CARTES
+   GRILLE DES CONFIGURATIONS
    ============================================ */
 .configs-grid {
   display: grid;
@@ -151,29 +228,39 @@
    ============================================ */
 .config-card {
   background: white;
-  border-radius: 10px;
-  padding: 20px;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s;
+  border-radius: 14px;
+  padding: 20px 22px 18px;
+  border: 1.5px solid #FFEBEE;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .config-card:hover {
-  border-color: #ced4da;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(198, 40, 40, 0.08);
+  border-color: #FFCDD2;
 }
 
 .config-card.inactive {
-  opacity: 0.6;
-  background: #fafbfc;
+  opacity: 0.65;
+  background: #FAFAFA;
 }
 
-/* En-tête de la carte */
+.config-card.inactive .config-name {
+  color: #999;
+}
+
+/* ============================================
+   EN-TÊTE DE LA CARTE
+   ============================================ */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .card-title-group {
@@ -185,45 +272,48 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .config-name {
-  font-weight: 600;
   font-size: 15px;
-  color: #1a2332;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .config-badge {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
+  padding: 1px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .config-badge.required {
-  background: #fff3e0;
-  color: #e65100;
+  background: #FFEBEE;
+  color: #C62828;
 }
 
 .config-badge.optional {
-  background: #e3f2fd;
-  color: #0d47a1;
+  background: #E3F2FD;
+  color: #0D47A1;
 }
 
 .config-badge.priority {
-  background: #f3e5f5;
-  color: #4a148c;
+  background: #FFF8E1;
+  color: #E65100;
 }
 
 .config-status {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 4px;
   font-size: 12px;
-  color: #2e7d32;
+  color: #2E7D32;
+  font-weight: 500;
+  margin-top: 4px;
 }
 
 .config-status mat-icon {
@@ -236,55 +326,64 @@
   flex-shrink: 0;
 }
 
-/* Description */
+/* ============================================
+   DESCRIPTION
+   ============================================ */
 .config-desc {
-  margin: 10px 0 12px;
-  color: #4a5568;
   font-size: 13px;
+  color: #666;
   line-height: 1.5;
+  margin: 0 0 12px 0;
 }
 
-/* Métadonnées */
+/* ============================================
+   MÉTADONNÉES
+   ============================================ */
 .config-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 14px;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
+  padding: 10px 0;
+  border-top: 1px solid #FFEBEE;
+  border-bottom: 1px solid #FFEBEE;
+  margin-bottom: 12px;
 }
 
 .meta-item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #6b7a8f;
+  color: #888;
 }
 
 .meta-item mat-icon {
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #bbb;
 }
 
 /* ============================================
    LISTE DES VÉRIFICATIONS
    ============================================ */
 .checks-list {
-  border-top: 1px solid #e9ecef;
-  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .checks-title {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #495057;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #FFEBEE;
 }
 
 .checks-count {
@@ -294,30 +393,26 @@
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  background: #e9ecef;
-  border-radius: 10px;
+  border-radius: 20px;
+  background: #FFF8F8;
+  color: #888;
   font-size: 11px;
-  font-weight: 600;
-  color: #495057;
 }
 
 .check-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
-  margin-bottom: 4px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  transition: background 0.2s;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #FFF8F8;
+  border: 1px solid #FFEBEE;
+  transition: all 0.2s ease;
 }
 
 .check-item:hover {
-  background: #f1f3f5;
-}
-
-.check-item:last-child {
-  margin-bottom: 0;
+  background: #FFFAFA;
+  border-color: #FFCDD2;
 }
 
 .check-info {
@@ -331,131 +426,472 @@
 .check-name {
   font-size: 13px;
   font-weight: 500;
-  color: #1a2332;
+  color: #1a1a1a;
 }
 
 .check-type {
   font-size: 11px;
-  color: #6b7a8f;
-  background: white;
+  color: #888;
   padding: 1px 8px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #FFEBEE;
 }
 
 .check-weight {
   font-size: 11px;
-  color: #6b7a8f;
+  color: #888;
 }
 
 .check-status {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 1px 8px;
-  border-radius: 8px;
-  background: #e9ecef;
-  color: #6b7a8f;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 10px;
+  border-radius: 12px;
+  background: #F5F5F5;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .check-status.active {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+/* ============================================
+   TOGGLE SWITCH (Material override)
+   ============================================ */
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: #C62828 !important;
+}
+
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: white !important;
+}
+
+::ng-deep .mat-slide-toggle-bar {
+  height: 22px !important;
+  width: 42px !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .mat-slide-toggle-thumb {
+  height: 18px !important;
+  width: 18px !important;
+}
+
+/* Small toggle pour les checks */
+::ng-deep .mat-slide-toggle.mat-slide-toggle-small .mat-slide-toggle-bar {
+  height: 18px !important;
+  width: 34px !important;
+}
+
+::ng-deep .mat-slide-toggle.mat-slide-toggle-small .mat-slide-toggle-thumb {
+  height: 14px !important;
+  width: 14px !important;
 }
 
 /* ============================================
    ÉTAT VIDE
    ============================================ */
 .empty-state {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 20px;
+  text-align: center;
+  border: 2px dashed #FFCDD2;
+  border-radius: 12px;
+  background: #FFFAFA;
 }
 
 .empty-state mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #d0d7de;
-  margin-bottom: 8px;
+  color: #FFCDD2;
 }
 
 .empty-state p {
-  color: #6b7a8f;
-  margin: 0;
-  font-size: 15px;
+  color: #888;
+  margin: 8px 0 0 0;
+  font-size: 14px;
 }
 
 .empty-state .empty-hint {
-  font-size: 13px;
-  color: #adb5bd;
-  margin-top: 4px;
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 2px;
+}
+
+/* ============================================
+   SCROLLBAR PERSONNALISÉE
+   ============================================ */
+.kyc-aml-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.kyc-aml-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+  border-radius: 10px;
+}
+
+.kyc-aml-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
+}
+
+.kyc-aml-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
 }
 
 /* ============================================
    RESPONSIVE
    ============================================ */
+@media (max-width: 1024px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .section-header .description {
+    margin-left: 0;
+  }
+
+  .configs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
+  .kyc-aml-container {
+    padding: 16px;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .section-header h2 {
+    font-size: 20px;
+  }
+
+  .section-header h2::before {
+    height: 22px;
+  }
+
+  .section-header .description {
+    font-size: 13px;
+  }
+
+  .config-section {
+    padding: 18px 18px;
+  }
+
+  .section-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-title-group h3 {
+    font-size: 16px;
+  }
+
+  .section-desc {
+    margin-left: 0;
+    font-size: 12px;
+  }
+
   .configs-grid {
     grid-template-columns: 1fr;
   }
 
+  .config-card {
+    padding: 16px 16px 14px;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+  }
+
+  .card-title {
+    gap: 4px;
+  }
+
+  .config-name {
+    font-size: 14px;
+  }
+
+  .config-badge {
+    font-size: 9px;
+    padding: 1px 8px;
+  }
+
+  .check-info {
+    gap: 6px;
+  }
+
+  .check-name {
+    font-size: 12px;
+  }
+
+  .check-type {
+    font-size: 10px;
+  }
+
+  .check-weight {
+    font-size: 10px;
+  }
+
+  .config-meta {
+    gap: 8px;
+  }
+
+  .meta-item {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kyc-aml-container {
+    padding: 12px;
+  }
+
   .section-header {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+  }
+
+  .section-header h2::before {
+    height: 18px;
+    width: 3px;
+  }
+
+  .section-header .description {
+    font-size: 12px;
   }
 
   .header-actions {
     width: 100%;
   }
 
-  .header-actions button {
-    flex: 1;
+  .header-actions .btn-outline {
+    width: 100%;
     justify-content: center;
   }
 
-  .section-header-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .card-actions {
-    align-self: flex-end;
-  }
-
-  .check-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .check-info {
-    flex-wrap: wrap;
-  }
-
   .config-section {
-    padding: 16px;
+    padding: 14px 12px;
+    border-radius: 12px;
+  }
+
+  .section-title-group h3 {
+    font-size: 15px;
+  }
+
+  .section-title-group h3 .kyc-icon,
+  .section-title-group h3 .aml-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .section-count {
+    font-size: 11px;
+    padding: 2px 12px;
   }
 
   .config-card {
-    padding: 16px;
+    padding: 14px 12px 12px;
+    border-radius: 12px;
+  }
+
+  .config-name {
+    font-size: 13px;
+  }
+
+  .config-badge {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  .config-desc {
+    font-size: 12px;
+  }
+
+  .config-meta {
+    padding: 8px 0;
+    gap: 6px;
+  }
+
+  .meta-item {
+    font-size: 10px;
+  }
+
+  .meta-item mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  .checks-title {
+    font-size: 11px;
+  }
+
+  .check-item {
+    padding: 4px 6px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .check-info {
+    gap: 4px;
+  }
+
+  .check-name {
+    font-size: 11px;
+  }
+
+  .check-type {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+
+  .check-weight {
+    font-size: 9px;
+  }
+
+  .check-status {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+
+  .empty-state {
+    padding: 30px 12px;
+  }
+
+  .empty-state mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+  }
+
+  .empty-state .empty-hint {
+    font-size: 11px;
   }
 }
 
 /* ============================================
-   OVERRIDES MATERIAL
+   ANIMATIONS
    ============================================ */
-::ng-deep .mat-mdc-slide-toggle .mdc-form-field {
-  width: auto !important;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-::ng-deep .mat-mdc-slide-toggle .mdc-switch--small {
-  width: 36px !important;
+.config-card {
+  animation: slideUp 0.4s ease forwards;
 }
 
-::ng-deep .mat-mdc-tooltip-trigger {
-  cursor: pointer;
+.config-card:nth-child(1) { animation-delay: 0.05s; }
+.config-card:nth-child(2) { animation-delay: 0.10s; }
+.config-card:nth-child(3) { animation-delay: 0.15s; }
+.config-card:nth-child(4) { animation-delay: 0.20s; }
+.config-card:nth-child(5) { animation-delay: 0.25s; }
+.config-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ============================================
+   TOOLTIP PERSONNALISÉ
+   ============================================ */
+::ng-deep .mat-tooltip {
+  background: #1a1a1a !important;
+  color: white !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+}
+
+/* ============================================
+   SNACKBAR PERSONNALISÉE
+   ============================================ */
+::ng-deep .success-snackbar {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #C8E6C9 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .error-snackbar {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .success-snackbar .mat-simple-snackbar-action,
+::ng-deep .error-snackbar .mat-simple-snackbar-action {
+  color: inherit !important;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .kyc-aml-container {
+    padding: 0;
+    background: white;
+    max-width: 100%;
+  }
+
+  .section-header {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    padding: 16px 20px;
+  }
+
+  .header-actions .btn-outline {
+    display: none !important;
+  }
+
+  .loading-overlay {
+    display: none !important;
+  }
+
+  .config-section {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .config-card {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .card-actions .mat-slide-toggle {
+    display: none !important;
+  }
+
+  .check-item .mat-slide-toggle {
+    display: none !important;
+  }
 }

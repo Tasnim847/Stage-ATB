@@ -1,195 +1,790 @@
+/* ============================================
+   AI CONFIGURATION - ATB CREDIT INTELLIGENCE
+   Harmonisé avec KYC / AML
+   ============================================ */
+
 .ai-config-container {
-  padding: 8px 0;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, sans-serif;
 }
+
+/* ============================================
+   ANIMATION
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+
+  background: white;
+  padding: 24px 28px;
+
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.10);
+  border-color: #FFCDD2;
 }
 
 .section-header h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a2332;
   margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.5px;
 }
 
-.description {
-  color: #6b7a8f;
-  margin: 4px 0 0;
-  font-size: 14px;
+/* Barre rouge ATB devant le titre */
+.section-header h2::before {
+  content: '';
+  display: inline-block;
+
+  width: 4px;
+  height: 26px;
+
+  background: linear-gradient(
+    180deg,
+    #C62828,
+    #EF5350
+  );
+
+  margin-right: 12px;
+  border-radius: 4px;
+
+  vertical-align: middle;
 }
+
+.section-header .description {
+  margin: 4px 0 0 16px;
+
+  font-size: 14px;
+  color: #888;
+  font-weight: 400;
+}
+
+/* ============================================
+   HEADER BUTTON
+   ============================================ */
 
 .btn-outline {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
-  border: 1px solid #e8edf2;
-  border-radius: 8px;
-  background: white;
-  color: #5a6a7a;
+
+  padding: 8px 18px;
+
+  border: 1.5px solid #FFEBEE;
+  border-radius: 10px;
+
+  font-size: 13px;
+  font-weight: 500;
+
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+
+  font-family: inherit;
+
+  background: transparent;
+  color: #555;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .btn-outline:hover {
-  background: #f5f7fa;
-  border-color: #d0d7e0;
+  transform: translateY(-2px);
+
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.12);
+
+  border-color: #FFCDD2;
+
+  background: #FFF8F8;
+
+  color: #C62828;
 }
+
+.btn-outline mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   MAIN CONFIG CARD
+   ============================================ */
 
 .config-card {
   background: white;
-  border: 1px solid #e8edf2;
-  border-radius: 12px;
-  padding: 24px;
+
+  border-radius: 16px;
+
+  padding: 28px;
+
+  border: 1px solid #FFEBEE;
+
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.04);
+
+  transition: all 0.3s ease;
+
+  animation: slideUp 0.4s ease forwards;
 }
+
+.config-card:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.08);
+
+  border-color: #FFCDD2;
+}
+
+/* ============================================
+   CONFIG GRID
+   ============================================ */
 
 .config-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px 24px;
 }
+
+/* ============================================
+   CONFIG GROUP
+   ============================================ */
 
 .config-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+
+  gap: 8px;
+
+  padding: 16px;
+
+  background: #FFF8F8;
+
+  border: 1px solid #FFEBEE;
+
+  border-radius: 12px;
+
+  transition: all 0.25s ease;
 }
 
+.config-group:hover {
+  background: #FFFAFA;
+
+  border-color: #FFCDD2;
+
+  box-shadow: 0 3px 12px rgba(198, 40, 40, 0.05);
+}
+
+/* Full width */
 .config-group.full-width {
   grid-column: 1 / -1;
 }
 
+/* ============================================
+   LABELS
+   ============================================ */
+
 .config-group label {
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: #555;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.3px;
+}
+
+/* ============================================
+   INPUTS / SELECT
+   ============================================ */
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border: 1px solid #E0E0E0;
+
+  border-radius: 9px;
+
+  background: white;
+
+  color: #333;
+
+  font-family: inherit;
+
   font-size: 13px;
-  font-weight: 500;
-  color: #1a2332;
+
+  outline: none;
+
+  transition: all 0.25s ease;
 }
 
 .form-input,
 .form-select {
-  padding: 10px 12px;
-  border: 1px solid #d0d7e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
+  height: 42px;
 
-.form-input:focus,
-.form-select:focus {
-  border-color: #2d7bf6;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(45, 123, 246, 0.1);
+  padding: 0 12px;
 }
 
 .form-textarea {
-  padding: 10px 12px;
-  border: 1px solid #d0d7e0;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
+  padding: 12px;
+
   resize: vertical;
+
   min-height: 100px;
-  transition: all 0.2s;
+
+  line-height: 1.5;
 }
 
+/* Focus ATB */
+
+.form-input:focus,
+.form-select:focus,
 .form-textarea:focus {
-  border-color: #2d7bf6;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(45, 123, 246, 0.1);
+  border-color: #C62828;
+
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.08);
 }
+
+/* Hover */
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: #FFCDD2;
+}
+
+/* Placeholder */
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #BDBDBD;
+}
+
+/* ============================================
+   SELECT
+   ============================================ */
+
+.form-select {
+  cursor: pointer;
+
+  appearance: auto;
+}
+
+/* ============================================
+   TEMPERATURE SLIDER
+   ============================================ */
 
 .temperature-slider-container {
   display: flex;
+
   align-items: center;
-  gap: 16px;
+
+  gap: 14px;
+
+  height: 42px;
 }
 
 .temperature-range {
   flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  border-radius: 3px;
-  background: #e8edf2;
-  outline: none;
-}
 
-.temperature-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #2d7bf6;
-  cursor: pointer;
-}
+  height: 5px;
 
-.temperature-range::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #2d7bf6;
+  accent-color: #C62828;
+
   cursor: pointer;
-  border: none;
 }
 
 .slider-value {
-  font-weight: 600;
-  color: #2d7bf6;
-  font-size: 16px;
-  min-width: 40px;
-  text-align: center;
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 48px;
+
+  height: 30px;
+
+  padding: 0 8px;
+
+  background: #FFEBEE;
+
+  color: #C62828;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  border: 1px solid #FFCDD2;
 }
+
+/* ============================================
+   TEXTAREA - PROMPT IA
+   ============================================ */
+
+.config-group.full-width {
+  position: relative;
+}
+
+.config-group.full-width::before {
+  content: 'IA';
+
+  position: absolute;
+
+  top: 13px;
+  right: 14px;
+
+  padding: 3px 8px;
+
+  border-radius: 12px;
+
+  background: #FFEBEE;
+
+  color: #C62828;
+
+  font-size: 9px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   MATERIAL SLIDE TOGGLE
+   ============================================ */
+
+.config-group mat-slide-toggle {
+  margin-top: 4px;
+}
+
+/* Couleur ATB lorsque activé */
+
+::ng-deep
+.mat-slide-toggle.mat-checked
+.mat-slide-toggle-bar {
+  background-color: #C62828 !important;
+}
+
+::ng-deep
+.mat-slide-toggle.mat-checked
+.mat-slide-toggle-thumb {
+  background-color: white !important;
+}
+
+::ng-deep .mat-slide-toggle-bar {
+  height: 22px !important;
+
+  width: 42px !important;
+
+  border-radius: 12px !important;
+}
+
+::ng-deep .mat-slide-toggle-thumb {
+  height: 18px !important;
+
+  width: 18px !important;
+}
+
+/* ============================================
+   ACTIONS
+   ============================================ */
 
 .actions {
   display: flex;
+
   align-items: center;
+
   gap: 16px;
-  padding-top: 20px;
-  margin-top: 20px;
-  border-top: 1px solid #e8edf2;
+
+  margin-top: 28px;
+
+  padding-top: 22px;
+
+  border-top: 1px solid #FFEBEE;
+
+  flex-wrap: wrap;
 }
 
+/* ============================================
+   PRIMARY BUTTON
+   ============================================ */
+
 .btn-primary {
-  display: flex;
+  display: inline-flex;
+
   align-items: center;
+  justify-content: center;
+
   gap: 8px;
-  padding: 10px 24px;
-  background: #2d7bf6;
-  color: white;
+
+  padding: 10px 20px;
+
+  min-height: 42px;
+
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+
+  border-radius: 10px;
+
+  background: #C62828;
+
+  color: white;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
   cursor: pointer;
-  transition: all 0.2s;
+
+  transition: all 0.3s ease;
+
+  box-shadow: 0 3px 10px rgba(198, 40, 40, 0.20);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1a5fc7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45, 123, 246, 0.3);
+  transform: translateY(-2px);
+
+  background: #B71C1C;
+
+  box-shadow: 0 5px 16px rgba(198, 40, 40, 0.28);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
   opacity: 0.5;
+
   cursor: not-allowed;
+
+  box-shadow: none;
 }
 
+.btn-primary mat-icon {
+  font-size: 18px;
+
+  width: 18px;
+
+  height: 18px;
+}
+
+/* ============================================
+   SAVE STATUS
+   ============================================ */
+
 .save-status {
-  font-size: 14px;
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 7px 12px;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  animation: slideUp 0.3s ease;
 }
 
 .save-status.success {
-  color: #27ae60;
+  background: #E8F5E9;
+
+  color: #1B5E20;
+
+  border: 1px solid #C8E6C9;
 }
 
 .save-status.error {
-  color: #e74c3c;
+  background: #FFEBEE;
+
+  color: #B71C1C;
+
+  border: 1px solid #FFCDD2;
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+.ai-config-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ai-config-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+
+  border-radius: 10px;
+}
+
+.ai-config-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    #C62828,
+    #EF5350
+  );
+
+  border-radius: 10px;
+}
+
+.ai-config-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 1024px) {
+
+  .section-header {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 16px;
+
+    padding: 20px 24px;
+  }
+
+  .section-header .description {
+    margin-left: 0;
+  }
+
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-group.full-width {
+    grid-column: auto;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  .ai-config-container {
+    padding: 16px;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .section-header h2 {
+    font-size: 20px;
+  }
+
+  .section-header h2::before {
+    height: 22px;
+  }
+
+  .section-header .description {
+    font-size: 13px;
+  }
+
+  .config-card {
+    padding: 18px;
+  }
+
+  .config-grid {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .config-group {
+    padding: 14px;
+  }
+
+  .actions {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .save-status {
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - SMALL MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+
+  .ai-config-container {
+    padding: 12px;
+  }
+
+  .section-header {
+    padding: 14px 16px;
+
+    border-radius: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+  }
+
+  .section-header h2::before {
+    width: 3px;
+
+    height: 18px;
+  }
+
+  .section-header .description {
+    font-size: 12px;
+
+    margin-top: 6px;
+  }
+
+  .section-header .btn-outline {
+    width: 100%;
+  }
+
+  .config-card {
+    padding: 14px 12px;
+
+    border-radius: 12px;
+  }
+
+  .config-group {
+    padding: 12px;
+
+    border-radius: 10px;
+  }
+
+  .config-group label {
+    font-size: 11px;
+  }
+
+  .form-input,
+  .form-select {
+    height: 40px;
+
+    font-size: 12px;
+  }
+
+  .form-textarea {
+    font-size: 12px;
+
+    min-height: 90px;
+  }
+
+  .temperature-slider-container {
+    gap: 8px;
+  }
+
+  .slider-value {
+    min-width: 42px;
+
+    height: 28px;
+
+    font-size: 11px;
+  }
+
+  .actions {
+    margin-top: 20px;
+
+    padding-top: 18px;
+  }
+}
+
+/* ============================================
+   PRINT
+   ============================================ */
+
+@media print {
+
+  .ai-config-container {
+    padding: 0;
+
+    background: white;
+
+    max-width: 100%;
+  }
+
+  .section-header {
+    border: 1px solid #E0E0E0;
+
+    box-shadow: none !important;
+
+    padding: 16px 20px;
+  }
+
+  .section-header .btn-outline {
+    display: none !important;
+  }
+
+  .config-card {
+    border: 1px solid #E0E0E0;
+
+    box-shadow: none !important;
+  }
+
+  .actions {
+    display: none !important;
+  }
 }
