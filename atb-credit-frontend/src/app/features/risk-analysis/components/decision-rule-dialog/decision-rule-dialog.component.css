@@ -1,142 +1,644 @@
+/* ============================================
+   RULE DIALOG - ATB CREDIT INTELLIGENCE
+   Design harmonisé avec KYC/AML - Fond blanc
+   ============================================ */
+
 .dialog-container {
-  min-width: 500px;
-  max-width: 700px;
-  padding: 0;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 12px 40px rgba(198, 40, 40, 0.15);
+  animation: fadeIn 0.3s ease;
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
 
 .dialog-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
+  border-bottom: 1px solid #ffebee;
+  position: relative;
+}
+
+.dialog-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #c62828, #ef5350);
 }
 
 .dialog-header h2 {
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  margin: 0;
+  color: #8b1a1a;
   font-size: 20px;
-  color: #333;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
 
 .dialog-header h2 mat-icon {
-  color: #1976d2;
+  color: #c62828;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
 }
+
+.dialog-header button {
+  color: #888 !important;
+  transition: all 0.25s ease;
+}
+
+.dialog-header button:hover {
+  color: #c62828 !important;
+  background: #ffebee !important;
+}
+
+/* ============================================
+   BODY
+   ============================================ */
 
 .dialog-content {
   padding: 24px;
+  max-height: calc(90vh - 160px);
+  overflow-y: auto;
+  background: #fafafa;
 }
 
-.full-width {
-  width: 100%;
-  margin-bottom: 16px;
+.dialog-content::-webkit-scrollbar {
+  width: 7px;
 }
+
+.dialog-content::-webkit-scrollbar-track {
+  background: #fff8f8;
+  border-radius: 10px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c62828, #ef5350);
+  border-radius: 10px;
+}
+
+/* ============================================
+   FORM ROWS
+   ============================================ */
 
 .form-row {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* ============================================
+   FORM FIELDS
+   ============================================ */
+
+.full-width {
+  width: 100%;
 }
 
 .half-width {
   flex: 1;
-  margin-bottom: 16px;
+  min-width: 0;
 }
+
+/* ============================================
+   ANGULAR MATERIAL FIELDS
+   ============================================ */
+
+::ng-deep .dialog-container .mat-form-field {
+  font-size: 13px;
+}
+
+::ng-deep .dialog-container
+.mat-form-field-appearance-outline
+.mat-form-field-outline {
+  color: #e0e0e0;
+}
+
+::ng-deep .dialog-container
+.mat-form-field-appearance-outline:hover
+.mat-form-field-outline {
+  color: #ffcdd2;
+}
+
+::ng-deep .dialog-container
+.mat-form-field-appearance-outline.mat-focused
+.mat-form-field-outline-thick {
+  color: #c62828 !important;
+}
+
+::ng-deep .dialog-container
+.mat-form-field.mat-focused
+.mat-form-field-label {
+  color: #c62828 !important;
+}
+
+::ng-deep .dialog-container
+.mat-form-field-label {
+  color: #777;
+  font-size: 13px;
+}
+
+::ng-deep .dialog-container
+.mat-input-element {
+  font-size: 13px;
+  color: #333;
+}
+
+::ng-deep .dialog-container
+.mat-form-field-prefix .mat-icon {
+  color: #c62828;
+  margin-right: 8px;
+  font-size: 19px;
+}
+
+::ng-deep .dialog-container
+.mat-hint {
+  font-size: 10px;
+  color: #999;
+}
+
+::ng-deep .dialog-container
+.mat-error {
+  font-size: 10px;
+}
+
+/* ============================================
+   TEXTAREA
+   ============================================ */
+
+::ng-deep .dialog-container textarea.mat-input-element {
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* ============================================
+   TOGGLE CONTAINER
+   ============================================ */
 
 .toggle-container {
   display: flex;
   align-items: center;
-  height: 56px;
-  padding: 0 12px;
+  min-height: 56px;
+  padding: 4px 0 0 0;
 }
 
 .toggle-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 
 .toggle-label mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #999;
 }
+
+/* ============================================
+   MATERIAL TOGGLE - ATB ROUGE
+   ============================================ */
+
+::ng-deep
+.dialog-container
+.mat-slide-toggle.mat-checked
+.mat-slide-toggle-bar {
+  background-color: #c62828 !important;
+}
+
+::ng-deep
+.dialog-container
+.mat-slide-toggle.mat-checked
+.mat-slide-toggle-thumb {
+  background-color: #fff !important;
+}
+
+::ng-deep
+.dialog-container
+.mat-slide-toggle-bar {
+  width: 42px !important;
+  height: 22px !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep
+.dialog-container
+.mat-slide-toggle-thumb {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* ============================================
+   FOOTER ACTIONS
+   ============================================ */
 
 .dialog-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e0e0e0;
-  background: #fafafa;
+  background: #ffffff;
+  border-top: 1px solid #ffebee;
 }
 
-.dialog-actions button {
-  min-width: 120px;
+/* ============================================
+   CANCEL BUTTON
+   ============================================ */
+
+.dialog-actions button[mat-button] {
+  min-height: 40px !important;
+  padding: 0 20px !important;
+  border-radius: 9px !important;
+  border: 1.5px solid #ffebee !important;
+  color: #666 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.25s ease !important;
 }
 
-.dialog-actions button[type="submit"] {
-  background: #1976d2;
-  color: white;
+.dialog-actions button[mat-button]:hover {
+  color: #c62828 !important;
+  background: #fff8f8 !important;
+  border-color: #ffcdd2 !important;
 }
 
-.dialog-actions button[type="submit"]:disabled {
-  opacity: 0.6;
+/* ============================================
+   SUBMIT BUTTON
+   ============================================ */
+
+.dialog-actions button[mat-raised-button] {
+  min-height: 40px !important;
+  padding: 0 24px !important;
+  border-radius: 9px !important;
+  background: linear-gradient(135deg, #c62828, #e53935) !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 3px 12px rgba(198, 40, 40, 0.25) !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dialog-actions button[mat-raised-button]:hover:not([disabled]) {
+  background: linear-gradient(135deg, #b71c1c, #d32f2f) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 18px rgba(198, 40, 40, 0.35) !important;
 }
 
-.dialog-container {
-  animation: slideIn 0.3s ease-out;
+.dialog-actions button[mat-raised-button][disabled] {
+  opacity: 0.5;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+.dialog-actions button[mat-raised-button] mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+}
+
+/* ============================================
+   RESPONSIVE - TABLET
+   ============================================ */
+
+@media (max-width: 768px) {
   .dialog-container {
-    min-width: 100%;
     max-width: 100%;
+    border-radius: 14px;
   }
-  
+
+  .dialog-header {
+    padding: 18px 20px;
+  }
+
+  .dialog-header h2 {
+    font-size: 18px;
+  }
+
+  .dialog-header h2 mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .dialog-content {
+    padding: 18px;
+  }
+
   .form-row {
     flex-direction: column;
     gap: 0;
   }
-  
+
   .half-width {
     width: 100%;
   }
-  
+
   .toggle-container {
-    height: auto;
-    padding: 8px 0;
+    min-height: 50px;
+    padding: 8px 0 4px 0;
+  }
+
+  .dialog-actions {
+    flex-direction: column-reverse;
+    padding: 14px 18px;
+  }
+
+  .dialog-actions button {
+    width: 100%;
+    justify-content: center;
   }
 }
 
-/* Material overrides */
-::ng-deep .mat-mdc-form-field-hint {
-  color: #666;
-  font-size: 12px;
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+  .dialog-header {
+    padding: 14px 16px;
+  }
+
+  .dialog-header h2 {
+    font-size: 16px;
+  }
+
+  .dialog-header h2 mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .dialog-content {
+    padding: 14px;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field {
+    font-size: 12px;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-label {
+    font-size: 12px;
+  }
+
+  ::ng-deep .dialog-container .mat-input-element {
+    font-size: 12px;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-prefix .mat-icon {
+    font-size: 17px;
+  }
+
+  ::ng-deep .dialog-container .mat-hint {
+    font-size: 9px;
+  }
+
+  ::ng-deep .dialog-container .mat-error {
+    font-size: 9px;
+  }
+
+  .toggle-label {
+    font-size: 12px;
+  }
+
+  .toggle-label mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .dialog-actions {
+    padding: 12px 14px;
+  }
+
+  .dialog-actions button {
+    font-size: 12px !important;
+    min-height: 36px !important;
+    padding: 0 16px !important;
+  }
+
+  .dialog-actions button[mat-raised-button] mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
-::ng-deep .mat-mdc-form-field-error {
-  font-size: 12px;
+/* ============================================
+   SNACKBAR - ATB ROUGE
+   ============================================ */
+
+::ng-deep .success-snackbar {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #C8E6C9 !important;
+  border-radius: 12px !important;
 }
 
-::ng-deep .mat-mdc-slide-toggle .mdc-form-field {
-  width: 100%;
+::ng-deep .error-snackbar {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .success-snackbar .mat-simple-snackbar-action,
+::ng-deep .error-snackbar .mat-simple-snackbar-action {
+  color: inherit !important;
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+
+::ng-deep .mat-tooltip {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .dialog-container {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none !important;
+    border: 1px solid #e0e0e0;
+  }
+
+  .dialog-header {
+    background: #f5f5f5 !important;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  .dialog-header button {
+    display: none !important;
+  }
+
+  .dialog-actions {
+    border-top: 2px solid #e0e0e0;
+  }
+
+  .dialog-actions button {
+    display: none !important;
+  }
+
+  ::ng-deep .mat-form-field-appearance-outline .mat-form-field-outline {
+    color: #e0e0e0 !important;
+  }
+
+  ::ng-deep .mat-input-element {
+    color: #1a1a1a !important;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .dialog-container {
+    background: #ffffff;
+  }
+
+  .dialog-header {
+    background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
+    border-bottom-color: #ffebee;
+  }
+
+  .dialog-header h2 {
+    color: #8b1a1a;
+  }
+
+  .dialog-header h2 mat-icon {
+    color: #c62828;
+  }
+
+  .dialog-header button {
+    color: #888 !important;
+  }
+
+  .dialog-header button:hover {
+    color: #c62828 !important;
+    background: #ffebee !important;
+  }
+
+  .dialog-content {
+    background: #fafafa;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-appearance-outline .mat-form-field-outline {
+    color: #e0e0e0;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-appearance-outline:hover .mat-form-field-outline {
+    color: #ffcdd2;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+    color: #c62828 !important;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field.mat-focused .mat-form-field-label {
+    color: #c62828 !important;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-label {
+    color: #777;
+  }
+
+  ::ng-deep .dialog-container .mat-input-element {
+    color: #333;
+  }
+
+  ::ng-deep .dialog-container .mat-form-field-prefix .mat-icon {
+    color: #c62828;
+  }
+
+  .toggle-label {
+    color: #1a1a1a;
+  }
+
+  .toggle-label mat-icon {
+    color: #999;
+  }
+
+  ::ng-deep .dialog-container .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+    background-color: #c62828 !important;
+  }
+
+  .dialog-actions {
+    background: #ffffff;
+    border-top-color: #ffebee;
+  }
+
+  .dialog-actions button[mat-button] {
+    color: #666 !important;
+    border-color: #ffebee !important;
+  }
+
+  .dialog-actions button[mat-button]:hover {
+    color: #c62828 !important;
+    background: #fff8f8 !important;
+    border-color: #ffcdd2 !important;
+  }
+
+  .dialog-actions button[mat-raised-button] {
+    background: linear-gradient(135deg, #c62828, #e53935) !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 12px rgba(198, 40, 40, 0.25) !important;
+  }
+
+  .dialog-actions button[mat-raised-button]:hover:not([disabled]) {
+    background: linear-gradient(135deg, #b71c1c, #d32f2f) !important;
+    box-shadow: 0 5px 18px rgba(198, 40, 40, 0.35) !important;
+  }
+
+  .dialog-content::-webkit-scrollbar-track {
+    background: #fff8f8;
+  }
+
+  .dialog-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #c62828, #ef5350);
+  }
+
+  ::ng-deep .mat-tooltip {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+  }
 }

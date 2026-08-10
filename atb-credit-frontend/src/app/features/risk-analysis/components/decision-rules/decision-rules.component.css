@@ -1,49 +1,110 @@
+/* ============================================
+   DECISION RULES - ATB CREDIT INTELLIGENCE
+   Design harmonisé avec KYC/AML - Fond blanc
+   ============================================ */
+
 .rules-container {
-  padding: 8px 0;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-in;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fafafa;
+  border-radius: 16px;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   EN-TÊTE DE SECTION - FOND BLANC
+   ============================================ */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 28px;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+  background: #ffffff;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #FFEBEE;
+  box-shadow: 0 2px 12px rgba(198, 40, 40, 0.06);
+  transition: all 0.3s ease;
+}
+
+.section-header:hover {
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.10);
+  border-color: #FFCDD2;
 }
 
 .section-header h2 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a2332;
   margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #8B1A1A;
+  letter-spacing: -0.5px;
 }
 
-.description {
-  color: #6b7a8f;
-  margin: 4px 0 0;
+.section-header h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 26px;
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  margin-right: 12px;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.section-header .description {
+  margin: 4px 0 0 16px;
   font-size: 14px;
+  color: #888;
+  font-weight: 400;
 }
 
 .btn-primary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  background: #2d7bf6;
-  color: white;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #C62828, #E53935);
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(198, 40, 40, 0.35);
+  font-family: inherit;
 }
 
-.btn-primary:hover {
-  background: #1a5fc7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45, 123, 246, 0.3);
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(198, 40, 40, 0.45);
+  background: linear-gradient(135deg, #B71C1C, #D32F2F);
 }
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   RULE LIST
+   ============================================ */
 
 .rules-list {
   display: flex;
@@ -51,80 +112,145 @@
   gap: 12px;
 }
 
+/* ============================================
+   RULE ITEM - FOND BLANC
+   ============================================ */
+
 .rule-item {
   display: flex;
   align-items: stretch;
-  background: white;
-  border: 1px solid #e8edf2;
-  border-radius: 10px;
-  transition: all 0.2s;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1.5px solid #FFEBEE;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
   cursor: default;
 }
 
 .rule-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-color: #d0d7e0;
+  transform: translateX(4px);
+  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.08);
+  border-color: #FFCDD2;
 }
 
 .rule-item.inactive {
-  opacity: 0.6;
-  background: #f8f9fb;
+  opacity: 0.65;
+  background: #FAFAFA;
 }
+
+.rule-item.inactive .rule-name {
+  color: #999;
+}
+
+/* ============================================
+   DRAG HANDLE
+   ============================================ */
 
 .drag-handle {
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  color: #b0c0d0;
+  justify-content: center;
+  width: 40px;
+  min-height: 70px;
+  flex-shrink: 0;
+  background: #FFF8F8;
+  border-right: 1px solid #FFEBEE;
   cursor: grab;
+  color: #bbb;
+  transition: all 0.2s ease;
 }
 
 .drag-handle:hover {
-  color: #5a6a7a;
+  background: #FFEBEE;
+  color: #C62828;
 }
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   RULE CONTENT
+   ============================================ */
 
 .rule-content {
   flex: 1;
-  padding: 16px;
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  border-left: 3px solid #C62828;
 }
+
+.rule-item.inactive .rule-content {
+  border-left: 3px solid #E0E0E0;
+}
+
+/* ============================================
+   RULE HEADER
+   ============================================ */
 
 .rule-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .rule-priority {
-  background: #e8edf2;
-  color: #5a6a7a;
-  border-radius: 4px;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: #FFF8F8;
+  color: #999;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  border: 1px solid #FFEBEE;
 }
 
 .rule-name {
-  font-weight: 600;
   font-size: 15px;
-  color: #1a2332;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
 }
 
 .rule-badge {
+  display: inline-block;
+  padding: 2px 14px;
+  border-radius: 20px;
   font-size: 11px;
-  padding: 2px 10px;
-  border-radius: 12px;
-  background: #e8edf2;
-  color: #5a6a7a;
+  font-weight: 600;
+  background: #F5F5F5;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .rule-badge.active {
-  background: #d4edda;
-  color: #155724;
+  background: #E8F5E9;
+  color: #1B5E20;
 }
+
+/* ============================================
+   RULE BODY
+   ============================================ */
 
 .rule-body {
   display: flex;
+  align-items: center;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -133,79 +259,681 @@
 .action {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 13px;
+  color: #555;
 }
 
-.label {
-  color: #6b7a8f;
+.condition .label,
+.action .label {
   font-weight: 500;
-  font-size: 13px;
+  color: #888;
 }
 
-code {
-  background: #f0f2f5;
-  padding: 2px 10px;
-  border-radius: 4px;
+.condition code {
+  background: #FFF8F8;
+  padding: 2px 12px;
+  border-radius: 6px;
   font-size: 13px;
-  color: #1a2332;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #C62828;
+  border: 1px solid #FFEBEE;
 }
 
 .action-tag {
-  background: #e8f0fe;
-  color: #2d7bf6;
-  padding: 2px 12px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 500;
+  display: inline-block;
+  padding: 2px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #E3F2FD;
+  color: #0D47A1;
 }
+
+/* ============================================
+   RULE ACTIONS
+   ============================================ */
 
 .rule-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 12px;
-  border-left: 1px solid #e8edf2;
+  gap: 2px;
+  padding: 0 12px 0 0;
+  flex-shrink: 0;
 }
 
 .icon-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: none;
+  border-radius: 8px;
   background: transparent;
-  border-radius: 6px;
+  color: #999;
   cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7a8f;
-  transition: all 0.2s;
 }
 
 .icon-btn:hover {
-  background: #f0f2f5;
-  color: #2d7bf6;
+  background: #FFF8F8;
+  color: #1a1a1a;
 }
 
-.delete-btn:hover {
-  background: #fde8e8;
-  color: #e74c3c;
+.icon-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
+
+.icon-btn.toggle-btn:hover {
+  color: #C62828;
+  background: #FFEBEE;
+}
+
+.icon-btn.delete-btn:hover {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+/* ============================================
+   DRAG AND DROP STYLES
+   ============================================ */
+
+.cdk-drag-preview {
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(198, 40, 40, 0.2);
+  border: 2px solid #C62828;
+  background: #ffffff;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+  border: 2px dashed #FFCDD2;
+  border-radius: 14px;
+  background: #FFF8F8;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.rules-list.cdk-drop-list-dragging .rule-item:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ============================================
+   EMPTY STATE - FOND BLANC
+   ============================================ */
 
 .rules-empty {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 60px 20px;
-  color: #6b7a8f;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px dashed #FFCDD2;
 }
 
 .rules-empty mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  color: #d0d7e0;
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #FFCDD2;
 }
 
 .rules-empty p {
-  font-size: 16px;
-  margin: 16px 0;
+  color: #888;
+  margin: 12px 0 24px 0;
+  font-size: 15px;
+}
+
+.rules-empty .btn-primary {
+  padding: 10px 24px;
+}
+
+/* ============================================
+   SCROLLBAR - ATB ROUGE
+   ============================================ */
+
+.rules-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rules-container::-webkit-scrollbar-track {
+  background: #FFF8F8;
+  border-radius: 10px;
+}
+
+.rules-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C62828, #EF5350);
+  border-radius: 10px;
+}
+
+.rules-container::-webkit-scrollbar-thumb:hover {
+  background: #C62828;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  .section-header .description {
+    margin-left: 0;
+  }
+
+  .section-header .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .rules-container {
+    padding: 16px;
+    background: #fafafa;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+  }
+
+  .section-header h2 {
+    font-size: 20px;
+  }
+
+  .section-header h2::before {
+    height: 22px;
+  }
+
+  .section-header .description {
+    font-size: 13px;
+  }
+
+  .section-header .btn-primary {
+    padding: 8px 18px;
+    font-size: 13px;
+  }
+
+  .section-header .btn-primary mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .rule-item {
+    flex-wrap: wrap;
+    border-radius: 12px;
+  }
+
+  .drag-handle {
+    width: 36px;
+    min-height: 60px;
+  }
+
+  .rule-content {
+    padding: 12px 16px;
+    flex: 1 1 100%;
+    order: 2;
+  }
+
+  .rule-header {
+    gap: 8px;
+  }
+
+  .rule-name {
+    font-size: 14px;
+  }
+
+  .rule-priority {
+    font-size: 11px;
+    height: 24px;
+    min-width: 24px;
+  }
+
+  .rule-badge {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+
+  .rule-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .condition,
+  .action {
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .condition code {
+    font-size: 12px;
+    padding: 2px 10px;
+    word-break: break-all;
+  }
+
+  .action-tag {
+    font-size: 11px;
+    padding: 2px 12px;
+  }
+
+  .rule-actions {
+    order: 3;
+    padding: 4px 12px 12px 12px;
+    width: 100%;
+    justify-content: flex-end;
+    border-top: 1px solid #FFEBEE;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .icon-btn mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .rules-empty {
+    padding: 40px 16px;
+  }
+
+  .rules-empty mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .rules-empty p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rules-container {
+    padding: 12px;
+    background: #fafafa;
+  }
+
+  .section-header {
+    padding: 14px 16px;
+    border-radius: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+  }
+
+  .section-header h2::before {
+    height: 18px;
+    width: 3px;
+  }
+
+  .section-header .description {
+    font-size: 12px;
+  }
+
+  .section-header .btn-primary {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .section-header .btn-primary mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .drag-handle {
+    width: 30px;
+    min-height: 50px;
+  }
+
+  .drag-handle mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .rule-content {
+    padding: 10px 12px;
+  }
+
+  .rule-name {
+    font-size: 13px;
+  }
+
+  .rule-priority {
+    font-size: 10px;
+    height: 20px;
+    min-width: 20px;
+    padding: 0 6px;
+  }
+
+  .rule-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .condition code {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+
+  .action-tag {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+
+  .rule-actions {
+    padding: 4px 8px 10px 8px;
+    gap: 0;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .icon-btn mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .rules-empty {
+    padding: 30px 12px;
+  }
+
+  .rules-empty mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .rules-empty p {
+    font-size: 13px;
+  }
+
+  .rules-empty .btn-primary {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.rule-item {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.rule-item:nth-child(1) { animation-delay: 0.05s; }
+.rule-item:nth-child(2) { animation-delay: 0.10s; }
+.rule-item:nth-child(3) { animation-delay: 0.15s; }
+.rule-item:nth-child(4) { animation-delay: 0.20s; }
+.rule-item:nth-child(5) { animation-delay: 0.25s; }
+.rule-item:nth-child(6) { animation-delay: 0.30s; }
+.rule-item:nth-child(7) { animation-delay: 0.35s; }
+.rule-item:nth-child(8) { animation-delay: 0.40s; }
+.rule-item:nth-child(9) { animation-delay: 0.45s; }
+.rule-item:nth-child(10) { animation-delay: 0.50s; }
+
+/* ============================================
+   TOOLTIP PERSONNALISÉ
+   ============================================ */
+::ng-deep .mat-tooltip {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+}
+
+/* ============================================
+   SNACKBAR PERSONNALISÉE
+   ============================================ */
+::ng-deep .success-snackbar {
+  background: #E8F5E9 !important;
+  color: #1B5E20 !important;
+  border: 1px solid #C8E6C9 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .error-snackbar {
+  background: #FFEBEE !important;
+  color: #B71C1C !important;
+  border: 1px solid #FFCDD2 !important;
+  border-radius: 12px !important;
+}
+
+::ng-deep .success-snackbar .mat-simple-snackbar-action,
+::ng-deep .error-snackbar .mat-simple-snackbar-action {
+  color: inherit !important;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .rules-container {
+    padding: 0;
+    background: #ffffff;
+    max-width: 100%;
+  }
+
+  .section-header {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    padding: 16px 20px;
+  }
+
+  .section-header .btn-primary {
+    display: none !important;
+  }
+
+  .rule-item {
+    border: 1px solid #e0e0e0;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .drag-handle {
+    display: none !important;
+  }
+
+  .rule-actions .icon-btn {
+    display: none !important;
+  }
+
+  .rules-empty .btn-primary {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  .rules-container {
+    background: #fafafa;
+  }
+
+  .section-header {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  .section-header h2 {
+    color: #8B1A1A;
+  }
+
+  .section-header .description {
+    color: #888;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #C62828, #E53935);
+    box-shadow: 0 4px 15px rgba(198, 40, 40, 0.35);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #B71C1C, #D32F2F);
+    box-shadow: 0 6px 25px rgba(198, 40, 40, 0.45);
+  }
+
+  .rule-item {
+    background: #ffffff;
+    border-color: #FFEBEE;
+  }
+
+  .rule-item.inactive {
+    background: #FAFAFA;
+  }
+
+  .rule-item:hover {
+    border-color: #FFCDD2;
+  }
+
+  .rule-name {
+    color: #1a1a1a;
+  }
+
+  .rule-item.inactive .rule-name {
+    color: #999;
+  }
+
+  .drag-handle {
+    background: #FFF8F8;
+    border-right-color: #FFEBEE;
+    color: #bbb;
+  }
+
+  .drag-handle:hover {
+    background: #FFEBEE;
+    color: #C62828;
+  }
+
+  .rule-priority {
+    background: #FFF8F8;
+    color: #999;
+    border-color: #FFEBEE;
+  }
+
+  .rule-badge {
+    background: #F5F5F5;
+    color: #999;
+  }
+
+  .rule-badge.active {
+    background: #E8F5E9;
+    color: #1B5E20;
+  }
+
+  .condition .label,
+  .action .label {
+    color: #888;
+  }
+
+  .condition {
+    color: #555;
+  }
+
+  .condition code {
+    background: #FFF8F8;
+    color: #C62828;
+    border-color: #FFEBEE;
+  }
+
+  .action-tag {
+    background: #E3F2FD;
+    color: #0D47A1;
+  }
+
+  .rule-actions {
+    border-top-color: #FFEBEE;
+  }
+
+  .icon-btn {
+    color: #999;
+  }
+
+  .icon-btn:hover {
+    background: #FFF8F8;
+    color: #1a1a1a;
+  }
+
+  .icon-btn.toggle-btn:hover {
+    color: #C62828;
+    background: #FFEBEE;
+  }
+
+  .icon-btn.delete-btn:hover {
+    background: #FFEBEE;
+    color: #C62828;
+  }
+
+  .rules-empty {
+    background: #ffffff;
+    border-color: #FFCDD2;
+  }
+
+  .rules-empty mat-icon {
+    color: #FFCDD2;
+  }
+
+  .rules-empty p {
+    color: #888;
+  }
+
+  .rules-container::-webkit-scrollbar-track {
+    background: #FFF8F8;
+  }
+
+  .rules-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #C62828, #EF5350);
+  }
+
+  .cdk-drag-preview {
+    background: #ffffff;
+    border-color: #C62828;
+  }
+
+  .cdk-drag-placeholder {
+    border-color: #FFCDD2;
+    background: #FFF8F8;
+  }
+
+  ::ng-deep .mat-tooltip {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+  }
 }
