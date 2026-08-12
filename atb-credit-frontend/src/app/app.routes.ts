@@ -588,27 +588,39 @@ export const routes: Routes = [
         data: { roles: ['ANALYST', 'ADMIN'] }
       },
 
-// ============================================
-// RESPONSABLE DES CRÉDITS - ROUTES COMPLÈTES
-// ============================================
+      // ============================================
+      // RESPONSABLE DES CRÉDITS - ROUTES COMPLÈTES
+      // ============================================
 
-// Dashboard Manager
-{
-  path: 'manager-dashboard',
-  loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
-    .then(m => m.ManagerDashboardComponent),
-  canActivate: [roleGuard],
-  data: { roles: ['MANAGER'] }
-},
+      // Dashboard Manager
+      {
+        path: 'manager-dashboard',
+        loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
+          .then(m => m.ManagerDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
 
-// 📊 Portefeuille Global
-{
-  path: 'manager/portfolio',
-  loadComponent: () => import('./features/manager/portfolio/portfolio.component')
-    .then(m => m.PortfolioComponent),
-  canActivate: [roleGuard],
-  data: { roles: ['MANAGER'] }
-}
+      // 📊 Portefeuille Global
+      {
+        path: 'manager/portfolio',
+        loadComponent: () => import('./features/manager/portfolio/portfolio.component')
+          .then(m => m.PortfolioComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
+
+      // ============================================
+      // GESTION DES ANALYSTES - MANAGER
+      // ============================================
+
+      {
+        path: 'manager/analysts',
+        loadComponent: () => import('./features/manager/analyst-management/analyst-management.component')
+          .then(m => m.AnalystManagementComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      }
 
 
     ]

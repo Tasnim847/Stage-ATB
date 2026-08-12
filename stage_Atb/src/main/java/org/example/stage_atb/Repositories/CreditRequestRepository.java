@@ -1,3 +1,4 @@
+// Repositories/CreditRequestRepository.java - COMPLETE
 package org.example.stage_atb.Repositories;
 
 import org.example.stage_atb.entity.CreditRequest;
@@ -58,10 +59,62 @@ public interface CreditRequestRepository extends JpaRepository<CreditRequest, St
     @Query("SELECT cr FROM CreditRequest cr WHERE cr.status IN :statuses ORDER BY cr.createdAt DESC")
     List<CreditRequest> findLatestByStatuses(@Param("statuses") List<CreditStatus> statuses);
 
-    /**
-     * ✅ Compter les crédits par ID client
-     */
     @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.client.id = :clientId")
     long countByClientId(@Param("clientId") String clientId);
 
+    // ============================================
+    // ✅ NOUVELLES MÉTHODES POUR ANALYSTE MANAGEMENT
+    // ============================================
+
+    /**
+     * Récupérer les demandes de crédit par analyste (via le client)
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.client.analyst.id = :analystId ORDER BY cr.createdAt DESC")
+    List<CreditRequest> findByAnalystId(@Param("analystId") String analystId);
+
+    /**
+     * Récupérer les demandes de crédit par analyste et statut
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.client.analyst.id = :analystId AND cr.status = :status")
+    List<CreditRequest> findByAnalystIdAndStatus(@Param("analystId") String analystId, @Param("status") CreditStatus status);
+
+    /**
+     * Compter les demandes de crédit par analyste avec plusieurs statuts
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.client.analyst.id = :analystId AND cr.status IN :statuses")
+    long countByAnalystIdAndStatuses(@Param("analystId") String analystId, @Param("statuses") List<CreditStatus> statuses);
+
+    /**
+     * Compter les demandes de crédit par analyste
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.client.analyst.id = :analystId")
+    long countByAnalystId(@Param("analystId") String analystId);
+
+    /**
+     * Récupérer les demandes de crédit sans analyste assigné avec un statut spécifique
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.status = :status AND cr.client.analyst IS NULL")
+    List<CreditRequest> findByStatusAndAnalystIsNull(@Param("status") CreditStatus status);
+
+    /**
+     * Récupérer les demandes de crédit par analyste et période
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.client.analyst.id = :analystId AND cr.status = :status AND cr.createdAt BETWEEN :startDate AND :endDate")
+    List<CreditRequest> findByAnalystIdAndStatusAndDateRange(
+            @Param("analystId") String analystId,
+            @Param("status") CreditStatus status,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Compter les demandes de crédit par analyste groupé
+     */
+    @Query("SELECT cr.client.analyst.id, COUNT(cr) FROM CreditRequest cr WHERE cr.status IN :statuses GROUP BY cr.client.analyst.id")
+    List<Object[]> countGroupedByAnalystAndStatuses(@Param("statuses") List<CreditStatus> statuses);
+
+    /**
+     * Compter toutes les demandes de crédit par analyste groupé
+     */
+    @Query("SELECT cr.client.analyst.id, COUNT(cr) FROM CreditRequest cr GROUP BY cr.client.analyst.id")
+    List<Object[]> countGroupedByAnalyst();
 }
