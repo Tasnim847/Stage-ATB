@@ -1,3 +1,4 @@
+// Repositories/ClientRepository.java - COMPLETE
 package org.example.stage_atb.Repositories;
 
 import org.example.stage_atb.entity.Client;
@@ -39,10 +40,21 @@ public interface ClientRepository extends JpaRepository<Client, String> {
     @Query("SELECT c FROM Client c WHERE c.createdAt BETWEEN :startDate AND :endDate")
     List<Client> findByCreatedDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-
     /**
      * ✅ Récupérer les clients assignés à un analyste
      */
     @Query("SELECT c FROM Client c WHERE c.analyst.id = :analystId")
     List<Client> findByAnalystId(@Param("analystId") String analystId);
+
+    /**
+     * ✅ Compter les clients assignés à un analyste
+     */
+    @Query("SELECT COUNT(c) FROM Client c WHERE c.analyst.id = :analystId")
+    long countByAnalystId(@Param("analystId") String analystId);
+
+    /**
+     * ✅ Récupérer les clients actifs assignés à un analyste
+     */
+    @Query("SELECT c FROM Client c WHERE c.analyst.id = :analystId AND c.active = true")
+    List<Client> findActiveByAnalystId(@Param("analystId") String analystId);
 }
