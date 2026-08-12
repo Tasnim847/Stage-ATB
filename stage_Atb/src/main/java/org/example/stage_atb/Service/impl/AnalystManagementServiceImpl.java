@@ -26,6 +26,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// Service/impl/AnalystManagementServiceImpl.java - FIXED VERSION
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -38,7 +40,7 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     private final ClientRepository clientRepository;
     private final IUserService userService;
 
-    private static final int MAX_WORKLOAD = 20; // Nombre max de dossiers par analyste
+    private static final int MAX_WORKLOAD = 20;
     private static final List<CreditStatus> PROCESSED_STATUSES = Arrays.asList(
             CreditStatus.APPROVED,
             CreditStatus.REJECTED,
@@ -77,7 +79,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     public List<CreditResponseDTO> getProcessedFilesByAnalyst(String analystId) {
         log.info("📋 Récupération des dossiers traités par l'analyste: {}", analystId);
 
-        // Vérifier que l'analyste existe
         User analyst = userRepository.findById(analystId)
                 .orElseThrow(() -> new RuntimeException("Analyste non trouvé avec l'id: " + analystId));
 
@@ -122,6 +123,11 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
         List<CreditRequest> pendingRequests = creditRequestRepository
                 .findByStatusAndAnalystIsNull(CreditStatus.PENDING_ANALYSIS);
 
+        if (pendingRequests.isEmpty()) {
+            log.info("✅ Aucun dossier en attente d'affectation");
+            return new ArrayList<>();
+        }
+
         return pendingRequests.stream()
                 .map(this::convertToSummary)
                 .collect(Collectors.toList());
@@ -136,7 +142,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
         log.info("📋 Assignation du dossier {} à l'analyste: {}",
                 request.getCreditRequestId(), request.getAnalystId());
 
-        // Vérifier que l'analyste existe
         User analyst = userRepository.findById(request.getAnalystId())
                 .orElseThrow(() -> new RuntimeException("Analyste non trouvé avec l'id: " + request.getAnalystId()));
 
@@ -144,7 +149,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             throw new RuntimeException("L'utilisateur n'est pas un analyste");
         }
 
-        // Vérifier la charge de travail
         long currentWorkload = creditRequestRepository.countByAnalystIdAndStatuses(
                 analyst.getId(), ACTIVE_STATUSES);
 
@@ -155,22 +159,18 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             );
         }
 
-        // Récupérer le dossier
         CreditRequest creditRequest = creditRequestRepository
                 .findById(request.getCreditRequestId())
                 .orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'id: " + request.getCreditRequestId()));
 
-        // Vérifier que le dossier est en attente
         if (creditRequest.getStatus() != CreditStatus.PENDING_ANALYSIS) {
             throw new RuntimeException("Le dossier n'est pas en attente d'analyse. Statut actuel: " + creditRequest.getStatus());
         }
 
-        // Assigner l'analyste au client
         Client client = creditRequest.getClient();
         client.setAnalyst(analyst);
         clientRepository.save(client);
 
-        // Mettre à jour le statut
         creditRequest.setStatus(CreditStatus.UNDER_REVIEW);
         creditRequest.setUpdatedAt(LocalDateTime.now());
         creditRequestRepository.save(creditRequest);
@@ -215,14 +215,12 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     public Map<String, List<CreditResponseDTO>> autoDistributeRequests(List<String> creditRequestIds) {
         log.info("📋 Distribution automatique de {} dossiers", creditRequestIds.size());
 
-        // Récupérer tous les analystes actifs
         List<User> analysts = userRepository.findActiveUsersByRole(UserRole.ANALYST);
 
         if (analysts.isEmpty()) {
             throw new RuntimeException("Aucun analyste disponible");
         }
 
-        // Calculer la charge de travail de chaque analyste
         Map<String, Long> workloads = new HashMap<>();
         for (User analyst : analysts) {
             long count = creditRequestRepository.countByAnalystIdAndStatuses(
@@ -230,12 +228,10 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             workloads.put(analyst.getId(), count);
         }
 
-        // Trier les analystes par charge de travail
         List<User> sortedAnalysts = analysts.stream()
                 .sorted(Comparator.comparingLong(a -> workloads.getOrDefault(a.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // Distribuer les dossiers
         Map<String, List<CreditResponseDTO>> distribution = new HashMap<>();
         for (String analystId : workloads.keySet()) {
             distribution.put(analystId, new ArrayList<>());
@@ -243,7 +239,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
 
         int analystIndex = 0;
         for (String creditRequestId : creditRequestIds) {
-            // Prendre l'analyste avec la plus faible charge
             User analyst = sortedAnalysts.get(analystIndex % sortedAnalysts.size());
 
             try {
@@ -256,7 +251,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
                 CreditResponseDTO result = assignRequestToAnalyst(request);
                 distribution.get(analyst.getId()).add(result);
 
-                // Mettre à jour la charge
                 workloads.put(analyst.getId(), workloads.get(analyst.getId()) + 1);
 
             } catch (Exception e) {
@@ -275,21 +269,18 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     public Map<String, List<CreditResponseDTO>> rebalanceWorkload() {
         log.info("📋 Rééquilibrage de la charge de travail");
 
-        // Récupérer tous les analystes actifs
         List<User> analysts = userRepository.findActiveUsersByRole(UserRole.ANALYST);
 
         if (analysts.isEmpty()) {
             throw new RuntimeException("Aucun analyste disponible");
         }
 
-        // Récupérer tous les dossiers en cours
         List<CreditRequest> activeRequests = creditRequestRepository
                 .findAll()
                 .stream()
                 .filter(cr -> ACTIVE_STATUSES.contains(cr.getStatus()))
                 .collect(Collectors.toList());
 
-        // Calculer la charge de travail actuelle
         Map<String, Long> currentWorkload = new HashMap<>();
         for (User analyst : analysts) {
             long count = creditRequestRepository.countByAnalystIdAndStatuses(
@@ -297,7 +288,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             currentWorkload.put(analyst.getId(), count);
         }
 
-        // Si la charge est déjà équilibrée
         long minWorkload = currentWorkload.values().stream().min(Long::compareTo).orElse(0L);
         long maxWorkload = currentWorkload.values().stream().max(Long::compareTo).orElse(0L);
 
@@ -306,13 +296,11 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             return new HashMap<>();
         }
 
-        // Rééquilibrer
         Map<String, List<CreditResponseDTO>> rebalanced = new HashMap<>();
         List<User> sortedAnalysts = analysts.stream()
                 .sorted(Comparator.comparingLong(a -> currentWorkload.getOrDefault(a.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // Pour chaque dossier actif, réassigner à l'analyste avec la plus faible charge
         for (CreditRequest request : activeRequests) {
             User targetAnalyst = sortedAnalysts.stream()
                     .min(Comparator.comparingLong(a -> currentWorkload.getOrDefault(a.getId(), 0L)))
@@ -320,7 +308,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
 
             if (targetAnalyst != null) {
                 try {
-                    // Réaffecter le dossier
                     CreditResponseDTO result = reassignRequest(
                             request.getId(),
                             targetAnalyst.getId(),
@@ -330,7 +317,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
                     rebalanced.computeIfAbsent(targetAnalyst.getId(), k -> new ArrayList<>())
                             .add(result);
 
-                    // Mettre à jour la charge
                     currentWorkload.put(targetAnalyst.getId(),
                             currentWorkload.getOrDefault(targetAnalyst.getId(), 0L) + 1);
 
@@ -350,7 +336,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     public CreditResponseDTO reassignRequest(String creditRequestId, String newAnalystId, String reason) {
         log.info("📋 Réaffectation du dossier {} à l'analyste: {}", creditRequestId, newAnalystId);
 
-        // Vérifier que le nouvel analyste existe
         User newAnalyst = userRepository.findById(newAnalystId)
                 .orElseThrow(() -> new RuntimeException("Analyste non trouvé avec l'id: " + newAnalystId));
 
@@ -358,13 +343,21 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             throw new RuntimeException("L'utilisateur n'est pas un analyste");
         }
 
-        // Récupérer le dossier
         CreditRequest creditRequest = creditRequestRepository
                 .findById(creditRequestId)
                 .orElseThrow(() -> new RuntimeException("Dossier non trouvé avec l'id: " + creditRequestId));
 
-        // Réaffecter
+        if (creditRequest.getStatus() != CreditStatus.UNDER_REVIEW) {
+            throw new RuntimeException("Le dossier n'est pas en cours d'analyse. Statut actuel: " + creditRequest.getStatus());
+        }
+
         Client client = creditRequest.getClient();
+        User oldAnalyst = client.getAnalyst();
+        if (oldAnalyst != null) {
+            log.info("🔄 Réaffectation de l'analyste {} vers {} pour le dossier {}",
+                    oldAnalyst.getEmail(), newAnalyst.getEmail(), creditRequest.getRequestNumber());
+        }
+
         client.setAnalyst(newAnalyst);
         clientRepository.save(client);
 
@@ -378,7 +371,7 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
     }
 
     // ============================================
-    // SUIVI DES PERFORMANCES
+    // SUIVI DES PERFORMANCES - FIXED
     // ============================================
 
     @Override
@@ -387,9 +380,18 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
 
         List<User> analysts = userRepository.findActiveUsersByRole(UserRole.ANALYST);
 
-        return analysts.stream()
-                .map(analyst -> getAnalystPerformance(analyst.getId()))
+        if (analysts.isEmpty()) {
+            log.warn("⚠️ Aucun analyste trouvé");
+            return new ArrayList<>();
+        }
+
+        // Build performance for each analyst WITHOUT calling calculateRank
+        List<AnalystPerformanceDTO> performances = analysts.stream()
+                .map(analyst -> buildAnalystPerformance(analyst, false))
                 .collect(Collectors.toList());
+
+        // Now calculate ranks separately
+        return calculateRanks(performances);
     }
 
     @Override
@@ -403,8 +405,15 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
             throw new RuntimeException("L'utilisateur n'est pas un analyste");
         }
 
+        return buildAnalystPerformance(analyst, true);
+    }
+
+    /**
+     * Build performance for a single analyst without calculating rank
+     */
+    private AnalystPerformanceDTO buildAnalystPerformance(User analyst, boolean includeRank) {
         // Récupérer tous les dossiers de l'analyste
-        List<CreditRequest> analystRequests = creditRequestRepository.findByAnalystId(analystId);
+        List<CreditRequest> analystRequests = creditRequestRepository.findByAnalystId(analyst.getId());
 
         // Statistiques globales
         long totalProcessed = analystRequests.stream()
@@ -472,8 +481,7 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
                 .map(this::convertToRecentActivity)
                 .collect(Collectors.toList());
 
-        // Classement et niveau de performance
-        int rank = calculateRank(analystId);
+        // Niveau de performance
         String performanceLevel = calculatePerformanceLevel(
                 approvalRate, averageProcessingTimeDays, totalProcessed
         );
@@ -497,13 +505,49 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
                 .requestsByStatus(requestsByStatus)
                 .monthlyPerformance(monthlyPerformance)
                 .recentActivities(recentActivities)
-                .rank(rank)
+                .rank(includeRank ? 0 : 0) // Will be set later if needed
                 .performanceLevel(performanceLevel)
                 .lastActivityDate(analystRequests.stream()
                         .map(CreditRequest::getUpdatedAt)
                         .max(LocalDateTime::compareTo)
                         .orElse(null))
                 .build();
+    }
+
+    /**
+     * Calculate ranks for a list of performances
+     */
+    private List<AnalystPerformanceDTO> calculateRanks(List<AnalystPerformanceDTO> performances) {
+        if (performances.isEmpty()) {
+            return performances;
+        }
+
+        // Create a copy and sort by score
+        List<AnalystPerformanceDTO> sorted = new ArrayList<>(performances);
+        sorted.sort((a, b) -> {
+            double scoreA = a.getApprovalRate() * 0.6 + Math.min(a.getTotalProcessed() / 10.0, 40);
+            double scoreB = b.getApprovalRate() * 0.6 + Math.min(b.getTotalProcessed() / 10.0, 40);
+            return Double.compare(scoreB, scoreA);
+        });
+
+        // Assign ranks
+        for (int i = 0; i < sorted.size(); i++) {
+            sorted.get(i).setRank(i + 1);
+        }
+
+        // Return the original list with ranks updated
+        Map<String, Integer> rankMap = sorted.stream()
+                .collect(Collectors.toMap(
+                        AnalystPerformanceDTO::getAnalystId,
+                        AnalystPerformanceDTO::getRank
+                ));
+
+        return performances.stream()
+                .map(p -> {
+                    p.setRank(rankMap.getOrDefault(p.getAnalystId(), 0));
+                    return p;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -558,20 +602,7 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
         log.info("🏆 Récupération du classement des analystes");
 
         List<AnalystPerformanceDTO> performances = getAllAnalystPerformance();
-
-        // Trier par score global (approval rate + volume)
-        performances.sort((a, b) -> {
-            double scoreA = a.getApprovalRate() * 0.6 + Math.min(a.getTotalProcessed() / 10.0, 40);
-            double scoreB = b.getApprovalRate() * 0.6 + Math.min(b.getTotalProcessed() / 10.0, 40);
-            return Double.compare(scoreB, scoreA);
-        });
-
-        // Mettre à jour les rangs
-        for (int i = 0; i < performances.size(); i++) {
-            performances.get(i).setRank(i + 1);
-        }
-
-        return performances;
+        return calculateRanks(performances);
     }
 
     @Override
@@ -609,11 +640,7 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
         report.append("🏆 CLASSEMENT DES ANALYSTES:\n");
         report.append("─────────────────────────────────────────────────────────────────\n");
 
-        List<AnalystPerformanceDTO> sorted = new ArrayList<>(performances);
-        sorted.sort((a, b) -> Double.compare(
-                b.getApprovalRate() * 0.6 + Math.min(b.getTotalProcessed() / 10.0, 40),
-                a.getApprovalRate() * 0.6 + Math.min(a.getTotalProcessed() / 10.0, 40)
-        ));
+        List<AnalystPerformanceDTO> sorted = getAnalystRanking();
 
         for (int i = 0; i < sorted.size(); i++) {
             AnalystPerformanceDTO p = sorted.get(i);
@@ -748,16 +775,6 @@ public class AnalystManagementServiceImpl implements IAnalystManagementService {
         String[] months = {"Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
                 "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"};
         return months[month - 1];
-    }
-
-    private int calculateRank(String analystId) {
-        List<AnalystPerformanceDTO> rankings = getAnalystRanking();
-        for (int i = 0; i < rankings.size(); i++) {
-            if (rankings.get(i).getAnalystId().equals(analystId)) {
-                return i + 1;
-            }
-        }
-        return rankings.size() + 1;
     }
 
     private String calculatePerformanceLevel(double approvalRate, double avgTime, long totalProcessed) {
