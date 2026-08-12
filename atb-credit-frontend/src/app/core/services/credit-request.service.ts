@@ -17,6 +17,48 @@ export class CreditRequestService {
   // ============================================
 
   /**
+   * Définir si un dossier nécessite une validation manager
+   */
+  setManagerValidation(
+    id: string, 
+    required: boolean, 
+    reason?: string, 
+    comments?: string
+  ): Observable<CreditResponseDTO> {
+    let params = new HttpParams()
+      .set('required', required.toString());
+    
+    if (reason) params = params.set('reason', reason);
+    if (comments) params = params.set('comments', comments);
+    
+    return this.http.patch<CreditResponseDTO>(
+      `${this.apiUrl}/credit-requests/${id}/manager-validation`,
+      null,
+      { params }
+    );
+  }
+  /**
+   * Mettre à jour le statut avec validation manager
+   */
+  updateStatusWithManagerValidation(
+    id: string,
+    status: CreditStatus,
+    reason?: string,
+    managerValidation: boolean = false
+  ): Observable<CreditResponseDTO> {
+    let params = new HttpParams()
+      .set('status', status)
+      .set('managerValidation', managerValidation.toString());
+    
+    if (reason) params = params.set('reason', reason);
+    
+    return this.http.patch<CreditResponseDTO>(
+      `${this.apiUrl}/credit-requests/${id}/status-with-manager`,
+      null,
+      { params }
+    );
+  }
+  /**
    * Récupérer les crédits du client connecté
    */
   getMyCreditRequests(): Observable<CreditResponseDTO[]> {

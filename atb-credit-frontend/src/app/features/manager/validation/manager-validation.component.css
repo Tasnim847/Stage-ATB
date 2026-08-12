@@ -1,0 +1,224 @@
+/* features/manager/validation/manager-validation.component.css */
+.manager-validation-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a237e;
+}
+
+.header-left .subtitle {
+  margin: 8px 0 0 0;
+  color: #666;
+  font-size: 16px;
+}
+
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  padding: 16px;
+  cursor: default;
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 50%;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a237e;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Main Card */
+.main-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: 20px;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tab-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1a237e;
+}
+
+.badge {
+  background: #e8eaf6;
+  color: #1a237e;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+}
+
+.data-table .link {
+  color: #1a237e;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.data-table .link:hover {
+  text-decoration: underline;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  transition: transform 0.2s;
+}
+
+.action-buttons button:hover {
+  transform: scale(1.1);
+}
+
+/* Priority */
+.critical {
+  color: #c62828;
+  font-weight: 600;
+}
+
+/* High Amount */
+.high-amount {
+  color: #e65100;
+  font-weight: 600;
+}
+
+/* Risk Score */
+.risk-score {
+  font-weight: 600;
+  color: #d32f2f;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.empty-state mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
+}
+
+.empty-state p {
+  margin-top: 16px;
+  font-size: 16px;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-state p {
+  margin-top: 16px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

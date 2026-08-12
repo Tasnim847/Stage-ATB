@@ -1,0 +1,414 @@
+<!-- features/manager/validation/manager-validation.component.html -->
+<div class="manager-validation-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>✅ Validation des Décisions</h1>
+      <p class="subtitle">Validez les décisions importantes, approuvez les crédits élevés et gérez les retours</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+      <button mat-raised-button color="accent" (click)="generateReport()" [disabled]="loading">
+        <mat-icon>assessment</mat-icon>
+        Rapport
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="stats-grid" *ngIf="!loading && stats">
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.pendingValidations || 0 }}</div>
+          <div class="stat-label">En attente de validation</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.approvedCount || 0 }}</div>
+          <div class="stat-label">Approuvés</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.rejectedCount || 0 }}</div>
+          <div class="stat-label">Rejetés</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.averageApprovedAmount | currency:'TND':'symbol':'1.0-0' }}</div>
+          <div class="stat-label">Montant moyen approuvé</div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Onglets -->
+  <mat-card class="main-card">
+    <mat-tab-group [(selectedIndex)]="selectedTab" [dynamicHeight]="true">
+      
+      <!-- Onglet 1: En attente -->
+      <mat-tab label="⏳ En attente de validation">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h2>Dossiers en attente de validation manager</h2>
+            <span class="badge">{{ pendingValidations.length }}</span>
+          </div>
+
+          <div class="table-wrapper" *ngIf="!loading && pendingValidations.length > 0">
+            <table mat-table [dataSource]="pendingValidations" class="data-table">
+              
+              <ng-container matColumnDef="priority">
+                <th mat-header-cell *matHeaderCellDef> Priorité </th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip [color]="getPriorityColor(validation.priority)" selected size="small">
+                    {{ getPriorityLabel(validation.priority) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="requestNumber">
+                <th mat-header-cell *matHeaderCellDef> N° demande </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.requestNumber }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef> Client </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.clientName }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef> Montant </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.amount | currency:'TND':'symbol':'1.0-0' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="creditType">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.creditType }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="riskLevel">
+                <th mat-header-cell *matHeaderCellDef> Risque </th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip [color]="getRiskLevelColor(validation.riskLevel)" selected size="small">
+                    {{ validation.riskLevel }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="analyst">
+                <th mat-header-cell *matHeaderCellDef> Analyste </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.analystName || 'Non assigné' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="daysPending">
+                <th mat-header-cell *matHeaderCellDef> Jours en attente </th>
+                <td mat-cell *matCellDef="let validation">
+                  <span [class.critical]="validation.daysPending > 5">
+                    {{ validation.daysPending }} jours
+                  </span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="action-buttons">
+                    <button mat-icon-button color="primary" (click)="approveValidation(validation)" matTooltip="Approuver">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="rejectValidation(validation)" matTooltip="Rejeter">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                    <button mat-icon-button color="accent" (click)="returnToAnalyst(validation)" matTooltip="Retourner à l'analyste">
+                      <mat-icon>assignment_return</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="viewDetails(validation.id)" matTooltip="Voir détails">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="pendingColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: pendingColumns;"></tr>
+            </table>
+          </div>
+
+          <div class="empty-state" *ngIf="!loading && pendingValidations.length === 0">
+            <mat-icon>check_circle</mat-icon>
+            <p>Aucun dossier en attente de validation</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet 2: Crédits élevés -->
+      <mat-tab label="💰 Crédits élevés">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h2>Crédits élevés à valider</h2>
+            <span class="badge">{{ highAmountValidations.length }}</span>
+          </div>
+
+          <div class="table-wrapper" *ngIf="!loading && highAmountValidations.length > 0">
+            <table mat-table [dataSource]="highAmountValidations" class="data-table">
+              
+              <ng-container matColumnDef="requestNumber">
+                <th mat-header-cell *matHeaderCellDef> N° demande </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.requestNumber }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef> Client </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.clientName }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef> Montant </th>
+                <td mat-cell *matCellDef="let validation">
+                  <span class="high-amount">{{ validation.amount | currency:'TND':'symbol':'1.0-0' }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="creditType">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.creditType }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="analyst">
+                <th mat-header-cell *matHeaderCellDef> Analyste </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.analystName || 'Non assigné' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.analystDecisionDate | date:'dd/MM/yyyy' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="action-buttons">
+                    <button mat-raised-button color="primary" size="small" (click)="approveValidation(validation)">
+                      Approuver
+                    </button>
+                    <button mat-raised-button color="warn" size="small" (click)="rejectValidation(validation)">
+                      Rejeter
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="highAmountColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: highAmountColumns;"></tr>
+            </table>
+          </div>
+
+          <div class="empty-state" *ngIf="!loading && highAmountValidations.length === 0">
+            <mat-icon>check_circle</mat-icon>
+            <p>Aucun crédit élevé en attente de validation</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet 3: Haut risque -->
+      <mat-tab label="⚠️ Haut risque">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h2>Crédits à haut risque à valider</h2>
+            <span class="badge">{{ highRiskValidations.length }}</span>
+          </div>
+
+          <div class="table-wrapper" *ngIf="!loading && highRiskValidations.length > 0">
+            <table mat-table [dataSource]="highRiskValidations" class="data-table">
+              
+              <ng-container matColumnDef="requestNumber">
+                <th mat-header-cell *matHeaderCellDef> N° demande </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.requestNumber }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef> Client </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.clientName }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="riskScore">
+                <th mat-header-cell *matHeaderCellDef> Score risque </th>
+                <td mat-cell *matCellDef="let validation">
+                  <span class="risk-score">{{ validation.riskScore || 'N/A' }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="riskLevel">
+                <th mat-header-cell *matHeaderCellDef> Niveau </th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip [color]="getRiskLevelColor(validation.riskLevel)" selected>
+                    {{ validation.riskLevel }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="analyst">
+                <th mat-header-cell *matHeaderCellDef> Analyste </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.analystName || 'Non assigné' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.analystDecisionDate | date:'dd/MM/yyyy' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let validation">
+                  <div class="action-buttons">
+                    <button mat-raised-button color="primary" size="small" (click)="approveValidation(validation)">
+                      Approuver
+                    </button>
+                    <button mat-raised-button color="warn" size="small" (click)="rejectValidation(validation)">
+                      Rejeter
+                    </button>
+                    <button mat-raised-button color="accent" size="small" (click)="returnToAnalyst(validation)">
+                      Retourner
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="highRiskColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: highRiskColumns;"></tr>
+            </table>
+          </div>
+
+          <div class="empty-state" *ngIf="!loading && highRiskValidations.length === 0">
+            <mat-icon>check_circle</mat-icon>
+            <p>Aucun crédit à haut risque en attente de validation</p>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Onglet 4: Historique -->
+      <mat-tab label="📊 Historique">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h2>Historique des validations</h2>
+            <button mat-button color="primary" (click)="refresh()">
+              <mat-icon>refresh</mat-icon>
+              Actualiser
+            </button>
+          </div>
+
+          <div class="table-wrapper" *ngIf="!loading && validationHistory.length > 0">
+            <table mat-table [dataSource]="validationHistory" class="data-table">
+              
+              <ng-container matColumnDef="requestNumber">
+                <th mat-header-cell *matHeaderCellDef> N° demande </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.requestNumber }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="client">
+                <th mat-header-cell *matHeaderCellDef> Client </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.clientName }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef> Montant </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.amount | currency:'TND':'symbol':'1.0-0' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="decision">
+                <th mat-header-cell *matHeaderCellDef> Décision </th>
+                <td mat-cell *matCellDef="let validation">
+                  <mat-chip [color]="validation.managerDecision === 'APPROVED' ? 'primary' : 'warn'" selected>
+                    {{ getStatusLabel(validation.managerDecision) }}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="manager">
+                <th mat-header-cell *matHeaderCellDef> Manager </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.managerName || '-' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let validation">
+                  {{ validation.managerDecisionDate | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let validation">
+                  <button mat-icon-button (click)="viewDetails(validation.id)" matTooltip="Voir détails">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: historyColumns;"></tr>
+            </table>
+          </div>
+
+          <div class="empty-state" *ngIf="!loading && validationHistory.length === 0">
+            <mat-icon>history</mat-icon>
+            <p>Aucun historique de validation</p>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+</div>

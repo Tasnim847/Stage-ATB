@@ -608,6 +608,7 @@ export class AddCreditComponent implements OnInit {
 
   // features/credits/client/add-credit/add-credit.component.ts
 
+
 onSubmit(): void {
   if (!this.isFormValid()) {
     this.toastr.error('Veuillez compléter tous les champs obligatoires', 'Formulaire invalide');
@@ -668,10 +669,13 @@ onSubmit(): void {
     personalContribution: null,
     propertyType: '',
     propertyValue: null,
-    propertyAddress: ''
+    propertyAddress: '',
+    // ✅ NOUVEAUX CHAMPS POUR VALIDATION MANAGER
+    managerValidationRequired: false, // Par défaut, le client ne demande pas de validation manager
+    managerComments: '',
+    validationReason: ''
   };
 
-  // ✅ Ajouter monthlyPayment (calculé)
   creditData.monthlyPayment = this.calculateMonthlyPaymentFromForms();
 
   console.log('📤 Envoi de la demande:', creditData);
@@ -679,6 +683,14 @@ onSubmit(): void {
   this.creditService.createCreditRequest(creditData).subscribe({
     next: (response) => {
       this.isSubmitting = false;
+      
+      // ✅ Vérifier si une validation manager est requise
+      if (response.managerValidationRequired) {
+        this.toastr.info(
+          `📋 Votre demande nécessite une validation par un manager.`,
+          'Validation requise'
+        );
+      }
       
       if (submitImmediately) {
         this.toastr.success(
@@ -698,7 +710,6 @@ onSubmit(): void {
       this.isSubmitting = false;
       console.error('❌ Erreur création demande:', error);
       
-      // ✅ Afficher l'erreur détaillée
       const errorMessage = error.error?.message || error.message || 'Erreur lors de la création de la demande';
       this.toastr.error(errorMessage, 'Erreur');
     }
