@@ -586,7 +586,31 @@ export const routes: Routes = [
           .then(m => m.DecisionAnalyzeComponent),
         canActivate: [roleGuard],
         data: { roles: ['ANALYST', 'ADMIN'] }
-      }
+      },
+
+// ============================================
+// RESPONSABLE DES CRÉDITS - ROUTES COMPLÈTES
+// ============================================
+
+// Dashboard Manager
+{
+  path: 'manager-dashboard',
+  loadComponent: () => import('./features/dashboard/manager-dashboard/manager-dashboard.component')
+    .then(m => m.ManagerDashboardComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['MANAGER'] }
+},
+
+// 📊 Portefeuille Global
+{
+  path: 'manager/portfolio',
+  loadComponent: () => import('./features/manager/portfolio/portfolio.component')
+    .then(m => m.PortfolioComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['MANAGER'] }
+}
+
+
     ]
   },
   {
