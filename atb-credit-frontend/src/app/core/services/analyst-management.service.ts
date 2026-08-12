@@ -1,9 +1,8 @@
-// services/analyst-management.service.ts
+// core/services/analyst-management.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { CreditResponseDTO } from '../models';
 
 export interface AnalystAssignmentRequest {
   creditRequestId: string;
@@ -88,6 +87,40 @@ export interface CreditRequestSummaryDTO {
   daysPending: number;
 }
 
+export interface CreditResponseDTO {
+  id: string;
+  requestNumber: string;
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  creditTypeId: string;
+  creditTypeName: string;
+  amount: number;
+  currency: string;
+  durationMonths: number;
+  monthlyPayment: number;
+  interestRate: number;
+  loanPurpose: string;
+  status: string;
+  rejectionReason: string;
+  approvalDate: string;
+  expectedDisbursementDate: string;
+  createdAt: string;
+  analystName: string;
+  riskLevel: string;
+  riskScore: number;
+  decisionRecommendation: string;
+  financialHealthScore: string;
+  debtRatio: number;
+  managerValidationRequired: boolean;
+  managerValidationDate: string;
+  managerComments: string;
+  validationReason: string;
+  managerName: string;
+  managerDecision: string;
+  managerDecisionDate: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -109,9 +142,10 @@ export class AnalystManagementService {
   }
 
   getProcessedFilesByDateRange(startDate: string, endDate: string): Observable<CreditResponseDTO[]> {
-    return this.http.get<CreditResponseDTO[]>(`${this.baseUrl}/processed-files/date-range`, {
-      params: { startDate, endDate }
-    });
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    return this.http.get<CreditResponseDTO[]>(`${this.baseUrl}/processed-files/date-range`, { params });
   }
 
   getPendingAssignmentRequests(): Observable<CreditRequestSummaryDTO[]> {
@@ -145,10 +179,13 @@ export class AnalystManagementService {
   }
 
   reassignRequest(creditRequestId: string, newAnalystId: string, reason?: string): Observable<CreditResponseDTO> {
+    let params = new HttpParams()
+      .set('newAnalystId', newAnalystId);
+    if (reason) params = params.set('reason', reason);
     return this.http.patch<CreditResponseDTO>(
       `${this.baseUrl}/reassign/${creditRequestId}`,
       null,
-      { params: { newAnalystId, reason: reason || '' } }
+      { params }
     );
   }
 
@@ -177,9 +214,12 @@ export class AnalystManagementService {
   }
 
   generatePerformanceReport(startDate: string, endDate: string): Observable<string> {
-    return this.http.get<string>(`${this.baseUrl}/report`, {
-      params: { startDate, endDate },
-      responseType: 'text' as 'json'
+    let params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+    return this.http.get(`${this.baseUrl}/report`, {
+      params,
+      responseType: 'text'
     });
   }
 }

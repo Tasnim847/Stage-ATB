@@ -1,3 +1,4 @@
+// dto/response/CreditResponseDTO.java - MODIFIÉ
 package org.example.stage_atb.dto.response;
 
 import lombok.AllArgsConstructor;
@@ -10,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-// dto/response/CreditResponseDTO.java
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,8 +22,8 @@ public class CreditResponseDTO {
     private String clientName;
     private String clientEmail;
 
-    private String creditTypeId; // ✅ AJOUTER
-    private String creditTypeName; // ✅ AJOUTER
+    private String creditTypeId;
+    private String creditTypeName;
 
     private BigDecimal amount;
     private String currency;
@@ -42,4 +42,16 @@ public class CreditResponseDTO {
     private String decisionRecommendation;
     private String financialHealthScore;
     private BigDecimal debtRatio;
+
+    // ============================================
+    // ✅ NOUVEAUX CHAMPS POUR LA VALIDATION MANAGER
+    // ============================================
+
+    private boolean managerValidationRequired;
+    private LocalDateTime managerValidationDate;
+    private String managerComments;
+    private String validationReason;
+    private String managerName;
+    private String managerDecision;
+    private LocalDateTime managerDecisionDate;
 }

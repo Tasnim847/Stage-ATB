@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -521,5 +522,37 @@ public class CreditRequestController {
 
         long count = creditRequestService.countCreditRequestsByAnalyst(email);
         return ResponseEntity.ok(count);
+    }
+
+    // Controller/CreditRequestController.java - AJOUTER
+
+    /**
+     * ✅ Définir la validation manager pour un dossier
+     */
+    @PatchMapping("/{id}/manager-validation")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public ResponseEntity<CreditResponseDTO> setManagerValidation(
+            @PathVariable String id,
+            @RequestParam boolean required,
+            @RequestParam(required = false) String reason,
+            @RequestParam(required = false) String comments) {
+        log.info("PATCH /api/credit-requests/{}/manager-validation - required: {}", id, required);
+        CreditResponseDTO response = creditRequestService.setManagerValidation(id, required, reason, comments);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * ✅ Mettre à jour le statut avec validation manager
+     */
+    @PatchMapping("/{id}/status-with-manager")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    public ResponseEntity<CreditResponseDTO> updateStatusWithManagerValidation(
+            @PathVariable String id,
+            @RequestParam CreditStatus status,
+            @RequestParam(required = false) String reason,
+            @RequestParam(defaultValue = "false") boolean managerValidation) {
+        log.info("PATCH /api/credit-requests/{}/status-with-manager - status: {}, managerValidation: {}", id, status, managerValidation);
+        CreditResponseDTO response = creditRequestService.updateCreditRequestStatusWithManagerValidation(id, status, reason, managerValidation);
+        return ResponseEntity.ok(response);
     }
 }

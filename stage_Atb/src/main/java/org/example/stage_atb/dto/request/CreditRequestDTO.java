@@ -1,5 +1,5 @@
+// dto/request/CreditRequestDTO.java - MODIFIÉ
 package org.example.stage_atb.dto.request;
-
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-// dto/request/CreditRequestDTO.java
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,7 +25,7 @@ public class CreditRequestDTO {
     @NotBlank(message = "User ID is required")
     private String userId;
 
-    @NotBlank(message = "Credit Type ID is required") // ✅ AJOUTER
+    @NotBlank(message = "Credit Type ID is required")
     private String creditTypeId;
 
     @NotNull(message = "Amount is required")
@@ -74,4 +73,12 @@ public class CreditRequestDTO {
 
     private LocalDate expectedDisbursementDate;
     private boolean submitImmediately;
+
+    // ============================================
+    // ✅ NOUVEAUX CHAMPS POUR LA VALIDATION MANAGER
+    // ============================================
+
+    private Boolean managerValidationRequired;
+    private String managerComments;
+    private String validationReason;
 }

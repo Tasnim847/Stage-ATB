@@ -1,5 +1,5 @@
 // features/manager/analyst-management/analyst-management.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -11,11 +11,13 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { AnalystManagementService } from '@core/services/analyst-management.service';
-import { AnalystPerformanceDTO, AnalystWorkloadDTO } from '@core/services/analyst-management.service';
-import { CreditRequestSummaryDTO } from '@core/services/analyst-management.service';
-import { CreditResponseDTO } from '@app/core/models';
+import { ManagerValidationService } from '@core/services/manager-validation.service';
+import { AnalystPerformanceDTO, AnalystWorkloadDTO, CreditRequestSummaryDTO, CreditResponseDTO } from '@core/services/analyst-management.service';
+import { ManagerValidationDialogComponent } from '../validation/components/manager-validation-dialog.component';
 
 @Component({
   selector: 'app-analyst-management',
@@ -31,12 +33,19 @@ import { CreditResponseDTO } from '@app/core/models';
     MatProgressBarModule,
     MatChipsModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   templateUrl: './analyst-management.component.html',
   styleUrls: ['./analyst-management.component.css']
 })
 export class AnalystManagementComponent implements OnInit {
+  private analystManagementService = inject(AnalystManagementService);
+  private managerValidationService = inject(ManagerValidationService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+
   // Données
   performances: AnalystPerformanceDTO[] = [];
   workloads: AnalystWorkloadDTO[] = [];
@@ -55,13 +64,9 @@ export class AnalystManagementComponent implements OnInit {
   
   // Colonnes des tableaux
   performanceColumns = ['rank', 'analyst', 'processed', 'approved', 'rejected', 'approvalRate', 'avgTime', 'performance'];
-  workloadColumns = ['analyst', 'workload', 'progress', 'assigned', 'level', 'actions'];
+  workloadColumns = ['analyst', 'workload', 'progress', 'assigned', 'level'];
   pendingColumns = ['requestNumber', 'client', 'amount', 'createdAt', 'daysPending', 'actions'];
   processedColumns = ['requestNumber', 'client', 'amount', 'status', 'analyst', 'updatedAt', 'actions'];
-
-  constructor(
-    private analystManagementService: AnalystManagementService
-  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -70,7 +75,6 @@ export class AnalystManagementComponent implements OnInit {
   loadData(): void {
     this.loading = true;
     
-    // Charger toutes les données en parallèle
     Promise.all([
       this.loadPerformances(),
       this.loadWorkloads(),
@@ -147,7 +151,6 @@ export class AnalystManagementComponent implements OnInit {
     this.totalPending = this.pendingRequests.length;
     this.totalProcessed = this.processedFiles.length;
     
-    // Calculer le taux d'approbation moyen
     if (this.performances.length > 0) {
       const total = this.performances.reduce((acc, p) => acc + p.approvalRate, 0);
       this.averageApprovalRate = Math.round(total / this.performances.length);
@@ -157,7 +160,116 @@ export class AnalystManagementComponent implements OnInit {
   }
 
   // ============================================
-  // ACTIONS
+  // ACTIONS DE VALIDATION MANAGER
+  // ============================================
+
+  approveValidation(validation: any): void {
+    const dialogRef = this.dialog.open(ManagerValidationDialogComponent, {
+      width: '600px',
+      data: { 
+        validation: validation, 
+        action: 'APPROVE' 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.loading = true;
+        this.managerValidationService.approveHighAmountCredit(
+          validation.id, 
+          result.comments
+        ).subscribe({
+          next: (response) => {
+            this.snackBar.open(`✅ Crédit ${response.requestNumber} approuvé avec succès`, 'Fermer', {
+              duration: 3000
+            });
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Erreur lors de l\'approbation:', error);
+            this.snackBar.open('❌ Erreur lors de l\'approbation', 'Fermer', {
+              duration: 3000
+            });
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  rejectValidation(validation: any): void {
+    const dialogRef = this.dialog.open(ManagerValidationDialogComponent, {
+      width: '600px',
+      data: { 
+        validation: validation, 
+        action: 'REJECT' 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.loading = true;
+        this.managerValidationService.rejectDecision(
+          validation.id,
+          result.rejectReason || 'Rejeté par le manager',
+          result.comments
+        ).subscribe({
+          next: (response) => {
+            this.snackBar.open(`❌ Crédit ${response.requestNumber} rejeté`, 'Fermer', {
+              duration: 3000
+            });
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Erreur lors du rejet:', error);
+            this.snackBar.open('❌ Erreur lors du rejet', 'Fermer', {
+              duration: 3000
+            });
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  returnToAnalyst(validation: any): void {
+    const dialogRef = this.dialog.open(ManagerValidationDialogComponent, {
+      width: '600px',
+      data: { 
+        validation: validation, 
+        action: 'RETURN' 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.confirmed) {
+        this.loading = true;
+        this.managerValidationService.returnToAnalyst({
+          creditRequestId: validation.id,
+          reason: result.comments || 'Retourné par le manager',
+          additionalInstructions: result.additionalInstructions,
+          requiredAction: result.requiredAction || 'REANALYZE_FINANCIALS'
+        }).subscribe({
+          next: (response) => {
+            this.snackBar.open(`🔄 Crédit ${response.requestNumber} retourné à l'analyste`, 'Fermer', {
+              duration: 3000
+            });
+            this.loadData();
+          },
+          error: (error) => {
+            console.error('Erreur lors du retour:', error);
+            this.snackBar.open('❌ Erreur lors du retour', 'Fermer', {
+              duration: 3000
+            });
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  // ============================================
+  // MÉTHODES UTILITAIRES
   // ============================================
 
   getPerformanceLevel(level: string): string {
@@ -239,43 +351,88 @@ export class AnalystManagementComponent implements OnInit {
     // Ouvrir le dialogue d'assignation
   }
 
-  autoDistribute(): void {
-    const requestIds = this.pendingRequests.map(r => r.id);
-    if (requestIds.length === 0) {
-      // Afficher un message
-      return;
+ // features/manager/analyst-management/analyst-management.component.ts - PARTIE CORRIGÉE
+
+// Dans la méthode autoDistribute():
+autoDistribute(): void {
+  const requestIds = this.pendingRequests.map(r => r.id);
+  if (requestIds.length === 0) {
+    this.snackBar.open('Aucun dossier en attente à distribuer', 'Fermer', {
+      duration: 3000
+    });
+    return;
+  }
+
+  this.loading = true;
+  this.analystManagementService.autoDistributeRequests(requestIds).subscribe({
+    next: (result) => {
+      console.log('Distribution automatique terminée:', result);
+      this.snackBar.open('✅ Distribution automatique terminée avec succès', 'Fermer', {
+        duration: 3000
+      });
+      this.loadData();
+    },
+    error: (error) => {
+      console.error('Erreur lors de la distribution automatique:', error);
+      this.snackBar.open('❌ Erreur lors de la distribution automatique', 'Fermer', {
+        duration: 3000
+      });
+      this.loading = false;
     }
+  });
+}
 
-    this.loading = true;
-    this.analystManagementService.autoDistributeRequests(requestIds).subscribe({
-      next: (result) => {
-        console.log('Distribution automatique terminée:', result);
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Erreur lors de la distribution automatique:', error);
-        this.loading = false;
-      }
-    });
-  }
+// Dans la méthode rebalanceWorkload():
+rebalanceWorkload(): void {
+  this.loading = true;
+  this.analystManagementService.rebalanceWorkload().subscribe({
+    next: (result) => {
+      console.log('Rééquilibrage terminé:', result);
+      this.snackBar.open('✅ Rééquilibrage terminé avec succès', 'Fermer', {
+        duration: 3000
+      });
+      this.loadData();
+    },
+    error: (error) => {
+      console.error('Erreur lors du rééquilibrage:', error);
+      this.snackBar.open('❌ Erreur lors du rééquilibrage', 'Fermer', {
+        duration: 3000
+      });
+      this.loading = false;
+    }
+  });
+}
 
-  rebalanceWorkload(): void {
-    this.loading = true;
-    this.analystManagementService.rebalanceWorkload().subscribe({
-      next: (result) => {
-        console.log('Rééquilibrage terminé:', result);
-        this.loadData();
-      },
-      error: (error) => {
-        console.error('Erreur lors du rééquilibrage:', error);
-        this.loading = false;
-      }
-    });
-  }
-
-  generateReport(): void {
-    // Générer un rapport de performance
-  }
+// Dans la méthode generateReport():
+generateReport(): void {
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+  
+  this.analystManagementService.generatePerformanceReport(
+    monthAgo.toISOString(),
+    today.toISOString()
+  ).subscribe({
+    next: (report) => {
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rapport-performance-${today.toISOString().split('T')[0]}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      this.snackBar.open('📊 Rapport généré avec succès', 'Fermer', {
+        duration: 3000
+      });
+    },
+    error: (error) => {
+      console.error('Erreur lors de la génération du rapport:', error);
+      this.snackBar.open('❌ Erreur lors de la génération du rapport', 'Fermer', {
+        duration: 3000
+      });
+    }
+  });
+}
 
   refresh(): void {
     this.loadData();

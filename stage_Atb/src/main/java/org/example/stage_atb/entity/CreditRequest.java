@@ -116,6 +116,19 @@ public class CreditRequest {
     @OneToMany(mappedBy = "creditRequest", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AuditLog> auditLogs = new ArrayList<>();
 
+    // ✅ NOUVEAUX CHAMPS POUR LA VALIDATION MANAGER
+    @Column(name = "manager_validation_required", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean managerValidationRequired = false;
+
+    @Column(name = "manager_validation_date")
+    private LocalDateTime managerValidationDate;
+
+    @Column(name = "manager_comments", columnDefinition = "TEXT")
+    private String managerComments;
+
+    @Column(name = "validation_reason")
+    private String validationReason;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

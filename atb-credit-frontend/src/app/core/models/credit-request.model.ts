@@ -1,3 +1,4 @@
+// core/models/credit-request.model.ts
 /**
  * Statut d'une demande de crédit
  */
@@ -12,13 +13,10 @@ export enum CreditStatus {
   CANCELLED = 'CANCELLED'
 }
 
-/**
- * Requête de création/modification de demande de crédit
- */
 export interface CreditRequestDTO {
   clientId: string;
   userId: string;
-  creditTypeId: string; // ✅ AJOUTER
+  creditTypeId: string;
   amount: number;
   currency: string;
   durationMonths: number;
@@ -31,19 +29,20 @@ export interface CreditRequestDTO {
   guarantorPhone?: string;
   expectedDisbursementDate?: string;
   submitImmediately?: boolean;
+  // ✅ NOUVEAUX CHAMPS
+  managerValidationRequired?: boolean;
+  managerComments?: string;
+  validationReason?: string;
 }
 
-/**
- * Réponse d'une demande de crédit
- */
 export interface CreditResponseDTO {
   id: string;
   requestNumber: string;
   clientId: string;
   clientName: string;
   clientEmail: string;
-  creditTypeId: string; // ✅ AJOUTER
-  creditTypeName: string; // ✅ AJOUTER
+  creditTypeId: string;
+  creditTypeName: string;
   amount: number;
   currency: string;
   durationMonths: number;
@@ -61,4 +60,48 @@ export interface CreditResponseDTO {
   decisionRecommendation: string;
   financialHealthScore: string;
   debtRatio: number;
+  // ✅ NOUVEAUX CHAMPS
+  managerValidationRequired: boolean;
+  managerValidationDate: string;
+  managerComments: string;
+  validationReason: string;
+  managerName: string;
+  managerDecision: string;
+  managerDecisionDate: string;
+}
+
+// ✅ MODÈLES POUR LA VALIDATION MANAGER
+export interface ManagerValidationRequest {
+  creditRequestId: string;
+  decision: 'APPROVED' | 'REJECTED' | 'RETURN_TO_ANALYST';
+  comments?: string;
+  maxAmountLimit: number;
+  overrideLimit: boolean;
+  overrideReason?: string;
+}
+
+export interface DecisionReturnRequest {
+  creditRequestId: string;
+  reason: string;
+  additionalInstructions?: string;
+  requiredAction: 'CORRECT_DOCUMENTS' | 'REANALYZE_FINANCIALS' | 'ADD_INFORMATION';
+}
+
+export interface ValidationSummaryDTO {
+  id: string;
+  requestNumber: string;
+  clientName: string;
+  amount: number;
+  creditType: string;
+  riskLevel: string;
+  analystName: string;
+  analystDecision: string;
+  analystDecisionDate: string;
+  requiresManagerValidation: boolean;
+  managerName: string;
+  managerDecision: string;
+  managerDecisionDate: string;
+  daysPending: number;
+  priority: 'CRITICAL' | 'HIGH' | 'NORMAL';
+  riskScore?: number;
 }

@@ -154,4 +154,19 @@ public interface ICreditRequestService {
      * ✅ Compter les demandes de crédit des clients assignés à l'analyste
      */
     long countCreditRequestsByAnalyst(String analystEmail);
+
+    // ============================================
+    // ✅ NOUVELLES MÉTHODES POUR LA VALIDATION MANAGER
+    // ============================================
+
+    /**
+     * Définir si un dossier nécessite une validation manager
+     */
+    CreditResponseDTO setManagerValidation(String id, boolean required, String reason, String comments);
+
+    /**
+     * Mettre à jour le statut avec gestion de la validation manager
+     */
+    CreditResponseDTO updateCreditRequestStatusWithManagerValidation(String id, CreditStatus status, String reason, boolean managerValidation);
+
 }

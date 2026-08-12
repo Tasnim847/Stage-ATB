@@ -117,4 +117,51 @@ public interface CreditRequestRepository extends JpaRepository<CreditRequest, St
      */
     @Query("SELECT cr.client.analyst.id, COUNT(cr) FROM CreditRequest cr GROUP BY cr.client.analyst.id")
     List<Object[]> countGroupedByAnalyst();
+
+    // ✅ NOUVELLES MÉTHODES POUR LES VALIDATIONS MANAGER
+
+    /**
+     * Récupérer les crédits à valider par le manager (montant élevé ou risque élevé)
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.status = :status AND (cr.amount >= :highAmountThreshold OR cr.riskAnalysis.riskScore >= :highRiskThreshold)")
+    List<CreditRequest> findPendingManagerValidation(@Param("status") CreditStatus status,
+                                                     @Param("highAmountThreshold") BigDecimal highAmountThreshold,
+                                                     @Param("highRiskThreshold") BigDecimal highRiskThreshold);
+
+    /**
+     * Récupérer les crédits à valider par le manager avec filtres
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.status = :status AND cr.amount >= :minAmount")
+    List<CreditRequest> findHighAmountRequestsForManager(@Param("status") CreditStatus status,
+                                                         @Param("minAmount") BigDecimal minAmount);
+
+    /**
+     * Récupérer les crédits à haut risque pour validation manager
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.status = :status AND cr.riskAnalysis.riskScore >= :riskThreshold")
+    List<CreditRequest> findHighRiskRequestsForManager(@Param("status") CreditStatus status,
+                                                       @Param("riskThreshold") BigDecimal riskThreshold);
+
+    /**
+     * Récupérer les crédits en attente de validation manager par période
+     */
+    @Query("SELECT cr FROM CreditRequest cr WHERE cr.status = :status AND cr.createdAt BETWEEN :startDate AND :endDate")
+    List<CreditRequest> findPendingManagerValidationByDateRange(@Param("status") CreditStatus status,
+                                                                @Param("startDate") LocalDateTime startDate,
+                                                                @Param("endDate") LocalDateTime endDate);
+
+    /**
+     * Compter les crédits en attente de validation manager
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.status = :status AND (cr.amount >= :highAmountThreshold OR cr.riskAnalysis.riskScore >= :highRiskThreshold)")
+    long countPendingManagerValidation(@Param("status") CreditStatus status,
+                                       @Param("highAmountThreshold") BigDecimal highAmountThreshold,
+                                       @Param("highRiskThreshold") BigDecimal highRiskThreshold);
+
+    /**
+     * Compter les crédits validés par le manager
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.status IN :validatedStatuses AND cr.managerValidationRequired = true")
+    long countManagerValidated(@Param("validatedStatuses") List<CreditStatus> validatedStatuses);
+
 }

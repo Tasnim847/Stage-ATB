@@ -43,6 +43,8 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
     // ============================================
 
     // Service/impl/CreditRequestServiceImpl.java - Méthode createCreditRequest mise à jour
+    // Service/impl/CreditRequestServiceImpl.java - MODIFIER createCreditRequest
+
     @Override
     public CreditResponseDTO createCreditRequest(CreditRequestDTO creditRequestDTO) {
         log.info("Creating credit request for client: {}", creditRequestDTO.getClientId());
@@ -74,10 +76,30 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         );
         creditRequest.setUser(currentUser);
 
+        // ✅ Gérer les champs de validation manager
+        if (creditRequestDTO.getManagerValidationRequired() != null) {
+            creditRequest.setManagerValidationRequired(creditRequestDTO.getManagerValidationRequired());
+        } else {
+            creditRequest.setManagerValidationRequired(false);
+        }
+
+        if (creditRequestDTO.getManagerComments() != null) {
+            creditRequest.setManagerComments(creditRequestDTO.getManagerComments());
+        }
+        if (creditRequestDTO.getValidationReason() != null) {
+            creditRequest.setValidationReason(creditRequestDTO.getValidationReason());
+        }
+
         // Si submitImmediately est true, mettre PENDING_ANALYSIS, sinon DRAFT
         if (creditRequestDTO.isSubmitImmediately()) {
-            creditRequest.setStatus(CreditStatus.PENDING_ANALYSIS);
-            log.info("✅ Credit request submitted immediately - status: PENDING_ANALYSIS");
+            // ✅ Si la validation manager est requise, mettre UNDER_REVIEW
+            if (creditRequest.isManagerValidationRequired()) {
+                creditRequest.setStatus(CreditStatus.UNDER_REVIEW);
+                log.info("✅ Credit request submitted for manager validation - status: UNDER_REVIEW");
+            } else {
+                creditRequest.setStatus(CreditStatus.PENDING_ANALYSIS);
+                log.info("✅ Credit request submitted immediately - status: PENDING_ANALYSIS");
+            }
         } else {
             creditRequest.setStatus(CreditStatus.DRAFT);
             log.info("📝 Credit request saved as draft - status: DRAFT");
@@ -86,8 +108,8 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         CreditRequest savedRequest = creditRequestRepository.save(creditRequest);
         log.info("Credit request created with number: {}", savedRequest.getRequestNumber());
 
-        // Créer automatiquement la simulation seulement si soumis immédiatement
-        if (creditRequestDTO.isSubmitImmediately()) {
+        // Créer automatiquement la simulation seulement si soumis immédiatement ET pas en validation manager
+        if (creditRequestDTO.isSubmitImmediately() && !creditRequest.isManagerValidationRequired()) {
             try {
                 CreditSimulation simulation = creditSimulationService.createSimulationFromCreditRequest(savedRequest, currentUser);
                 log.info("Simulation created with id: {}", simulation.getId());
@@ -98,6 +120,8 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
         return creditRequestMapper.toResponseDTO(savedRequest);
     }
+
+
     @Override
     public CreditResponseDTO getCreditRequestById(String id) {
         CreditRequest creditRequest = creditRequestRepository.findById(id)
@@ -155,8 +179,12 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         return creditRequestMapper.toResponseDTO(updatedRequest);
     }
 
+    // Service/impl/CreditRequestServiceImpl.java - MODIFIER updateCreditRequestStatus
+
     @Override
     public CreditResponseDTO updateCreditRequestStatus(String id, CreditStatus status, String reason) {
+        log.info("Updating credit request {} status to: {}", id, status);
+
         CreditRequest creditRequest = creditRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
 
@@ -164,11 +192,30 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
 
         if (status == CreditStatus.APPROVED) {
             creditRequest.setApprovalDate(LocalDate.now());
+            // ✅ Si c'est une validation manager, marquer la date
+            if (creditRequest.isManagerValidationRequired()) {
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+                if (creditRequest.getManagerComments() == null) {
+                    creditRequest.setManagerComments("Approuvé par le manager");
+                }
+            }
         } else if (status == CreditStatus.REJECTED) {
             creditRequest.setRejectionReason(reason);
+            // ✅ Si c'est une validation manager, marquer la date
+            if (creditRequest.isManagerValidationRequired()) {
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+                creditRequest.setManagerComments("Rejeté par le manager: " + reason);
+            }
+        } else if (status == CreditStatus.PENDING_ANALYSIS && creditRequest.isManagerValidationRequired()) {
+            // ✅ Retour à l'analyste
+            creditRequest.setManagerValidationDate(LocalDateTime.now());
+            creditRequest.setManagerComments("Retourné à l'analyste: " + reason);
         }
 
+        creditRequest.setUpdatedAt(LocalDateTime.now());
         CreditRequest updatedRequest = creditRequestRepository.save(creditRequest);
+
+        log.info("✅ Credit request {} status updated to: {}", id, status);
         return creditRequestMapper.toResponseDTO(updatedRequest);
     }
 
@@ -573,5 +620,78 @@ public class CreditRequestServiceImpl implements ICreditRequestService {
         }
 
         return count;
+    }
+
+    // Service/impl/CreditRequestServiceImpl.java - AJOUTER CES MÉTHODES
+
+    @Override
+    public CreditResponseDTO setManagerValidation(String id, boolean required, String reason, String comments) {
+        log.info("Setting manager validation for credit request: {}", id);
+
+        CreditRequest creditRequest = creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
+
+        creditRequest.setManagerValidationRequired(required);
+        creditRequest.setValidationReason(reason);
+        creditRequest.setManagerComments(comments);
+        creditRequest.setUpdatedAt(LocalDateTime.now());
+
+        if (required) {
+            creditRequest.setStatus(CreditStatus.UNDER_REVIEW);
+            log.info("✅ Credit request {} marked for manager validation", id);
+        } else {
+            log.info("✅ Credit request {} no longer requires manager validation", id);
+        }
+
+        CreditRequest updatedRequest = creditRequestRepository.save(creditRequest);
+        return creditRequestMapper.toResponseDTO(updatedRequest);
+    }
+
+    @Override
+    public CreditResponseDTO updateCreditRequestStatusWithManagerValidation(String id, CreditStatus status, String reason, boolean managerValidation) {
+        log.info("Updating credit request {} status to {} with manager validation: {}", id, status, managerValidation);
+
+        CreditRequest creditRequest = creditRequestRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Credit request not found with id: " + id));
+
+        // Mettre à jour le statut
+        creditRequest.setStatus(status);
+
+        // Gérer les champs spécifiques selon le statut
+        if (status == CreditStatus.APPROVED) {
+            creditRequest.setApprovalDate(LocalDate.now());
+            if (managerValidation) {
+                creditRequest.setManagerValidationRequired(true);
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+                creditRequest.setManagerComments("Approuvé par le manager");
+            }
+        } else if (status == CreditStatus.REJECTED) {
+            creditRequest.setRejectionReason(reason);
+            if (managerValidation) {
+                creditRequest.setManagerValidationRequired(true);
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+                creditRequest.setManagerComments("Rejeté par le manager: " + reason);
+            }
+        } else if (status == CreditStatus.PENDING_ANALYSIS) {
+            // Retour à l'analyste
+            if (managerValidation) {
+                creditRequest.setManagerValidationRequired(true);
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+                creditRequest.setManagerComments("Retourné à l'analyste: " + reason);
+            }
+        } else if (status == CreditStatus.UNDER_REVIEW) {
+            // En cours de révision par le manager
+            if (managerValidation) {
+                creditRequest.setManagerValidationRequired(true);
+                creditRequest.setManagerValidationDate(LocalDateTime.now());
+            }
+        }
+
+        creditRequest.setUpdatedAt(LocalDateTime.now());
+
+        CreditRequest updatedRequest = creditRequestRepository.save(creditRequest);
+        log.info("✅ Credit request {} status updated to {}", id, status);
+
+        return creditRequestMapper.toResponseDTO(updatedRequest);
     }
 }

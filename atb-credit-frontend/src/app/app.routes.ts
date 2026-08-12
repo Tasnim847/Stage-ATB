@@ -620,9 +620,49 @@ export const routes: Routes = [
           .then(m => m.AnalystManagementComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
-      }
+      },
 
 
+
+      // ============================================
+      // ✅ VALIDATION MANAGER - ROUTES CORRIGÉES
+      // ============================================
+      
+      // Route principale pour la validation manager
+      {
+        path: 'manager/validation',
+        loadComponent: () => import('./features/manager/validation/manager-validation.component')
+          .then(m => m.ManagerValidationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
+      
+      // Route pour les validations en attente (alias)
+      {
+        path: 'manager/validation/pending',
+        loadComponent: () => import('./features/manager/validation/manager-validation.component')
+          .then(m => m.ManagerValidationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
+      
+      // Route pour les crédits élevés (alias)
+      {
+        path: 'manager/validation/high-amount',
+        loadComponent: () => import('./features/manager/validation/manager-validation.component')
+          .then(m => m.ManagerValidationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
+      
+      // Route pour les dossiers retournés (alias)
+      {
+        path: 'manager/validation/return',
+        loadComponent: () => import('./features/manager/validation/manager-validation.component')
+          .then(m => m.ManagerValidationComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
     ]
   },
   {
