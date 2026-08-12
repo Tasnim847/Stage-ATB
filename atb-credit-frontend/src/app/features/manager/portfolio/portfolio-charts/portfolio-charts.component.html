@@ -1,0 +1,76 @@
+<!-- portfolio-charts.component.html -->
+<div class="charts-container">
+  <!-- État de chargement -->
+  <div *ngIf="isLoading" class="loading-grid">
+    <mat-card *ngFor="let _ of [1,2,3,4]" class="chart-card">
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Chargement des graphiques...</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Graphiques -->
+  <div *ngIf="!isLoading && data" class="charts-grid">
+    <!-- Évolution -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Évolution du portefeuille</mat-card-title>
+        <mat-card-subtitle>Montants accordés par mois</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper">
+          <canvas #evolutionChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Distribution -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Distribution par type</mat-card-title>
+        <mat-card-subtitle>Répartition des crédits</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper">
+          <canvas #distributionChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Acceptation -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Taux d'acceptation</mat-card-title>
+        <mat-card-subtitle>Acceptés vs Refusés</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper">
+          <canvas #acceptanceChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Risque -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Risque par type</mat-card-title>
+        <mat-card-subtitle>Niveau de risque par catégorie</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-wrapper">
+          <canvas #riskChart></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Aucune donnée -->
+  <div *ngIf="!isLoading && !data" class="empty-state">
+    <mat-icon>insert_chart</mat-icon>
+    <h3>Aucune donnée disponible</h3>
+    <p>Les graphiques s'afficheront une fois les données chargées</p>
+  </div>
+</div>

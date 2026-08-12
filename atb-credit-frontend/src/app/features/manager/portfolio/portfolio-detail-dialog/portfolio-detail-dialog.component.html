@@ -1,0 +1,180 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Détails du crédit</h2>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement des détails...</p>
+    </div>
+
+    <div *ngIf="!isLoading && creditData">
+      <mat-tab-group>
+        <mat-tab label="Informations générales">
+          <div class="tab-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Client</span>
+                <span class="value">{{ creditData.clientName }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Type de crédit</span>
+                <span class="value">{{ creditData.type }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Montant</span>
+                <span class="value amount">{{ formatCurrency(creditData.montant) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Durée</span>
+                <span class="value">{{ creditData.duree }} mois</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Taux d'intérêt</span>
+                <span class="value">{{ creditData.taux }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Date d'octroi</span>
+                <span class="value">{{ creditData.dateOctroi | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Statut</span>
+                <mat-chip [color]="getStatusColor(creditData.statut)" selected>
+                  {{ getStatusLabel(creditData.statut) }}
+                </mat-chip>
+              </div>
+              <div class="info-item">
+                <span class="label">Niveau de risque</span>
+                <mat-chip [color]="getRiskLevelColor(creditData.risque)" selected>
+                  {{ creditData.risque }}
+                </mat-chip>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="additional-info">
+              <h3>Informations complémentaires</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="label">Analyste assigné</span>
+                  <span class="value">{{ creditData.analyste || 'Non assigné' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Date de validation</span>
+                  <span class="value">{{ getFormattedDate(creditData.dateValidation) }}</span>
+                </div>
+                <div class="info-item full-width">
+                  <span class="label">Notes</span>
+                  <span class="value notes">{{ creditData.notes || 'Aucune note' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Analyse financière">
+          <div class="tab-content">
+            <div class="financial-analysis">
+              <div class="ratios-grid" *ngIf="creditData.ratios">
+                <div class="ratio-item">
+                  <span class="ratio-label">Capacité de remboursement</span>
+                  <mat-progress-bar
+                    [value]="creditData.ratios.capaciteRemboursement || 0"
+                    [color]="creditData.ratios.capaciteRemboursement >= 70 ? 'primary' : 'warn'"
+                  ></mat-progress-bar>
+                  <span class="ratio-value">{{ creditData.ratios.capaciteRemboursement || 0 }}%</span>
+                </div>
+                <div class="ratio-item">
+                  <span class="ratio-label">Taux d'endettement</span>
+                  <mat-progress-bar
+                    [value]="creditData.ratios.tauxEndettement || 0"
+                    [color]="creditData.ratios.tauxEndettement <= 33 ? 'primary' : 'warn'"
+                  ></mat-progress-bar>
+                  <span class="ratio-value">{{ creditData.ratios.tauxEndettement || 0 }}%</span>
+                </div>
+                <div class="ratio-item">
+                  <span class="ratio-label">Liquidité</span>
+                  <mat-progress-bar
+                    [value]="creditData.ratios.liquidite || 0"
+                    [color]="creditData.ratios.liquidite >= 1 ? 'primary' : 'warn'"
+                  ></mat-progress-bar>
+                  <span class="ratio-value">{{ creditData.ratios.liquidite || 0 }}</span>
+                </div>
+                <div class="ratio-item">
+                  <span class="ratio-label">Solvabilité</span>
+                  <mat-progress-bar
+                    [value]="creditData.ratios.solvabilite || 0"
+                    [color]="creditData.ratios.solvabilite >= 60 ? 'primary' : 'warn'"
+                  ></mat-progress-bar>
+                  <span class="ratio-value">{{ creditData.ratios.solvabilite || 0 }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Risques et alertes">
+          <div class="tab-content">
+            <div class="risks-container">
+              <div *ngIf="creditData.risques && creditData.risques.length > 0">
+                <mat-list>
+                  <mat-list-item *ngFor="let risque of creditData.risques">
+                    <mat-icon mat-list-icon [color]="risque.niveau === 'élevé' ? 'warn' : 'primary'">
+                      {{ risque.niveau === 'élevé' ? 'warning' : 'info' }}
+                    </mat-icon>
+                    <div mat-line>{{ risque.description }}</div>
+                    <div mat-line class="risk-meta">
+                      <span class="risk-level" [class.high]="risque.niveau === 'élevé'">
+                        {{ risque.niveau }}
+                      </span>
+                      <span class="risk-date">{{ risque.date | date:'dd/MM/yyyy' }}</span>
+                    </div>
+                  </mat-list-item>
+                </mat-list>
+              </div>
+              <div *ngIf="!creditData.risques || creditData.risques.length === 0" class="no-risks">
+                <mat-icon>check_circle</mat-icon>
+                <p>Aucun risque détecté</p>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Historique">
+          <div class="tab-content">
+            <div class="history-timeline">
+              <div *ngFor="let event of creditData.historique || []" class="timeline-item">
+                <div class="timeline-icon">
+                  <mat-icon [color]="event.type === 'decision' ? 'primary' : 'accent'">
+                    {{ event.type === 'decision' ? 'check_circle' : 'history' }}
+                  </mat-icon>
+                </div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-title">{{ event.titre }}</span>
+                    <span class="timeline-date">{{ event.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="timeline-description">{{ event.description }}</p>
+                  <span class="timeline-user">{{ event.utilisateur }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onClose()">Fermer</button>
+    <button mat-raised-button color="primary" (click)="generateReport()">
+      <mat-icon>description</mat-icon>
+      Générer rapport
+    </button>
+  </mat-dialog-actions>
+</div>

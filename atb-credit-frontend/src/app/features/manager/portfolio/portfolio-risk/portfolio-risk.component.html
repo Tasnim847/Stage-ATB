@@ -1,0 +1,401 @@
+<!-- portfolio-risk.component.html -->
+<div class="portfolio-risk-container">
+
+  <!-- ========================================= -->
+  <!-- CHARGEMENT -->
+  <!-- ========================================= -->
+
+  <div
+    *ngIf="isLoading"
+    class="loading-container"
+  >
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Analyse des risques en cours...</p>
+  </div>
+
+  <!-- ========================================= -->
+  <!-- ERREUR -->
+  <!-- ========================================= -->
+
+  <div
+    *ngIf="!isLoading && hasError"
+    class="error-container"
+  >
+    <mat-icon color="warn">error</mat-icon>
+    <h3>Erreur de chargement</h3>
+    <p>{{ errorMessage }}</p>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="retryLoad()"
+    >
+      Réessayer
+    </button>
+  </div>
+
+  <!-- ========================================= -->
+  <!-- CONTENU PRINCIPAL -->
+  <!-- ========================================= -->
+
+  <div
+    *ngIf="!isLoading && !hasError"
+    class="risk-content"
+  >
+
+    <mat-tab-group>
+
+      <!-- ===================================== -->
+      <!-- VUE D'ENSEMBLE -->
+      <!-- ===================================== -->
+
+      <mat-tab label="Vue d'ensemble">
+
+        <div class="tab-content">
+
+          <!-- CARTES RISQUES -->
+
+          <div class="risk-summary-grid">
+
+            <!-- Risque global -->
+
+            <mat-card
+              class="risk-card"
+              [class.risk-low]="safeData.risqueGlobal === 'faible'"
+              [class.risk-medium]="safeData.risqueGlobal === 'moyen'"
+              [class.risk-high]="safeData.risqueGlobal === 'élevé'"
+            >
+              <mat-card-content>
+                <div class="risk-header">
+                  <mat-icon>security</mat-icon>
+                  <span class="risk-label">Risque global</span>
+                </div>
+                <div class="risk-value">{{ safeData.risqueGlobal }}</div>
+                <div class="risk-score">Score: {{ safeData.scoreGlobal }}/100</div>
+                <mat-progress-bar
+                  [value]="safeData.scoreGlobal"
+                  [color]="getScoreColor(safeData.scoreGlobal)"
+                ></mat-progress-bar>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Risque crédit -->
+
+            <mat-card
+              class="risk-card"
+              [class.risk-low]="safeData.risqueCredit === 'faible'"
+              [class.risk-medium]="safeData.risqueCredit === 'moyen'"
+              [class.risk-high]="safeData.risqueCredit === 'élevé'"
+            >
+              <mat-card-content>
+                <div class="risk-header">
+                  <mat-icon>credit_card</mat-icon>
+                  <span class="risk-label">Risque de crédit</span>
+                </div>
+                <div class="risk-value">{{ safeData.risqueCredit }}</div>
+                <div class="risk-score">Score: {{ safeData.scoreCredit }}/100</div>
+                <mat-progress-bar
+                  [value]="safeData.scoreCredit"
+                  [color]="getScoreColor(safeData.scoreCredit)"
+                ></mat-progress-bar>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Risque financier -->
+
+            <mat-card
+              class="risk-card"
+              [class.risk-low]="safeData.risqueFinancier === 'faible'"
+              [class.risk-medium]="safeData.risqueFinancier === 'moyen'"
+              [class.risk-high]="safeData.risqueFinancier === 'élevé'"
+            >
+              <mat-card-content>
+                <div class="risk-header">
+                  <mat-icon>trending_up</mat-icon>
+                  <span class="risk-label">Risque financier</span>
+                </div>
+                <div class="risk-value">{{ safeData.risqueFinancier }}</div>
+                <div class="risk-score">Score: {{ safeData.scoreFinancier }}/100</div>
+                <mat-progress-bar
+                  [value]="safeData.scoreFinancier"
+                  [color]="getScoreColor(safeData.scoreFinancier)"
+                ></mat-progress-bar>
+              </mat-card-content>
+            </mat-card>
+
+            <!-- Risque opérationnel -->
+
+            <mat-card
+              class="risk-card"
+              [class.risk-low]="safeData.risqueOperationnel === 'faible'"
+              [class.risk-medium]="safeData.risqueOperationnel === 'moyen'"
+              [class.risk-high]="safeData.risqueOperationnel === 'élevé'"
+            >
+              <mat-card-content>
+                <div class="risk-header">
+                  <mat-icon>settings</mat-icon>
+                  <span class="risk-label">Risque opérationnel</span>
+                </div>
+                <div class="risk-value">{{ safeData.risqueOperationnel }}</div>
+                <div class="risk-score">Score: {{ safeData.scoreOperationnel }}/100</div>
+                <mat-progress-bar
+                  [value]="safeData.scoreOperationnel"
+                  [color]="getScoreColor(safeData.scoreOperationnel)"
+                ></mat-progress-bar>
+              </mat-card-content>
+            </mat-card>
+
+          </div>
+
+          <!-- ================================= -->
+          <!-- DÉTAILS RISQUES -->
+          <!-- ================================= -->
+
+          <mat-card class="risk-details-card">
+            <mat-card-header>
+              <mat-card-title>Détails des risques</mat-card-title>
+              <mat-card-subtitle>Analyse détaillée par catégorie</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="risk-details-grid">
+                <div
+                  class="risk-detail-item"
+                  *ngFor="let item of getRiskDetails()"
+                >
+                  <div class="detail-header">
+                    <span class="detail-label">{{ item.label }}</span>
+                    <mat-chip
+                      [color]="getRiskColor(item.niveau)"
+                      selected
+                    >
+                      {{ item.niveau }}
+                    </mat-chip>
+                  </div>
+                  <div class="detail-description">{{ item.description }}</div>
+                  <div class="detail-metrics">
+                    <span class="metric">Impact: {{ item.impact }}/10</span>
+                    <span class="metric">Probabilité: {{ item.probabilite }}/10</span>
+                  </div>
+                  <mat-progress-bar
+                    [value]="item.score"
+                    [color]="getScoreColor(item.score)"
+                  ></mat-progress-bar>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+
+      </mat-tab>
+
+      <!-- ===================================== -->
+      <!-- CRÉDITS À RISQUE -->
+      <!-- ===================================== -->
+
+      <mat-tab label="Crédits à risque">
+
+        <div class="tab-content">
+
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Crédits à risque élevé</mat-card-title>
+              <mat-card-subtitle>Dossiers nécessitant une attention particulière</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+
+              <div
+                class="table-responsive"
+                *ngIf="safeData.creditsARisque && safeData.creditsARisque.length > 0; else noRiskCredits"
+              >
+                <table
+                  mat-table
+                  [dataSource]="safeData.creditsARisque"
+                  class="risk-table"
+                >
+                  <ng-container matColumnDef="client">
+                    <th mat-header-cell *matHeaderCellDef>Client</th>
+                    <td mat-cell *matCellDef="let item">{{ item.clientName || item.client || 'N/A' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="montant">
+                    <th mat-header-cell *matHeaderCellDef>Montant</th>
+                    <td mat-cell *matCellDef="let item">{{ formatCurrency(item.montant) }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef>Type</th>
+                    <td mat-cell *matCellDef="let item">{{ item.type || 'N/A' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="risque">
+                    <th mat-header-cell *matHeaderCellDef>Niveau de risque</th>
+                    <td mat-cell *matCellDef="let item">
+                      <mat-chip
+                        [color]="getRiskColor(item.risque || item.niveauRisque)"
+                        selected
+                      >
+                        {{ item.risque || item.niveauRisque || 'N/A' }}
+                      </mat-chip>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="score">
+                    <th mat-header-cell *matHeaderCellDef>Score</th>
+                    <td mat-cell *matCellDef="let item">
+                      <div class="score-cell">
+                        {{ item.score || 0 }}/100
+                        <mat-progress-bar
+                          [value]="item.score || 0"
+                          [color]="getScoreColor(item.score || 0)"
+                        ></mat-progress-bar>
+                      </div>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let item">
+                      <button mat-icon-button matTooltip="Voir les détails">
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      <button mat-icon-button color="primary" matTooltip="Analyser">
+                        <mat-icon>analytics</mat-icon>
+                      </button>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="riskTableColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: riskTableColumns;"></tr>
+                </table>
+              </div>
+
+              <ng-template #noRiskCredits>
+                <div class="no-data-message">
+                  <mat-icon>check_circle</mat-icon>
+                  <p>Aucun crédit à risque élevé détecté</p>
+                </div>
+              </ng-template>
+
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+
+      </mat-tab>
+
+      <!-- ===================================== -->
+      <!-- RECOMMANDATIONS -->
+      <!-- ===================================== -->
+
+      <mat-tab label="Recommandations">
+
+        <div class="tab-content">
+
+          <div
+            class="recommendations-grid"
+            *ngIf="safeData.recommandations && safeData.recommandations.length > 0; else noRecommendations"
+          >
+            <mat-card
+              *ngFor="let rec of safeData.recommandations; trackBy: trackByFn"
+              class="recommendation-card"
+            >
+              <mat-card-header>
+                <mat-icon
+                  [color]="rec.priorite === 'haute' ? 'warn' : rec.priorite === 'moyenne' ? 'accent' : 'primary'"
+                >
+                  {{ rec.priorite === 'haute' ? 'priority_high' : 'info' }}
+                </mat-icon>
+                <mat-card-title>{{ rec.titre }}</mat-card-title>
+                <mat-card-subtitle>Priorité: {{ rec.priorite }}</mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content>
+                <p>{{ rec.description }}</p>
+                <div
+                  class="rec-actions"
+                  *ngIf="rec.actions && rec.actions.length > 0"
+                >
+                  <span
+                    *ngFor="let action of rec.actions"
+                    class="action-tag"
+                  >
+                    <mat-icon>check_circle</mat-icon>
+                    {{ action }}
+                  </span>
+                </div>
+                <div *ngIf="!rec.actions || rec.actions.length === 0">
+                  <span class="action-tag">Aucune action définie</span>
+                </div>
+              </mat-card-content>
+
+              <mat-card-actions>
+                <button
+                  mat-button
+                  color="primary"
+                  (click)="applyRecommendation(rec)"
+                >
+                  <mat-icon>play_arrow</mat-icon>
+                  Appliquer
+                </button>
+              </mat-card-actions>
+
+            </mat-card>
+          </div>
+
+          <ng-template #noRecommendations>
+            <div class="no-data-message">
+              <mat-icon>lightbulb</mat-icon>
+              <p>Aucune recommandation disponible</p>
+            </div>
+          </ng-template>
+
+        </div>
+
+      </mat-tab>
+
+      <!-- ===================================== -->
+      <!-- ÉVOLUTION -->
+      <!-- ===================================== -->
+
+      <mat-tab label="Évolution">
+
+        <div class="tab-content">
+
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Évolution des risques</mat-card-title>
+              <mat-card-subtitle>Évolution sur les 12 derniers mois</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="evolution-chart">
+                <div class="chart-placeholder">
+                  <mat-icon>show_chart</mat-icon>
+                  <p>Graphique d'évolution des risques</p>
+                  <span class="hint">Données disponibles pour l'année {{ selectedYear }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+
+      </mat-tab>
+
+    </mat-tab-group>
+
+  </div>
+
+  <!-- ========================================= -->
+  <!-- EMPTY STATE - Quand il n'y a pas de données -->
+  <!-- ========================================= -->
+
+  <div
+    *ngIf="!isLoading && !hasError && !data"
+    class="empty-state"
+  >
+    <mat-icon>analytics</mat-icon>
+    <h3>Aucune donnée de risque disponible</h3>
+    <p>Veuillez sélectionner une période ou importer des données</p>
+  </div>
+
+</div>

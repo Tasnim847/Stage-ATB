@@ -1,0 +1,84 @@
+<div class="summary-grid" *ngIf="!isLoading; else loading">
+  <!-- Total encours -->
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <div class="summary-icon primary">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <div class="summary-info">
+        <span class="summary-label">Total encours</span>
+        <span class="summary-value">{{ formatCurrency(data?.totalEncours || 0) }}</span>
+        <span class="summary-change" [class.positive]="data?.evolution > 0" [class.negative]="data?.evolution < 0">
+          <mat-icon>{{ data?.evolution > 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          {{ data?.evolution || 0 }}% vs année précédente
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Nombre de crédits -->
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <div class="summary-icon success">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="summary-info">
+        <span class="summary-label">Crédits actifs</span>
+        <span class="summary-value">{{ data?.creditsActifs || 0 }}</span>
+        <span class="summary-change" [class.positive]="data?.evolutionCredits > 0" [class.negative]="data?.evolutionCredits < 0">
+          <mat-icon>{{ data?.evolutionCredits > 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          {{ data?.evolutionCredits || 0 }}% vs année précédente
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Taux d'impayés -->
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <div class="summary-icon warning">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="summary-info">
+        <span class="summary-label">Taux d'impayés</span>
+        <span class="summary-value">{{ data?.tauxImpayes || 0 }}%</span>
+        <span class="summary-change" [class.negative]="data?.tauxImpayes < 5" [class.positive]="data?.tauxImpayes >= 5">
+          <mat-icon>{{ data?.tauxImpayes < 5 ? 'check_circle' : 'warning' }}</mat-icon>
+          {{ data?.tauxImpayes < 5 ? 'Bon' : 'À surveiller' }}
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Risque global -->
+  <mat-card class="summary-card">
+    <mat-card-content>
+      <div class="summary-icon" [class.risk-low]="data?.risqueGlobal === 'faible'" 
+           [class.risk-medium]="data?.risqueGlobal === 'moyen'"
+           [class.risk-high]="data?.risqueGlobal === 'élevé'">
+        <mat-icon>security</mat-icon>
+      </div>
+      <div class="summary-info">
+        <span class="summary-label">Risque global</span>
+        <span class="summary-value" [class.risk-low]="data?.risqueGlobal === 'faible'"
+              [class.risk-medium]="data?.risqueGlobal === 'moyen'"
+              [class.risk-high]="data?.risqueGlobal === 'élevé'">
+          {{ data?.risqueGlobal || 'N/A' }}
+        </span>
+        <span class="summary-change">Score : {{ data?.scoreRisque || 0 }}/100</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #loading>
+  <div class="loading-grid">
+    <mat-card *ngFor="let _ of [1,2,3,4]" class="summary-card">
+      <mat-card-content>
+        <div class="loading-content">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</ng-template>

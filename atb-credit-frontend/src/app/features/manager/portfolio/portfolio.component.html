@@ -1,0 +1,227 @@
+<div class="portfolio-container">
+  <!-- En-tête -->
+  <div class="portfolio-header">
+    <div class="header-left">
+      <h1>Portefeuille Global</h1>
+      <span class="subtitle">Gestion et analyse du portefeuille crédit</span>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="generateStrategyReport()">
+        <mat-icon>description</mat-icon>
+        Rapport stratégique
+      </button>
+      <button mat-raised-button color="accent" (click)="exportPortfolioData()">
+        <mat-icon>file_download</mat-icon>
+        Exporter
+      </button>
+      <button mat-raised-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Résumé du portefeuille -->
+  <app-portfolio-summary
+    [data]="summaryData"
+    [isLoading]="isLoadingSummary"
+    [selectedYear]="selectedYear"
+  ></app-portfolio-summary>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Année</label>
+          <mat-select [(value)]="selectedYear" (selectionChange)="applyFilters()">
+            <mat-option *ngFor="let year of years" [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+        </div>
+
+        <div class="filter-group">
+          <label>Statut</label>
+          <mat-select [(value)]="selectedStatus" (selectionChange)="applyFilters()">
+            <mat-option value="all">Tous</mat-option>
+            <mat-option value="APPROVED">Approuvé</mat-option>
+            <mat-option value="REJECTED">Refusé</mat-option>
+            <mat-option value="PENDING_ANALYSIS">En attente</mat-option>
+            <mat-option value="UNDER_REVIEW">En révision</mat-option>
+            <mat-option value="DRAFT">Brouillon</mat-option>
+            <mat-option value="CANCELLED">Annulé</mat-option>
+          </mat-select>
+        </div>
+
+        <div class="filter-group">
+          <label>Type de crédit</label>
+          <mat-select [(value)]="selectedType" (selectionChange)="applyFilters()">
+            <mat-option value="all">Tous</mat-option>
+            <mat-option *ngFor="let type of creditTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+        </div>
+
+        <div class="filter-group">
+          <label>Niveau de risque</label>
+          <mat-select [(value)]="selectedRiskLevel" (selectionChange)="applyFilters()">
+            <mat-option value="all">Tous</mat-option>
+            <mat-option value="faible">Faible</mat-option>
+            <mat-option value="moyen">Moyen</mat-option>
+            <mat-option value="élevé">Élevé</mat-option>
+            <mat-option value="critique">Critique</mat-option>
+          </mat-select>
+        </div>
+
+        <div class="filter-actions">
+          <button mat-button (click)="resetFilters()">
+            <mat-icon>clear</mat-icon>
+            Réinitialiser
+          </button>
+          <button mat-button (click)="toggleAutoRefresh()" [color]="autoRefresh ? 'primary' : ''">
+            <mat-icon>{{ autoRefresh ? 'timer' : 'timer_off' }}</mat-icon>
+            Auto {{ autoRefresh ? 'ON' : 'OFF' }}
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Onglets -->
+  <mat-tab-group>
+    <!-- Onglet Vue d'ensemble -->
+    <mat-tab label="Vue d'ensemble">
+      <div class="tab-content">
+        <!-- Graphiques -->
+        <app-portfolio-charts
+          [data]="chartData"
+          [isLoading]="isLoadingCharts"
+          [selectedYear]="selectedYear"
+        ></app-portfolio-charts>
+
+        <!-- Liste des crédits -->
+        <mat-card class="credits-table-card">
+          <mat-card-header>
+            <mat-card-title>
+              Crédits
+              <span class="badge">{{ totalCredits }}</span>
+            </mat-card-title>
+            <mat-card-subtitle>
+              Dernière mise à jour : {{ lastRefresh | date:'dd/MM/yyyy HH:mm' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="table-responsive" *ngIf="!isLoading; else loadingTable">
+              <table mat-table [dataSource]="credits" class="credits-table">
+
+                <ng-container matColumnDef="client">
+                  <th mat-header-cell *matHeaderCellDef> Client </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <div class="client-info">
+                      <span class="client-name">{{ credit.clientName }}</span>
+                      <span class="client-id">#{{ credit.clientId }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="montant">
+                  <th mat-header-cell *matHeaderCellDef> Montant </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <span class="amount">{{ formatCurrency(credit.montant) }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef> Type </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <mat-chip>{{ credit.type }}</mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="date_octroi">
+                  <th mat-header-cell *matHeaderCellDef> Date octroi </th>
+                  <td mat-cell *matCellDef="let credit">
+                    {{ credit.dateOctroi | date:'dd/MM/yyyy' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="duree">
+                  <th mat-header-cell *matHeaderCellDef> Durée </th>
+                  <td mat-cell *matCellDef="let credit">
+                    {{ credit.duree }} mois
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="taux">
+                  <th mat-header-cell *matHeaderCellDef> Taux </th>
+                  <td mat-cell *matCellDef="let credit">
+                    {{ credit.taux }}%
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="statut">
+                  <th mat-header-cell *matHeaderCellDef> Statut </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <mat-chip [color]="getStatusColor(credit.statut)" selected>
+                      {{ getStatusLabel(credit.statut) }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="risque">
+                  <th mat-header-cell *matHeaderCellDef> Risque </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <mat-chip [color]="getRiskLevelColor(credit.risque)" selected>
+                      {{ credit.risque }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef> Actions </th>
+                  <td mat-cell *matCellDef="let credit">
+                    <button mat-icon-button matTooltip="Voir les détails" (click)="viewCreditDetails(credit.id)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Analyser" (click)="viewCreditDetails(credit.id)">
+                      <mat-icon>analytics</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            </div>
+
+            <ng-template #loadingTable>
+              <div class="loading-table">
+                <mat-spinner diameter="40"></mat-spinner>
+                <p>Chargement des crédits...</p>
+              </div>
+            </ng-template>
+
+            <mat-paginator
+              [length]="totalCredits"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="[10, 25, 50, 100]"
+              [pageIndex]="currentPage"
+              (page)="onPageChange($event)"
+            ></mat-paginator>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Onglet Analyse des risques -->
+    <mat-tab label="Analyse des risques">
+      <app-portfolio-risk
+        [data]="riskData"
+        [isLoading]="isLoadingRisk"
+        [selectedYear]="selectedYear"
+      ></app-portfolio-risk>
+    </mat-tab>
+  </mat-tab-group>
+</div>

@@ -1,0 +1,424 @@
+/* portfolio-risk.component.css */
+.portfolio-risk-container {
+  padding: 8px 0;
+  min-height: 400px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: #666;
+  margin: 0;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.error-container mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+.error-container h3 {
+  color: #d32f2f;
+  margin: 0 0 8px;
+}
+
+.error-container p {
+  color: #666;
+  margin: 0 0 16px;
+}
+
+.risk-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content {
+  padding: 16px 0;
+}
+
+/* ============================================
+   RÉSUMÉ DES RISQUES
+   ============================================ */
+.risk-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.risk-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+  border-left: 4px solid #e0e0e0;
+}
+
+.risk-card:hover {
+  transform: translateY(-2px);
+}
+
+.risk-card.risk-low {
+  border-left-color: #4caf50;
+}
+
+.risk-card.risk-medium {
+  border-left-color: #ff9800;
+}
+
+.risk-card.risk-high {
+  border-left-color: #f44336;
+}
+
+.risk-card mat-card-content {
+  padding: 16px 20px;
+}
+
+.risk-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.risk-header mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.risk-label {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a237e;
+  margin-bottom: 4px;
+}
+
+.risk-score {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+/* ============================================
+   DÉTAILS DES RISQUES
+   ============================================ */
+.risk-details-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.risk-details-card mat-card-header {
+  padding: 16px 20px 0;
+}
+
+.risk-details-card mat-card-content {
+  padding: 16px 20px 20px;
+}
+
+.risk-details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.risk-detail-item {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #1a237e;
+}
+
+.detail-description {
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.detail-metrics {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.metric {
+  font-size: 13px;
+  color: #666;
+}
+
+/* ============================================
+   TABLE DES CRÉDITS À RISQUE
+   ============================================ */
+.table-responsive {
+  overflow-x: auto;
+  margin: 0 -8px;
+}
+
+.risk-table {
+  width: 100%;
+}
+
+.score-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.score-cell mat-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+}
+
+/* ============================================
+   RECOMMANDATIONS
+   ============================================ */
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.recommendation-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+}
+
+.recommendation-card mat-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px 0;
+}
+
+.recommendation-card mat-card-header mat-icon {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.recommendation-card mat-card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.recommendation-card mat-card-subtitle {
+  font-size: 13px;
+  color: #666;
+}
+
+.recommendation-card mat-card-content {
+  padding: 8px 20px 16px;
+}
+
+.recommendation-card mat-card-content p {
+  color: #555;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.rec-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: #e8eaf6;
+  color: #3f51b5;
+  padding: 4px 12px;
+  border-radius: 16px;
+}
+
+.action-tag mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.recommendation-card mat-card-actions {
+  padding: 8px 16px 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* ============================================
+   ÉVOLUTION
+   ============================================ */
+.evolution-chart {
+  padding: 16px 0;
+}
+
+.chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #e0e0e0;
+  min-height: 300px;
+}
+
+.chart-placeholder mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #3f51b5;
+  margin-bottom: 16px;
+}
+
+.chart-placeholder p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.chart-placeholder .hint {
+  font-size: 13px;
+  color: #999;
+  margin-top: 8px;
+}
+
+/* ============================================
+   ÉTAT VIDE
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #bdbdbd;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  color: #333;
+  margin: 0 0 8px;
+}
+
+.empty-state p {
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================
+   NO DATA MESSAGE
+   ============================================ */
+.no-data-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.no-data-message mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #4caf50;
+  margin-bottom: 12px;
+}
+
+.no-data-message p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .risk-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-detail-item {
+    padding: 12px;
+  }
+
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .detail-metrics {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .risk-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
