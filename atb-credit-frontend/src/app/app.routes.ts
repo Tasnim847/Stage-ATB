@@ -701,16 +701,23 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
       },
-// ============================================
-// FRAUDES DÉTECTÉES - MANAGER
-// ============================================
-{
-  path: 'manager/ai/fraud',
-  loadComponent: () => import('./features/manager/ai-fraud/ai-fraud.component')
-    .then(m => m.AIFraudComponent),
-  canActivate: [roleGuard],
-  data: { roles: ['MANAGER'] }
-}
+      // ============================================
+      // FRAUDES DÉTECTÉES - MANAGER
+      // ============================================
+      {
+        path: 'manager/ai/fraud',
+        loadComponent: () => import('./features/manager/ai-fraud/ai-fraud.component')
+          .then(m => m.AIFraudComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
+      },
+      {
+        path: 'manager/dashboard/powerbi',
+        loadComponent: () => import('./features/manager/powerbi/manager-powerbi-dashboard.component')
+          .then(m => m.ManagerPowerbiDashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER', 'ADMIN'] }  // Seul le manager et admin peuvent voir
+      }
     ]
   },
   {
