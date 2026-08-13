@@ -1,0 +1,247 @@
+<!-- features/manager/ai-strategy/ai-strategy.component.html -->
+<div class="ai-strategy-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>🤖 Centre de Décision IA</h1>
+      <p class="subtitle">Générez des rapports stratégiques et obtenez des recommandations intelligentes</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Configuration du rapport -->
+  <mat-card class="config-card">
+    <mat-card-header>
+      <mat-card-title>📝 Configuration du rapport</mat-card-title>
+      <mat-card-subtitle>Personnalisez le rapport stratégique à générer</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="config-grid">
+        <mat-form-field appearance="outline" class="config-field">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="reportConfig.period">
+            <mat-option *ngFor="let period of periods" [value]="period.value">
+              {{ period.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="config-field">
+          <mat-label>Langue</mat-label>
+          <mat-select [(ngModel)]="reportConfig.language">
+            <mat-option *ngFor="let lang of languages" [value]="lang.value">
+              {{ lang.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="config-toggles">
+          <mat-slide-toggle [(ngModel)]="reportConfig.includeRiskAnalysis" color="primary">
+            Analyse des risques
+          </mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="reportConfig.includePerformance" color="primary">
+            Performance
+          </mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="reportConfig.includeForecast" color="primary">
+            Prévisions
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <div class="config-actions">
+        <button mat-raised-button color="primary" (click)="generateReport()" [disabled]="generating" class="generate-btn">
+          <mat-spinner diameter="20" *ngIf="generating"></mat-spinner>
+          <span *ngIf="!generating">
+            <mat-icon>auto_awesome</mat-icon>
+            Générer le rapport stratégique
+          </span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div class="loading-state" *ngIf="generating">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>L'IA génère votre rapport stratégique...</p>
+    <p class="loading-hint">Cela peut prendre quelques secondes</p>
+  </div>
+
+  <!-- Rapport généré -->
+  <div *ngIf="selectedReport && !generating">
+    <mat-card class="report-card">
+      <mat-card-header>
+        <div class="report-header">
+          <div class="report-title">
+            <mat-icon>description</mat-icon>
+            <div>
+              <mat-card-title>{{ selectedReport.title }}</mat-card-title>
+              <mat-card-subtitle>
+                Généré le {{ selectedReport.date | date:'dd/MM/yyyy HH:mm' }}
+                par {{ selectedReport.generatedBy }}
+              </mat-card-subtitle>
+            </div>
+          </div>
+          <div class="report-actions">
+            <button mat-stroked-button (click)="exportReport('pdf')">
+              <mat-icon>picture_as_pdf</mat-icon>
+              PDF
+            </button>
+            <button mat-stroked-button (click)="exportReport('docx')">
+              <mat-icon>description</mat-icon>
+              DOCX
+            </button>
+            <button mat-stroked-button (click)="exportReport('json')">
+              <mat-icon>data_usage</mat-icon>
+              JSON
+            </button>
+          </div>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Résumé -->
+        <div class="report-summary">
+          <h3>📋 Résumé exécutif</h3>
+          <p>{{ selectedReport.summary }}</p>
+        </div>
+
+        <!-- Sections -->
+        <div class="report-sections">
+          <div *ngFor="let section of selectedReport.sections" class="report-section">
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.content }}</p>
+            
+            <!-- Métriques -->
+            <div *ngIf="section.metrics.length > 0" class="metrics-grid">
+              <div *ngFor="let metric of section.metrics" class="metric-card" [style.border-left-color]="metric.color">
+                <div class="metric-label">{{ metric.label }}</div>
+                <div class="metric-value">{{ metric.value }}</div>
+                <div class="metric-change" [style.color]="getTrendColor(metric.trend)">
+                  <mat-icon>{{ getTrendIcon(metric.trend) }}</mat-icon>
+                  {{ metric.change > 0 ? '+' : '' }}{{ metric.change }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommandations -->
+        <div class="report-recommendations">
+          <h3>💡 Recommandations stratégiques</h3>
+          <ul>
+            <li *ngFor="let recommendation of selectedReport.recommendations">
+              <mat-icon>lightbulb</mat-icon>
+              {{ recommendation }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Version -->
+        <div class="report-footer">
+          <span>Version: {{ selectedReport.version }}</span>
+          <span>Généré par l'IA</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Décisions IA -->
+  <mat-card class="decisions-card">
+    <mat-card-header>
+      <mat-card-title>🧠 Décisions IA en temps réel</mat-card-title>
+      <mat-card-subtitle>Recommandations générées par l'intelligence artificielle</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="aiDecisions.length === 0" class="empty-state">
+        <mat-icon>psychology</mat-icon>
+        <p>Aucune décision IA disponible</p>
+      </div>
+
+      <div *ngFor="let decision of aiDecisions" class="decision-item">
+        <div class="decision-header">
+          <div class="decision-info">
+            <span class="decision-request">{{ decision.requestNumber }}</span>
+            <span class="decision-client">{{ decision.clientName }}</span>
+          </div>
+          <div class="decision-confidence" [style.color]="getConfidenceColor(decision.confidence)">
+            {{ getConfidenceLabel(decision.confidence) }} ({{ decision.confidence }}%)
+          </div>
+        </div>
+
+        <div class="decision-body">
+          <div class="decision-recommendation">
+            <mat-icon [style.color]="getRiskColor(decision.riskLevel)">
+              {{ decision.riskLevel === 'LOW' ? 'check_circle' : 
+                 decision.riskLevel === 'MODERATE' ? 'warning' : 
+                 'error' }}
+            </mat-icon>
+            <span>{{ decision.aiRecommendation }}</span>
+          </div>
+
+          <div class="decision-details">
+            <div class="decision-risk">
+              <span class="label">Score de risque</span>
+              <span class="value" [style.color]="getRiskColor(decision.riskLevel)">
+                {{ decision.riskScore }}
+              </span>
+            </div>
+            <div class="decision-factors">
+              <span class="label">Facteurs clés</span>
+              <div class="factors-list">
+                <mat-chip *ngFor="let factor of decision.factors" size="small">
+                  {{ factor }}
+                </mat-chip>
+              </div>
+            </div>
+          </div>
+
+          <div class="decision-actions">
+            <span class="label">Actions suggérées</span>
+            <ul>
+              <li *ngFor="let action of decision.suggestedActions">
+                {{ action }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="decision-footer">
+          <span class="decision-date">{{ decision.generatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Historique des rapports -->
+  <mat-card class="history-card">
+    <mat-card-header>
+      <mat-card-title>📚 Historique des rapports</mat-card-title>
+      <mat-card-subtitle>Rapports stratégiques précédemment générés</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="reports.length === 0" class="empty-state">
+        <mat-icon>history</mat-icon>
+        <p>Aucun rapport historique</p>
+      </div>
+
+      <div *ngFor="let report of reports" class="history-item" (click)="viewReport(report)">
+        <div class="history-info">
+          <mat-icon>description</mat-icon>
+          <div>
+            <span class="history-title">{{ report.title }}</span>
+            <span class="history-date">{{ report.date | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+        <button mat-icon-button (click)="$event.stopPropagation(); exportReport('pdf')" matTooltip="Exporter">
+          <mat-icon>file_download</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

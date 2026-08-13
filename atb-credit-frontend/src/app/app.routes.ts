@@ -683,6 +683,13 @@ export const routes: Routes = [
           .then(m => m.AnalystPerformanceComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
+      },
+      {
+        path: 'manager/ai/strategy',
+        loadComponent: () => import('./features/manager/ai-strategy/ai-strategy.component')
+          .then(m => m.AIStrategyComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
       }
     ]
   },
