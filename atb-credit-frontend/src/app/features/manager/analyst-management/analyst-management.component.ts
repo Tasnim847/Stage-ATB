@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AnalystManagementService } from '@core/services/analyst-management.service';
 import { ManagerValidationService } from '@core/services/manager-validation.service';
@@ -45,6 +46,8 @@ export class AnalystManagementComponent implements OnInit {
   private managerValidationService = inject(ManagerValidationService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   // Données
   performances: AnalystPerformanceDTO[] = [];
@@ -69,6 +72,20 @@ export class AnalystManagementComponent implements OnInit {
   processedColumns = ['requestNumber', 'client', 'amount', 'status', 'analyst', 'updatedAt', 'actions'];
 
   ngOnInit(): void {
+    // ✅ Récupérer le paramètre tab de l'URL
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'];
+      if (tab === 'workload') {
+        this.selectedTab = 1; // Onglet Charge de travail
+      } else if (tab === 'pending') {
+        this.selectedTab = 2; // Onglet En attente
+      } else if (tab === 'processed') {
+        this.selectedTab = 3; // Onglet Dossiers traités
+      } else if (tab === 'performance') {
+        this.selectedTab = 0; // Onglet Performance
+      }
+    });
+    
     this.loadData();
   }
 
@@ -157,6 +174,21 @@ export class AnalystManagementComponent implements OnInit {
     } else {
       this.averageApprovalRate = 0;
     }
+  }
+
+  // ============================================
+  // NAVIGATION VERS LES ONGLETS
+  // ============================================
+
+  goToTab(tabIndex: number): void {
+    this.selectedTab = tabIndex;
+    // Mettre à jour l'URL avec le paramètre de requête
+    const tabNames = ['performance', 'workload', 'pending', 'processed'];
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tabNames[tabIndex] },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // ============================================
@@ -269,6 +301,111 @@ export class AnalystManagementComponent implements OnInit {
   }
 
   // ============================================
+  // RÉPARTITION DES DOSSIERS
+  // ============================================
+
+  assignRequest(requestId: string): void {
+    // Ouvrir le dialogue d'assignation
+    // Implémentez ici la logique d'assignation
+  }
+
+  autoDistribute(): void {
+    const requestIds = this.pendingRequests.map(r => r.id);
+    if (requestIds.length === 0) {
+      this.snackBar.open('Aucun dossier en attente à distribuer', 'Fermer', {
+        duration: 3000
+      });
+      return;
+    }
+
+    this.loading = true;
+    this.analystManagementService.autoDistributeRequests(requestIds).subscribe({
+      next: (result) => {
+        console.log('Distribution automatique terminée:', result);
+        this.snackBar.open('✅ Distribution automatique terminée avec succès', 'Fermer', {
+          duration: 3000
+        });
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Erreur lors de la distribution automatique:', error);
+        this.snackBar.open('❌ Erreur lors de la distribution automatique', 'Fermer', {
+          duration: 3000
+        });
+        this.loading = false;
+      }
+    });
+  }
+
+  rebalanceWorkload(): void {
+    this.loading = true;
+    this.analystManagementService.rebalanceWorkload().subscribe({
+      next: (result) => {
+        console.log('Rééquilibrage terminé:', result);
+        this.snackBar.open('✅ Rééquilibrage terminé avec succès', 'Fermer', {
+          duration: 3000
+        });
+        this.loadData();
+      },
+      error: (error) => {
+        console.error('Erreur lors du rééquilibrage:', error);
+        this.snackBar.open('❌ Erreur lors du rééquilibrage', 'Fermer', {
+          duration: 3000
+        });
+        this.loading = false;
+      }
+    });
+  }
+
+  generateReport(): void {
+    const today = new Date();
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    
+    this.analystManagementService.generatePerformanceReport(
+      monthAgo.toISOString(),
+      today.toISOString()
+    ).subscribe({
+      next: (report) => {
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rapport-performance-${today.toISOString().split('T')[0]}.txt`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('📊 Rapport généré avec succès', 'Fermer', {
+          duration: 3000
+        });
+      },
+      error: (error) => {
+        console.error('Erreur lors de la génération du rapport:', error);
+        this.snackBar.open('❌ Erreur lors de la génération du rapport', 'Fermer', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  refresh(): void {
+    this.loadData();
+  }
+
+  // ============================================
+  // NAVIGATION
+  // ============================================
+
+  goToAnalystDetail(analystId: string): void {
+    // Naviguer vers le détail de l'analyste
+    this.router.navigate(['/manager/analysts', analystId]);
+  }
+
+  goToCreditRequestDetail(requestId: string): void {
+    // Naviguer vers le détail de la demande
+    this.router.navigate(['/credit-requests', requestId]);
+  }
+
+  // ============================================
   // MÉTHODES UTILITAIRES
   // ============================================
 
@@ -336,105 +473,5 @@ export class AnalystManagementComponent implements OnInit {
       'CANCELLED': '❌ Annulé'
     };
     return labels[status] || status;
-  }
-
-  // Navigation
-  goToAnalystDetail(analystId: string): void {
-    // Naviguer vers le détail de l'analyste
-  }
-
-  goToCreditRequestDetail(requestId: string): void {
-    // Naviguer vers le détail de la demande
-  }
-
-  assignRequest(requestId: string): void {
-    // Ouvrir le dialogue d'assignation
-  }
-
- // features/manager/analyst-management/analyst-management.component.ts - PARTIE CORRIGÉE
-
-// Dans la méthode autoDistribute():
-autoDistribute(): void {
-  const requestIds = this.pendingRequests.map(r => r.id);
-  if (requestIds.length === 0) {
-    this.snackBar.open('Aucun dossier en attente à distribuer', 'Fermer', {
-      duration: 3000
-    });
-    return;
-  }
-
-  this.loading = true;
-  this.analystManagementService.autoDistributeRequests(requestIds).subscribe({
-    next: (result) => {
-      console.log('Distribution automatique terminée:', result);
-      this.snackBar.open('✅ Distribution automatique terminée avec succès', 'Fermer', {
-        duration: 3000
-      });
-      this.loadData();
-    },
-    error: (error) => {
-      console.error('Erreur lors de la distribution automatique:', error);
-      this.snackBar.open('❌ Erreur lors de la distribution automatique', 'Fermer', {
-        duration: 3000
-      });
-      this.loading = false;
-    }
-  });
-}
-
-// Dans la méthode rebalanceWorkload():
-rebalanceWorkload(): void {
-  this.loading = true;
-  this.analystManagementService.rebalanceWorkload().subscribe({
-    next: (result) => {
-      console.log('Rééquilibrage terminé:', result);
-      this.snackBar.open('✅ Rééquilibrage terminé avec succès', 'Fermer', {
-        duration: 3000
-      });
-      this.loadData();
-    },
-    error: (error) => {
-      console.error('Erreur lors du rééquilibrage:', error);
-      this.snackBar.open('❌ Erreur lors du rééquilibrage', 'Fermer', {
-        duration: 3000
-      });
-      this.loading = false;
-    }
-  });
-}
-
-// Dans la méthode generateReport():
-generateReport(): void {
-  const today = new Date();
-  const monthAgo = new Date();
-  monthAgo.setMonth(monthAgo.getMonth() - 1);
-  
-  this.analystManagementService.generatePerformanceReport(
-    monthAgo.toISOString(),
-    today.toISOString()
-  ).subscribe({
-    next: (report) => {
-      const blob = new Blob([report], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `rapport-performance-${today.toISOString().split('T')[0]}.txt`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      this.snackBar.open('📊 Rapport généré avec succès', 'Fermer', {
-        duration: 3000
-      });
-    },
-    error: (error) => {
-      console.error('Erreur lors de la génération du rapport:', error);
-      this.snackBar.open('❌ Erreur lors de la génération du rapport', 'Fermer', {
-        duration: 3000
-      });
-    }
-  });
-}
-
-  refresh(): void {
-    this.loadData();
   }
 }

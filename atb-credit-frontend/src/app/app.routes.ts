@@ -663,6 +663,18 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
       },
+      // app.routes.ts - AJOUTER
+      // app.routes.ts - AJOUTER
+// ============================================
+// KPIs MANAGER
+// ============================================
+{
+  path: 'manager/kpis',
+  loadComponent: () => import('./features/manager/kpis/manager-kpis.component')
+    .then(m => m.ManagerKPIsComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['MANAGER'] }
+}
     ]
   },
   {

@@ -1,0 +1,224 @@
+<!-- features/manager/kpis/manager-kpis.component.html -->
+<div class="manager-kpis-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>📊 Tableau de bord des KPIs</h1>
+      <p class="subtitle">Indicateurs clés de performance pour le pilotage stratégique</p>
+    </div>
+    <div class="header-right">
+      <div class="period-selector">
+        <button mat-button 
+                [class.active]="selectedPeriod === 'today'"
+                (click)="selectedPeriod = 'today'; loadKPIs()">
+          Aujourd'hui
+        </button>
+        <button mat-button 
+                [class.active]="selectedPeriod === 'week'"
+                (click)="selectedPeriod = 'week'; loadKPIs()">
+          Semaine
+        </button>
+        <button mat-button 
+                [class.active]="selectedPeriod === 'month'"
+                (click)="selectedPeriod = 'month'; loadKPIs()">
+          Mois
+        </button>
+        <button mat-button 
+                [class.active]="selectedPeriod === 'quarter'"
+                (click)="selectedPeriod = 'quarter'; loadKPIs()">
+          Trimestre
+        </button>
+        <button mat-button 
+                [class.active]="selectedPeriod === 'year'"
+                (click)="selectedPeriod = 'year'; loadKPIs()">
+          Année
+        </button>
+      </div>
+      <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- État de chargement -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Chargement des indicateurs...</p>
+  </div>
+
+  <!-- Contenu -->
+  <div *ngIf="!loading && kpis">
+    
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <!-- Total demandes -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #e8eaf6; color: #1a237e;">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ kpis.totalCreditRequests }}</div>
+          <div class="kpi-label">Total demandes</div>
+        </div>
+      </mat-card>
+
+      <!-- Montant total -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #e8f5e9; color: #2e7d32;">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ formatCurrency(kpis.totalAmount) }}</div>
+          <div class="kpi-label">Montant total</div>
+        </div>
+      </mat-card>
+
+      <!-- Taux d'approbation -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #e3f2fd; color: #1565c0;">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ kpis.approvalRate | number:'1.0-0' }}%</div>
+          <div class="kpi-label">Taux d'approbation</div>
+          <mat-progress-bar 
+            mode="determinate" 
+            [value]="kpis.approvalRate"
+            color="primary">
+          </mat-progress-bar>
+        </div>
+      </mat-card>
+
+      <!-- Temps moyen -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #fff3e0; color: #e65100;">
+          <mat-icon>timer</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ kpis.averageProcessingDays | number:'1.0-0' }} jours</div>
+          <div class="kpi-label">Temps moyen de traitement</div>
+        </div>
+      </mat-card>
+
+      <!-- Crédits à haut risque -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #ffebee; color: #c62828;">
+          <mat-icon>euro_symbol</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ kpis.highRiskCount }}</div>
+          <div class="kpi-label">Crédits à haut risque</div>
+          <div class="kpi-amount">{{ formatCurrency(kpis.highRiskAmount) }}</div>
+        </div>
+      </mat-card>
+
+      <!-- Validation manager -->
+      <mat-card class="kpi-card">
+        <div class="kpi-icon" style="background: #f3e5f5; color: #6a1b9a;">
+          <mat-icon>pending_actions</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <div class="kpi-value">{{ kpis.pendingValidationCount }}</div>
+          <div class="kpi-label">En attente de validation</div>
+          <div class="kpi-sub">Taux: {{ kpis.managerApprovalRate | number:'1.0-0' }}%</div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-grid">
+      <!-- Évolution mensuelle -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>📈 Évolution mensuelle</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="monthlyChart"></canvas>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Distribution par type -->
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>📊 Distribution par type</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <canvas id="creditTypeChart"></canvas>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Performance des analystes -->
+    <mat-card class="chart-card full-width">
+      <mat-card-header>
+        <mat-card-title>👥 Performance des analystes</mat-card-title>
+        <mat-card-subtitle>Dossiers traités et taux d'approbation</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <canvas id="analystChart"></canvas>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Distribution des statuts -->
+    <div class="status-grid">
+      <mat-card class="status-card" *ngFor="let status of ['PENDING_ANALYSIS', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'COMPLETED', 'CANCELLED']">
+        <div class="status-content">
+          <div class="status-left">
+            <span class="status-dot" [style.background]="getStatusColor(status)"></span>
+            <span class="status-label">{{ getStatusLabel(status) }}</span>
+          </div>
+          <div class="status-right">
+            <span class="status-count">{{ getStatusCount(status) }}</span>
+            <span class="status-amount">{{ formatCurrency(getStatusAmount(status)) }}</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Dernières activités -->
+    <mat-card class="activities-card" *ngIf="kpis.recentActivities?.length">
+      <mat-card-header>
+        <mat-card-title>🔄 Dernières activités</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="activity-item" *ngFor="let activity of kpis.recentActivities">
+          <div class="activity-icon">
+            <mat-icon [style.color]="getStatusColor(activity.status)"> 
+              {{ activity.status === 'APPROVED' ? 'check_circle' : 
+                 activity.status === 'REJECTED' ? 'cancel' : 
+                 activity.status === 'PENDING_ANALYSIS' ? 'pending' : 
+                 activity.status === 'UNDER_REVIEW' ? 'visibility' : 
+                 'assignment' }}
+            </mat-icon>
+          </div>
+          <div class="activity-content">
+            <div class="activity-title">
+              <span class="activity-request">{{ activity.requestNumber }}</span>
+              <span class="activity-client">{{ activity.clientName }}</span>
+            </div>
+            <div class="activity-details">
+              <span class="activity-action">{{ activity.action }}</span>
+              <span class="activity-amount">{{ formatCurrency(activity.amount) }}</span>
+              <span class="activity-date">{{ activity.actionDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+          <mat-chip [style.background]="getStatusColor(activity.status)" 
+                    [style.color]="'white'" 
+                    size="small">
+            {{ getStatusLabel(activity.status) }}
+          </mat-chip>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- État vide -->
+  <div class="empty-state" *ngIf="!loading && !kpis">
+    <mat-icon>dashboard</mat-icon>
+    <p>Aucune donnée disponible</p>
+    <button mat-raised-button color="primary" (click)="refresh()">
+      Charger les données
+    </button>
+  </div>
+</div>
