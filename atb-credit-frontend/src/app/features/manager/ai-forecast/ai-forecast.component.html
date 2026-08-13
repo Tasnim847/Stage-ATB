@@ -1,0 +1,220 @@
+<!-- features/manager/ai-forecast/ai-forecast.component.html -->
+<div class="ai-forecast-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>🔮 Prévisions IA</h1>
+      <p class="subtitle">Anticipez les tendances et simulez des scénarios pour une meilleure décision</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Configuration -->
+  <mat-card class="config-card">
+    <mat-card-header>
+      <mat-card-title>⚙️ Configuration des prévisions</mat-card-title>
+      <mat-card-subtitle>Personnalisez les paramètres pour générer des prévisions précises</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="config-grid">
+        <mat-form-field appearance="outline" class="config-field">
+          <mat-label>Métrique</mat-label>
+          <mat-select [(ngModel)]="forecastConfig.metric">
+            <mat-option *ngFor="let metric of metrics" [value]="metric.value">
+              {{ metric.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="config-field">
+          <mat-label>Période</mat-label>
+          <mat-select [(ngModel)]="forecastConfig.period">
+            <mat-option *ngFor="let period of periods" [value]="period.value">
+              {{ period.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="config-field">
+          <mat-label>Niveau de confiance</mat-label>
+          <mat-select [(ngModel)]="forecastConfig.confidenceLevel">
+            <mat-option [value]="90">90%</mat-option>
+            <mat-option [value]="95">95%</mat-option>
+            <mat-option [value]="99">99%</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="config-actions">
+        <button mat-raised-button color="primary" (click)="generateForecast()" [disabled]="generating" class="generate-btn">
+          <mat-spinner diameter="20" *ngIf="generating"></mat-spinner>
+          <span *ngIf="!generating">
+            <mat-icon>timeline</mat-icon>
+            Générer les prévisions
+          </span>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chargement -->
+  <div class="loading-state" *ngIf="generating">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>L'IA génère les prévisions...</p>
+    <p class="loading-hint">Analyse des tendances et calcul des projections</p>
+  </div>
+
+  <!-- Graphique et résultats -->
+  <div *ngIf="selectedForecast && !generating">
+    <div class="forecast-summary">
+      <mat-card class="summary-card">
+        <div class="summary-content">
+          <div class="summary-item">
+            <span class="label">Métrique</span>
+            <span class="value">{{ getMetricLabel(selectedForecast.metric) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Valeur actuelle</span>
+            <span class="value">{{ formatNumber(selectedForecast.currentValue) }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Tendance</span>
+            <span class="value" [style.color]="getTrendColor(selectedForecast.trend)">
+              <mat-icon>{{ getTrendIcon(selectedForecast.trend) }}</mat-icon>
+              {{ selectedForecast.trend === 'up' ? 'Hausse' : 
+                 selectedForecast.trend === 'down' ? 'Baisse' : 'Stable' }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Intervalle de confiance</span>
+            <span class="value">{{ selectedForecast.confidenceInterval.level }}%</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>📈 Projections</mat-card-title>
+        <mat-card-subtitle>Évolution prévue avec intervalle de confiance</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas id="forecastChart"></canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recommandations -->
+    <mat-card class="recommendations-card" *ngIf="selectedForecast.recommendations.length > 0">
+      <mat-card-header>
+        <mat-card-title>💡 Recommandations stratégiques</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ul>
+          <li *ngFor="let recommendation of selectedForecast.recommendations">
+            <mat-icon>lightbulb</mat-icon>
+            {{ recommendation }}
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Simulation de scénarios -->
+  <mat-card class="scenarios-card">
+    <mat-card-header>
+      <mat-card-title>🎯 Simulation de scénarios</mat-card-title>
+      <mat-card-subtitle>Analysez l'impact de différents paramètres économiques</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="scenarios-grid">
+        <div class="scenario-params">
+          <div class="param-item">
+            <label>Croissance économique</label>
+            <input type="range" [(ngModel)]="scenarioConfig.economicGrowth" min="0" max="5" step="0.5" />
+            <span>{{ scenarioConfig.economicGrowth }}%</span>
+          </div>
+          <div class="param-item">
+            <label>Taux d'intérêt</label>
+            <input type="range" [(ngModel)]="scenarioConfig.interestRate" min="3" max="15" step="0.5" />
+            <span>{{ scenarioConfig.interestRate }}%</span>
+          </div>
+          <div class="param-item">
+            <label>Chômage</label>
+            <input type="range" [(ngModel)]="scenarioConfig.unemployment" min="5" max="25" step="1" />
+            <span>{{ scenarioConfig.unemployment }}%</span>
+          </div>
+          <div class="param-item">
+            <label>Inflation</label>
+            <input type="range" [(ngModel)]="scenarioConfig.inflation" min="0" max="15" step="0.5" />
+            <span>{{ scenarioConfig.inflation }}%</span>
+          </div>
+          <button mat-raised-button color="accent" (click)="simulateScenarios()" [disabled]="loading">
+            <mat-icon>science</mat-icon>
+            Simuler
+          </button>
+        </div>
+
+        <div class="scenario-results" *ngIf="scenarios.length > 0">
+          <div *ngFor="let scenario of scenarios" class="scenario-item">
+            <div class="scenario-header">
+              <span class="scenario-name">{{ scenario.name }}</span>
+              <mat-chip [color]="getRiskColor(scenario.riskLevel)" selected>
+                {{ scenario.riskLevel }}
+              </mat-chip>
+            </div>
+            <p class="scenario-description">{{ scenario.description }}</p>
+            <div class="scenario-details">
+              <div class="detail-item">
+                <span class="label">Résultat attendu</span>
+                <span class="value">{{ formatNumber(scenario.expectedOutcome) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Probabilité</span>
+                <span class="value">{{ (scenario.probability * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Historique -->
+  <mat-card class="history-card">
+    <mat-card-header>
+      <mat-card-title>📚 Historique des prévisions</mat-card-title>
+      <mat-card-subtitle>Prévisions précédemment générées</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="forecasts.length === 0" class="empty-state">
+        <mat-icon>history</mat-icon>
+        <p>Aucune prévision disponible</p>
+      </div>
+
+      <div *ngFor="let forecast of forecasts" class="history-item" (click)="selectForecast(forecast)">
+        <div class="history-info">
+          <mat-icon>timeline</mat-icon>
+          <div>
+            <span class="history-title">{{ getMetricLabel(forecast.metric) }}</span>
+            <span class="history-date">{{ forecast.date | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+        <div class="history-status">
+          <span class="history-trend" [style.color]="getTrendColor(forecast.trend)">
+            <mat-icon>{{ getTrendIcon(forecast.trend) }}</mat-icon>
+            {{ forecast.trend === 'up' ? 'Hausse' : 
+               forecast.trend === 'down' ? 'Baisse' : 'Stable' }}
+          </span>
+          <span class="history-value">{{ formatNumber(forecast.currentValue) }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
