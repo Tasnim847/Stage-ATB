@@ -207,8 +207,8 @@ export class SidebarComponent {
   
     // Dashboard Power BI
     { path: '/manager/dashboard/powerbi', icon: 'insights', label: 'Power BI Dashboard', badge: 0 },
-    { path: '/manager/dashboard/kpis', icon: 'trending_up', label: 'KPIs', badge: 0 },
-  
+    { path: '/manager/kpis', icon: 'insights', label: 'KPIs Dashboard', badge: 0 },
+
     // Validation des décisions
     { path: '/manager/validation/pending', icon: 'pending_actions', label: 'Décisions à valider', badge: 4 },
     { path: '/manager/validation/high-amount', icon: 'euro_symbol', label: 'Crédits élevés', badge: 2 },
