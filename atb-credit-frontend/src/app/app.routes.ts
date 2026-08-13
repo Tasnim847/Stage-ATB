@@ -700,7 +700,17 @@ export const routes: Routes = [
           .then(m => m.AIForecastComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
-      }
+      },
+// ============================================
+// FRAUDES DÉTECTÉES - MANAGER
+// ============================================
+{
+  path: 'manager/ai/fraud',
+  loadComponent: () => import('./features/manager/ai-fraud/ai-fraud.component')
+    .then(m => m.AIFraudComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['MANAGER'] }
+}
     ]
   },
   {

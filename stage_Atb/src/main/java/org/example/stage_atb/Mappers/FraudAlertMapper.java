@@ -32,6 +32,7 @@ public interface FraudAlertMapper {
     @Mapping(target = "clientName", expression = "java(fraudAlert.getClient().getFirstName() + \" \" + fraudAlert.getClient().getLastName())")
     @Mapping(target = "creditRequestId", expression = "java(fraudAlert.getCreditRequest() != null ? fraudAlert.getCreditRequest().getId() : null)")
     @Mapping(target = "reviewedBy", expression = "java(fraudAlert.getReviewedBy() != null ? fraudAlert.getReviewedBy().getFirstName() + \" \" + fraudAlert.getReviewedBy().getLastName() : null)")
+    @Mapping(target = "status", expression = "java(getAlertStatus(fraudAlert))")
     FraudAlertResponseDTO toResponseDTO(FraudAlert fraudAlert);
 
     void updateEntity(@MappingTarget FraudAlert fraudAlert, FraudAlertRequestDTO requestDTO);
@@ -50,5 +51,14 @@ public interface FraudAlertMapper {
         CreditRequest creditRequest = new CreditRequest();
         creditRequest.setId(creditRequestId);
         return creditRequest;
+    }
+
+    // Mappers/FraudAlertMapper.java - AJOUTER
+
+    default String getAlertStatus(FraudAlert alert) {
+        if (!alert.isReviewed()) return "NEW";
+        if (alert.isConfirmed()) return "CONFIRMED";
+        if (alert.isReviewed() && !alert.isConfirmed()) return "REJECTED";
+        return "UNDER_REVIEW";
     }
 }
