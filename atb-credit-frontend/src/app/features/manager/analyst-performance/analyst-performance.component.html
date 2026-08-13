@@ -1,0 +1,264 @@
+<!-- features/manager/analyst-performance/analyst-performance.component.html -->
+<div class="analyst-performance-container">
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>🏆 Performance des Analystes</h1>
+      <p class="subtitle">Suivez et analysez les performances de vos analystes en temps réel</p>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+      <button mat-raised-button color="accent" (click)="exportReport()">
+        <mat-icon>file_download</mat-icon>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-grid" *ngIf="!loading && filteredPerformances.length > 0">
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ filteredPerformances.length }}</div>
+          <div class="stat-label">Analystes</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getAverageApprovalRate() | number:'1.0-0' }}%</div>
+          <div class="stat-label">Taux d'approbation moyen</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">📋</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getTotalProcessed() }}</div>
+          <div class="stat-label">Total dossiers traités</div>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-info">
+          <div class="stat-value">{{ getBestAnalyst() }}</div>
+          <div class="stat-label">Meilleur analyste</div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-search">
+          <mat-label>Rechercher un analyste</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Nom ou email...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-select">
+          <mat-label>Niveau de performance</mat-label>
+          <mat-select [(ngModel)]="filterPerformanceLevel" (selectionChange)="applyFilters()">
+            <mat-option *ngFor="let level of performanceLevels" [value]="level.value">
+              {{ level.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="resetFilters()" class="reset-btn">
+          <mat-icon>clear</mat-icon>
+          Réinitialiser
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Graphique -->
+  <mat-card class="chart-card">
+    <mat-card-header>
+      <mat-card-title>📈 Évolution des performances</mat-card-title>
+      <mat-card-subtitle>Taux d'approbation et volume de dossiers traités</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tableau des performances -->
+  <mat-card class="table-card">
+    <mat-card-header>
+      <mat-card-title>📋 Détail des performances</mat-card-title>
+      <mat-card-subtitle>Classement détaillé des analystes</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- État de chargement -->
+      <div class="loading-state" *ngIf="loading">
+        <mat-progress-spinner diameter="30" mode="indeterminate"></mat-progress-spinner>
+        <p>Chargement...</p>
+      </div>
+
+      <!-- Tableau -->
+      <div class="table-wrapper" *ngIf="!loading && filteredPerformances.length > 0">
+        <table mat-table [dataSource]="filteredPerformances" class="performance-table">
+          
+          <!-- Rang -->
+          <ng-container matColumnDef="rank">
+            <th mat-header-cell *matHeaderCellDef> # </th>
+            <td mat-cell *matCellDef="let analyst">
+              <span class="rank-badge" [class.top]="analyst.rank <= 3">
+                {{ analyst.rank }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Analyste -->
+          <ng-container matColumnDef="analyst">
+            <th mat-header-cell *matHeaderCellDef> Analyste </th>
+            <td mat-cell *matCellDef="let analyst">
+              <div class="analyst-info">
+                <div class="analyst-avatar">
+                  {{ analyst.analystName.charAt(0) }}
+                </div>
+                <div>
+                  <div class="analyst-name">{{ analyst.analystName }}</div>
+                  <div class="analyst-email">{{ analyst.analystEmail }}</div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Traités -->
+          <ng-container matColumnDef="processed">
+            <th mat-header-cell *matHeaderCellDef> Traités </th>
+            <td mat-cell *matCellDef="let analyst">
+              {{ analyst.totalProcessed }}
+            </td>
+          </ng-container>
+
+          <!-- Approuvés -->
+          <ng-container matColumnDef="approved">
+            <th mat-header-cell *matHeaderCellDef> Approuvés </th>
+            <td mat-cell *matCellDef="let analyst">
+              {{ analyst.totalApproved }}
+            </td>
+          </ng-container>
+
+          <!-- Rejetés -->
+          <ng-container matColumnDef="rejected">
+            <th mat-header-cell *matHeaderCellDef> Rejetés </th>
+            <td mat-cell *matCellDef="let analyst">
+              {{ analyst.totalRejected }}
+            </td>
+          </ng-container>
+
+          <!-- Taux d'approbation -->
+          <ng-container matColumnDef="approvalRate">
+            <th mat-header-cell *matHeaderCellDef> Taux </th>
+            <td mat-cell *matCellDef="let analyst">
+              <div class="rate-cell">
+                <div class="rate-bar">
+                  <div class="rate-fill" 
+                       [style.width.%]="analyst.approvalRate"
+                       [class.high]="analyst.approvalRate >= 70"
+                       [class.medium]="analyst.approvalRate >= 50 && analyst.approvalRate < 70"
+                       [class.low]="analyst.approvalRate < 50">
+                  </div>
+                </div>
+                <span class="rate-value">{{ analyst.approvalRate | number:'1.0-0' }}%</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Temps moyen -->
+          <ng-container matColumnDef="avgTime">
+            <th mat-header-cell *matHeaderCellDef> Temps moyen </th>
+            <td mat-cell *matCellDef="let analyst">
+              {{ analyst.averageProcessingTimeDays | number:'1.1-1' }} jours
+            </td>
+          </ng-container>
+
+          <!-- Montant total -->
+          <ng-container matColumnDef="totalAmount">
+            <th mat-header-cell *matHeaderCellDef> Montant total </th>
+            <td mat-cell *matCellDef="let analyst">
+              {{ formatCurrency(analyst.totalAmountApproved) }}
+            </td>
+          </ng-container>
+
+          <!-- Performance -->
+          <ng-container matColumnDef="performance">
+            <th mat-header-cell *matHeaderCellDef> Niveau </th>
+            <td mat-cell *matCellDef="let analyst">
+              <mat-chip [color]="getPerformanceLevelColor(analyst.performanceLevel)" selected>
+                {{ getPerformanceLevel(analyst.performanceLevel) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let analyst">
+              <button mat-icon-button (click)="viewAnalystDetail(analyst.analystId)" matTooltip="Voir détails">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row"
+              (click)="viewAnalystDetail(row.analystId)">
+          </tr>
+        </table>
+      </div>
+
+      <!-- État vide -->
+      <div class="empty-state" *ngIf="!loading && filteredPerformances.length === 0">
+        <mat-icon>people_outline</mat-icon>
+        <p *ngIf="performances.length > 0">Aucun analyste ne correspond aux filtres</p>
+        <p *ngIf="performances.length === 0">Aucun analyste trouvé</p>
+        <button mat-button color="primary" (click)="resetFilters()" *ngIf="performances.length > 0">
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Légende des performances -->
+  <mat-card class="legend-card">
+    <mat-card-content>
+      <div class="legend-content">
+        <div class="legend-item">
+          <span class="legend-dot excellent"></span>
+          <span class="legend-label">Excellent (≥80% d'approbation, &lt; 3 jours)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot good"></span>
+          <span class="legend-label">Bon (≥60% d'approbation, &lt; 5 jours)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot average"></span>
+          <span class="legend-label">Moyen (≥40% d'approbation, &lt; 7 jours)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot needs-improvement"></span>
+          <span class="legend-label">À améliorer (&lt; 40% d'approbation, > 7 jours)</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
