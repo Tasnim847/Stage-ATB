@@ -26,6 +26,8 @@ public class FraudAlertResponseDTO {
     private boolean reviewed;
     private boolean confirmed;
     private boolean actionTaken;
+    // dto/response/FraudAlertResponseDTO.java - AJOUTER
+    private String status; // NEW, UNDER_REVIEW, CONFIRMED, REJECTED
     private String reviewedBy;
     private LocalDateTime createdAt;
 }
