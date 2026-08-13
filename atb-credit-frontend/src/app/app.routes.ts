@@ -690,6 +690,16 @@ export const routes: Routes = [
           .then(m => m.AIStrategyComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
+      },
+      // ============================================
+      // PRÉVISIONS IA - MANAGER
+      // ============================================
+      {
+        path: 'manager/ai/forecast',
+        loadComponent: () => import('./features/manager/ai-forecast/ai-forecast.component')
+          .then(m => m.AIForecastComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
       }
     ]
   },
