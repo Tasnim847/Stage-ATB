@@ -45,4 +45,14 @@ public interface IPortfolioService {
      * Récupère la répartition des dossiers entre analystes
      */
     Map<String, Object> getWorkloadDistribution();
+
+    /**
+     * Récupère les analyses détaillées du portefeuille
+     */
+    Map<String, Object> getPortfolioAnalytics(String period, String segment);
+
+    /**
+     * Récupère la matrice des risques
+     */
+    Map<String, Object> getPortfolioRiskMatrix(String period, String segment);
 }

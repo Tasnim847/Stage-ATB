@@ -1,0 +1,395 @@
+/* portfolio-analytics.component.css */
+.analytics-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* En-tête */
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left h1 mat-icon {
+  color: #3f51b5;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.subtitle {
+  color: rgba(0,0,0,0.6);
+  font-size: 14px;
+  display: block;
+  margin-top: 4px;
+}
+
+.header-right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Filtres */
+.filters-card {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.last-update {
+  font-size: 12px;
+  color: rgba(0,0,0,0.5);
+}
+
+/* Statistiques */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(63, 81, 181, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: #3f51b5;
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  color: rgba(0,0,0,0.6);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.stat-sub {
+  display: block;
+  font-size: 12px;
+  color: rgba(0,0,0,0.5);
+  margin-top: 2px;
+}
+
+.stat-card mat-progress-bar {
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Risque élevé */
+.stat-card.risk-high .stat-value {
+  color: #dc3545;
+}
+
+.stat-card.risk-low .stat-value {
+  color: #28a745;
+}
+
+/* Segment analysis */
+.segment-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+}
+
+.segment-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.segment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.segment-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid #3f51b5;
+}
+
+.segment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.segment-name {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.segment-montant {
+  font-weight: 500;
+  color: #3f51b5;
+}
+
+.segment-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(0,0,0,0.6);
+  margin-bottom: 8px;
+}
+
+.segment-item mat-progress-bar {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.segment-item .risk-high {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+/* Table des risques */
+.risk-table-card {
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.risk-table-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  background: #dc3545;
+  color: white;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.risk-table {
+  width: 100%;
+}
+
+.client-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.client-name {
+  font-weight: 500;
+}
+
+.proba-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.proba-value {
+  font-weight: 500;
+  min-width: 45px;
+}
+
+.proba-container mat-progress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Risk dots */
+.risk-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.risk-dot.risk-low {
+  background: #28a745;
+}
+
+.risk-dot.risk-medium {
+  background: #ffc107;
+}
+
+.risk-dot.risk-high {
+  background: #fd7e14;
+}
+
+.risk-dot.risk-critical {
+  background: #dc3545;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 16px;
+}
+
+.loading-container p {
+  color: rgba(0,0,0,0.6);
+  font-size: 16px;
+}
+
+/* Table actions */
+.table-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: rgba(0,0,0,0.4);
+}
+
+.table-actions mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.table-actions p {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .analytics-container {
+    padding: 16px;
+  }
+
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .filters-row {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .segment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

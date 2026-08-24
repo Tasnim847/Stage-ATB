@@ -204,15 +204,14 @@ export class SidebarComponent {
   
     // 📊 Portefeuille Global - NOUVEAU
     { path: '/manager/portfolio', icon: 'account_balance', label: 'Portefeuille global', badge: 0 },
-  
+    { path: '/manager/portfolio/analytics', icon: 'analytics', label: 'Analyse portefeuille', badge: 0 },
+    
     // Dashboard Power BI
     { path: '/manager/dashboard/powerbi', icon: 'insights', label: 'Power BI Dashboard', badge: 0 },
     { path: '/manager/kpis', icon: 'insights', label: 'KPIs Dashboard', badge: 0 },
 
     // Validation des décisions
     { path: '/manager/validation/pending', icon: 'pending_actions', label: 'Décisions à valider', badge: 4 },
-    { path: '/manager/validation/high-amount', icon: 'euro_symbol', label: 'Crédits élevés', badge: 2 },
-    { path: '/manager/validation/return', icon: 'assignment_return', label: 'Dossiers retournés', badge: 1 },
   
     // Gestion des analystes
     { path: '/manager/analysts', icon: 'people', label: 'Analystes', badge: 0 },
@@ -223,7 +222,6 @@ export class SidebarComponent {
     { path: '/manager/ai/strategy', icon: 'smart_toy', label: 'Rapports stratégiques', badge: 0 },
     { path: '/manager/ai/forecast', icon: 'timeline', label: 'Prévisions', badge: 0 },
     { path: '/manager/ai/fraud', icon: 'security', label: 'Fraudes détectées', badge: 2 },
-    { path: '/manager/ai/portfolio', icon: 'analytics', label: 'Analyse portefeuille', badge: 0 },
   
     // Clients
     { path: '/clients', icon: 'people_outline', label: 'Clients', badge: 0 },
