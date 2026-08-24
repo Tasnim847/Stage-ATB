@@ -1,4 +1,4 @@
-// src/app/core/services/manager.service.ts
+// src/app/core/services/manager.service.ts - Version corrigée avec responseType: 'blob'
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -15,8 +15,19 @@ export class ManagerService {
   /**
    * Génère un rapport stratégique
    */
-  generateStrategyReport(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/strategy-report/generate`, {});
+  generateStrategyReport(): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/reports/strategy`, {}, {
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * ✅ Génère un rapport détaillé - AVEC responseType: 'blob'
+   */
+  generateDetailedReport(params?: any): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/reports/detailed`, params || {}, {
+      responseType: 'blob'
+    });
   }
 
   /**

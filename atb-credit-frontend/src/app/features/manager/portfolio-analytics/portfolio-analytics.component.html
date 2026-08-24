@@ -1,0 +1,257 @@
+<!-- portfolio-analytics.component.html -->
+<div class="analytics-container">
+  <!-- En-tête -->
+  <div class="analytics-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>analytics</mat-icon>
+        Analyse du Portefeuille
+      </h1>
+      <span class="subtitle">Analyse approfondie et suivi du portefeuille crédit</span>
+    </div>
+    <div class="header-right">
+      <button mat-raised-button color="primary" (click)="generateDetailedReport()">
+        <mat-icon>description</mat-icon>
+        Rapport détaillé
+      </button>
+      <button mat-raised-button (click)="refreshData()">
+        <mat-icon>refresh</mat-icon>
+        Actualiser
+      </button>
+      <button mat-button (click)="toggleAutoRefresh()" [color]="autoRefresh ? 'primary' : ''">
+        <mat-icon>{{ autoRefresh ? 'timer' : 'timer_off' }}</mat-icon>
+        Auto {{ autoRefresh ? 'ON' : 'OFF' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <div class="filter-group">
+          <label>Période</label>
+          <mat-select [(value)]="selectedPeriod" (selectionChange)="changePeriod($event.value)">
+            <mat-option value="month">Mois</mat-option>
+            <mat-option value="quarter">Trimestre</mat-option>
+            <mat-option value="year">Année</mat-option>
+            <mat-option value="all">Tout</mat-option>
+          </mat-select>
+        </div>
+        <div class="filter-group">
+          <label>Segment</label>
+          <mat-select [(value)]="selectedSegment" (selectionChange)="changeSegment($event.value)">
+            <mat-option value="all">Tous</mat-option>
+            <mat-option value="immobilier">Immobilier</mat-option>
+            <mat-option value="consommation">Consommation</mat-option>
+            <mat-option value="professionnel">Professionnel</mat-option>
+            <mat-option value="auto">Auto</mat-option>
+          </mat-select>
+        </div>
+        <div class="filter-actions">
+          <span class="last-update">Dernière mise à jour : {{ currentDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Statistiques clés -->
+  <div class="stats-grid" *ngIf="!isLoading && stats">
+    <mat-card class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>account_balance</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Portefeuille total</span>
+        <span class="stat-value">{{ formatCurrency(stats.totalPortfolio) }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card" [class.risk-high]="stats.averageRiskScore > 60">
+      <div class="stat-icon">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Score de risque moyen</span>
+        <span class="stat-value">{{ stats.averageRiskScore }}%</span>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="stats.averageRiskScore"
+          [color]="stats.averageRiskScore > 60 ? 'warn' : 'primary'">
+        </mat-progress-bar>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Crédits actifs</span>
+        <span class="stat-value">{{ stats.totalLoans }}</span>
+        <span class="stat-sub">{{ stats.nonPerformingLoans }} en difficulté</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card" [class.risk-low]="stats.performanceRate > 90">
+      <div class="stat-icon">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Taux de performance</span>
+        <span class="stat-value">{{ stats.performanceRate }}%</span>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="stats.performanceRate"
+          [color]="stats.performanceRate > 90 ? 'primary' : 'warn'">
+        </mat-progress-bar>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>layers</mat-icon>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Risque de concentration</span>
+        <span class="stat-value">{{ stats.concentrationRisk }}%</span>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="stats.concentrationRisk"
+          color="accent">
+        </mat-progress-bar>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Chargement des analyses...</p>
+  </div>
+
+  <!-- Analyse par segment -->
+  <mat-card class="segment-card" *ngIf="!isLoading && segmentData.length > 0">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>pie_chart</mat-icon>
+        Analyse par segment
+      </mat-card-title>
+      <mat-card-subtitle>Répartition et risque par type de crédit</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="segment-grid">
+        <div class="segment-item" *ngFor="let segment of segmentData">
+          <div class="segment-header">
+            <span class="segment-name">{{ segment.segment }}</span>
+            <span class="segment-montant">{{ formatCurrency(segment.montant) }}</span>
+          </div>
+          <div class="segment-details">
+            <span>{{ segment.credit }} crédits</span>
+            <span [class.risk-high]="segment.risque_moyen > 50">
+              Risque moyen : {{ segment.risque_moyen }}%
+            </span>
+          </div>
+          <mat-progress-bar
+            mode="determinate"
+            [value]="segment.risque_moyen"
+            [color]="segment.risque_moyen > 50 ? 'warn' : 'primary'">
+          </mat-progress-bar>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Crédits à risque -->
+  <mat-card class="risk-table-card" *ngIf="!isLoading">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>dangerous</mat-icon>
+        Crédits à risque élevé
+        <span class="badge">{{ creditsARisque.length }}</span>
+      </mat-card-title>
+      <mat-card-subtitle>Liste des crédits présentant un risque significatif</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="creditsARisque" class="risk-table">
+          <ng-container matColumnDef="client">
+            <th mat-header-cell *matHeaderCellDef> Client </th>
+            <td mat-cell *matCellDef="let credit">
+              <div class="client-info">
+                <span class="client-name">{{ credit.client }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="montant">
+            <th mat-header-cell *matHeaderCellDef> Montant </th>
+            <td mat-cell *matCellDef="let credit">
+              {{ formatCurrency(credit.montant) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef> Type </th>
+            <td mat-cell *matCellDef="let credit">
+              <mat-chip>{{ credit.type }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef> Statut </th>
+            <td mat-cell *matCellDef="let credit">
+              <mat-chip [color]="getStatusColor(credit.statut)" selected>
+                {{ credit.statut }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="risque">
+            <th mat-header-cell *matHeaderCellDef> Niveau de risque </th>
+            <td mat-cell *matCellDef="let credit">
+              <mat-chip [color]="getRiskColor(credit.risque)" selected>
+                <span class="risk-dot" [class]="getRiskClass(credit.risque)"></span>
+                {{ credit.risque }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="proba_defaut">
+            <th mat-header-cell *matHeaderCellDef> Probabilité défaut </th>
+            <td mat-cell *matCellDef="let credit">
+              <div class="proba-container">
+                <span class="proba-value">{{ credit.proba_defaut }}%</span>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="credit.proba_defaut"
+                  [color]="credit.proba_defaut > 50 ? 'warn' : 'primary'">
+                </mat-progress-bar>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef> Actions </th>
+            <td mat-cell *matCellDef="let credit">
+              <button mat-icon-button matTooltip="Voir détails" (click)="viewCreditDetail(credit.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Analyser" (click)="viewCreditDetail(credit.id)">
+                <mat-icon>analytics</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <div class="table-actions" *ngIf="creditsARisque.length === 0">
+        <mat-icon>check_circle</mat-icon>
+        <p>Aucun crédit à risque élevé détecté</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

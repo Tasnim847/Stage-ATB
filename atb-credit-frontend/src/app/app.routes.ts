@@ -717,6 +717,14 @@ export const routes: Routes = [
           .then(m => m.ManagerPowerbiDashboardComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER', 'ADMIN'] }  // Seul le manager et admin peuvent voir
+      },
+      // Ajouter dans la section MANAGER
+      {
+        path: 'manager/portfolio/analytics',
+        loadComponent: () => import('./features/manager/portfolio-analytics/portfolio-analytics.component')
+          .then(m => m.PortfolioAnalyticsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['MANAGER'] }
       }
     ]
   },

@@ -112,4 +112,32 @@ public class PortfolioController {
         Map<String, Object> workload = portfolioService.getWorkloadDistribution();
         return ResponseEntity.ok(workload);
     }
+
+    /**
+     * ✅ Récupère les analyses détaillées du portefeuille (AJOUTÉ)
+     */
+    @GetMapping("/analytics")
+    public ResponseEntity<Map<String, Object>> getPortfolioAnalytics(
+            @RequestParam(defaultValue = "month") String period,
+            @RequestParam(defaultValue = "all") String segment) {
+
+        log.info("📊 Récupération des analyses du portefeuille - period: {}, segment: {}", period, segment);
+
+        Map<String, Object> analytics = portfolioService.getPortfolioAnalytics(period, segment);
+        return ResponseEntity.ok(analytics);
+    }
+
+    /**
+     * ✅ Récupère la matrice des risques (AJOUTÉ)
+     */
+    @GetMapping("/risk-matrix")
+    public ResponseEntity<Map<String, Object>> getPortfolioRiskMatrix(
+            @RequestParam(defaultValue = "month") String period,
+            @RequestParam(defaultValue = "all") String segment) {
+
+        log.info("📊 Récupération de la matrice des risques - period: {}, segment: {}", period, segment);
+
+        Map<String, Object> riskMatrix = portfolioService.getPortfolioRiskMatrix(period, segment);
+        return ResponseEntity.ok(riskMatrix);
+    }
 }

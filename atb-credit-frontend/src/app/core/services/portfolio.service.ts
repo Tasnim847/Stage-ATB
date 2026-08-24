@@ -48,4 +48,24 @@ export class PortfolioService {
   getAnalystPerformance(params: any): Observable<any> {
     return this.http.get(`${this.apiUrl}/analysts/performance`, { params });
   }
+
+  getPortfolioAnalytics(params: any): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get(`${this.apiUrl}/analytics`, { params: httpParams });
+  }
+
+  getPortfolioRiskMatrix(params: any): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key]);
+      }
+    });
+    return this.http.get(`${this.apiUrl}/risk-matrix`, { params: httpParams });
+  }
 }

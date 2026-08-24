@@ -949,4 +949,323 @@ public class PortfolioServiceImpl implements IPortfolioService {
             return 3.0 + (Math.random() * 8.0);
         }
     }
+
+    // ============================================
+    // ANALYSE DU PORTEFEUILLE - MÉTHODES AJOUTÉES
+    // ============================================
+
+    @Override
+    public Map<String, Object> getPortfolioAnalytics(String period, String segment) {
+        log.info("📊 Récupération des analyses du portefeuille - period: {}, segment: {}", period, segment);
+
+        // Déterminer la période
+        LocalDateTime startDate = getStartDateForPeriod(period);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        // Récupérer les crédits
+        List<CreditRequest> credits = creditRequestRepository.findByDateRange(startDate, endDate);
+
+        // Filtrer par segment si nécessaire
+        if (segment != null && !segment.isEmpty() && !"all".equals(segment)) {
+            credits = credits.stream()
+                    .filter(cr -> cr.getCreditType() != null &&
+                            cr.getCreditType().getName().toLowerCase().contains(segment.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        Map<String, Object> analytics = new HashMap<>();
+
+        // Statistiques globales
+        Map<String, Object> stats = calculateAnalyticsStats(credits);
+        analytics.put("stats", stats);
+
+        // Segmentation par type
+        List<Map<String, Object>> segmentData = getSegmentData(credits);
+        analytics.put("segmentData", segmentData);
+
+        // Crédits à risque élevé
+        List<Map<String, Object>> creditsARisque = getHighRiskCreditsDetails(credits);
+        analytics.put("creditsARisque", creditsARisque);
+
+        // Évolution temporelle
+        analytics.put("evolution", getEvolutionData(credits, period));
+
+        // Distribution des risques
+        analytics.put("riskDistribution", getRiskDistribution(credits));
+
+        return analytics;
+    }
+
+    @Override
+    public Map<String, Object> getPortfolioRiskMatrix(String period, String segment) {
+        log.info("📊 Récupération de la matrice des risques - period: {}, segment: {}", period, segment);
+
+        LocalDateTime startDate = getStartDateForPeriod(period);
+        LocalDateTime endDate = LocalDateTime.now();
+
+        List<CreditRequest> credits = creditRequestRepository.findByDateRange(startDate, endDate);
+
+        // Filtrer par segment
+        if (segment != null && !segment.isEmpty() && !"all".equals(segment)) {
+            credits = credits.stream()
+                    .filter(cr -> cr.getCreditType() != null &&
+                            cr.getCreditType().getName().toLowerCase().contains(segment.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        Map<String, Object> matrix = new HashMap<>();
+
+        // Matrice impact vs probabilité
+        List<Map<String, Object>> riskItems = new ArrayList<>();
+
+        for (CreditRequest credit : credits) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", credit.getId());
+            item.put("client", credit.getClient().getFirstName() + " " + credit.getClient().getLastName());
+            item.put("montant", credit.getAmount());
+            item.put("type", credit.getCreditType() != null ? credit.getCreditType().getName() : "Non spécifié");
+            item.put("risque", getRiskLevelForCredit(credit));
+            item.put("probabilite", calculateProbability(credit));
+            item.put("impact", calculateImpact(credit));
+            item.put("score", calculateRiskScoreForCredit(credit));
+            riskItems.add(item);
+        }
+
+        matrix.put("items", riskItems);
+        matrix.put("total", riskItems.size());
+        matrix.put("highRiskCount", riskItems.stream()
+                .filter(item -> "élevé".equals(item.get("risque")) || "critique".equals(item.get("risque")))
+                .count());
+
+        return matrix;
+    }
+
+    // ============================================
+    // MÉTHODES UTILITAIRES POUR L'ANALYSE
+    // ============================================
+
+    private LocalDateTime getStartDateForPeriod(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (period.toLowerCase()) {
+            case "month" -> now.minusMonths(1);
+            case "quarter" -> now.minusMonths(3);
+            case "year" -> now.minusYears(1);
+            default -> LocalDateTime.of(2020, 1, 1, 0, 0, 0);
+        };
+    }
+
+    private Map<String, Object> calculateAnalyticsStats(List<CreditRequest> credits) {
+        Map<String, Object> stats = new HashMap<>();
+
+        if (credits.isEmpty()) {
+            stats.put("totalPortfolio", 0);
+            stats.put("averageRiskScore", 0);
+            stats.put("totalLoans", 0);
+            stats.put("nonPerformingLoans", 0);
+            stats.put("performanceRate", 0);
+            stats.put("concentrationRisk", 0);
+            return stats;
+        }
+
+        // Total du portefeuille
+        BigDecimal totalPortfolio = credits.stream()
+                .map(CreditRequest::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        stats.put("totalPortfolio", totalPortfolio);
+
+        // Total des crédits
+        stats.put("totalLoans", credits.size());
+
+        // Crédits non performants (rejetés ou en retard)
+        long nonPerforming = credits.stream()
+                .filter(cr -> cr.getStatus() == CreditStatus.REJECTED ||
+                        cr.getStatus() == CreditStatus.CANCELLED)
+                .count();
+        stats.put("nonPerformingLoans", nonPerforming);
+
+        // Taux de performance
+        double performanceRate = credits.size() > 0 ?
+                ((credits.size() - nonPerforming) * 100.0 / credits.size()) : 0;
+        stats.put("performanceRate", Math.round(performanceRate * 100.0) / 100.0);
+
+        // Score de risque moyen
+        double avgRiskScore = credits.stream()
+                .mapToDouble(this::calculateRiskScoreForCredit)
+                .average()
+                .orElse(0);
+        stats.put("averageRiskScore", Math.round(avgRiskScore * 100.0) / 100.0);
+
+        // Risque de concentration (top 20% des crédits)
+        List<BigDecimal> amounts = credits.stream()
+                .map(CreditRequest::getAmount)
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        int topCount = (int) Math.ceil(amounts.size() * 0.2);
+        BigDecimal topSum = amounts.stream().limit(topCount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        double concentrationRisk = totalPortfolio.compareTo(BigDecimal.ZERO) > 0 ?
+                topSum.multiply(BigDecimal.valueOf(100))
+                        .divide(totalPortfolio, 2, RoundingMode.HALF_UP)
+                        .doubleValue() : 0;
+        stats.put("concentrationRisk", Math.round(concentrationRisk * 100.0) / 100.0);
+
+        return stats;
+    }
+
+    private double calculateRiskScoreForCredit(CreditRequest credit) {
+        String riskLevel = getRiskLevelForCredit(credit);
+        return switch (riskLevel) {
+            case "faible" -> 20 + Math.random() * 15;
+            case "moyen" -> 35 + Math.random() * 25;
+            case "élevé" -> 60 + Math.random() * 20;
+            case "critique" -> 80 + Math.random() * 15;
+            default -> 50;
+        };
+    }
+
+    private List<Map<String, Object>> getSegmentData(List<CreditRequest> credits) {
+        Map<String, List<CreditRequest>> byType = credits.stream()
+                .filter(cr -> cr.getCreditType() != null)
+                .collect(Collectors.groupingBy(
+                        cr -> cr.getCreditType().getName()
+                ));
+
+        List<Map<String, Object>> segmentData = new ArrayList<>();
+
+        for (Map.Entry<String, List<CreditRequest>> entry : byType.entrySet()) {
+            List<CreditRequest> typeCredits = entry.getValue();
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("segment", entry.getKey());
+
+            // Montant total
+            BigDecimal total = typeCredits.stream()
+                    .map(CreditRequest::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            data.put("montant", total);
+
+            // Nombre de crédits
+            data.put("credit", typeCredits.size());
+
+            // Risque moyen
+            double avgRisk = typeCredits.stream()
+                    .mapToDouble(this::calculateRiskScoreForCredit)
+                    .average()
+                    .orElse(0);
+            data.put("risque_moyen", Math.round(avgRisk * 100.0) / 100.0);
+
+            segmentData.add(data);
+        }
+
+        // Trier par montant décroissant
+        segmentData.sort((a, b) ->
+                ((BigDecimal) b.get("montant")).compareTo((BigDecimal) a.get("montant")));
+
+        return segmentData;
+    }
+
+    private List<Map<String, Object>> getHighRiskCreditsDetails(List<CreditRequest> credits) {
+        return credits.stream()
+                .filter(cr -> {
+                    String risk = getRiskLevelForCredit(cr);
+                    return "élevé".equals(risk) || "critique".equals(risk);
+                })
+                .limit(20)
+                .map(cr -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", cr.getId());
+                    item.put("client", cr.getClient().getFirstName() + " " + cr.getClient().getLastName());
+                    item.put("montant", cr.getAmount());
+                    item.put("type", cr.getCreditType() != null ? cr.getCreditType().getName() : "Non spécifié");
+                    item.put("statut", cr.getStatus().name());
+                    item.put("risque", getRiskLevelForCredit(cr));
+                    item.put("proba_defaut", Math.round(calculateProbability(cr) * 100));
+                    return item;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> getEvolutionData(List<CreditRequest> credits, String period) {
+        Map<String, Object> evolution = new HashMap<>();
+
+        // Déterminer le nombre de points en fonction de la période
+        int points = switch (period.toLowerCase()) {
+            case "month" -> 30;
+            case "quarter" -> 90;
+            case "year" -> 365;
+            default -> 30;
+        };
+
+        List<String> labels = new ArrayList<>();
+        List<Double> values = new ArrayList<>();
+
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = points - 1; i >= 0; i--) {
+            LocalDateTime date = now.minusDays(i);
+            labels.add(date.toLocalDate().toString());
+
+            final LocalDateTime start = date.withHour(0).withMinute(0).withSecond(0);
+            final LocalDateTime end = date.withHour(23).withMinute(59).withSecond(59);
+
+            double total = credits.stream()
+                    .filter(cr -> cr.getCreatedAt().isAfter(start) && cr.getCreatedAt().isBefore(end))
+                    .filter(cr -> cr.getStatus() == CreditStatus.APPROVED)
+                    .mapToDouble(cr -> cr.getAmount().doubleValue())
+                    .sum();
+
+            values.add(Math.round(total * 100.0) / 100.0);
+        }
+
+        evolution.put("labels", labels);
+        evolution.put("values", values);
+        return evolution;
+    }
+
+    private Map<String, Object> getRiskDistribution(List<CreditRequest> credits) {
+        Map<String, Object> distribution = new HashMap<>();
+
+        long faible = credits.stream()
+                .filter(cr -> "faible".equals(getRiskLevelForCredit(cr)))
+                .count();
+        long moyen = credits.stream()
+                .filter(cr -> "moyen".equals(getRiskLevelForCredit(cr)))
+                .count();
+        long eleve = credits.stream()
+                .filter(cr -> "élevé".equals(getRiskLevelForCredit(cr)))
+                .count();
+        long critique = credits.stream()
+                .filter(cr -> "critique".equals(getRiskLevelForCredit(cr)))
+                .count();
+
+        distribution.put("faible", faible);
+        distribution.put("moyen", moyen);
+        distribution.put("élevé", eleve);
+        distribution.put("critique", critique);
+
+        return distribution;
+    }
+
+    private double calculateProbability(CreditRequest credit) {
+        String riskLevel = getRiskLevelForCredit(credit);
+        return switch (riskLevel) {
+            case "faible" -> 0.05 + Math.random() * 0.15;
+            case "moyen" -> 0.20 + Math.random() * 0.25;
+            case "élevé" -> 0.45 + Math.random() * 0.25;
+            case "critique" -> 0.70 + Math.random() * 0.20;
+            default -> 0.30;
+        };
+    }
+
+    private double calculateImpact(CreditRequest credit) {
+        BigDecimal amount = credit.getAmount();
+        if (amount.compareTo(BigDecimal.valueOf(100000)) > 0) {
+            return 8 + Math.random() * 2;
+        } else if (amount.compareTo(BigDecimal.valueOf(50000)) > 0) {
+            return 5 + Math.random() * 3;
+        } else {
+            return 2 + Math.random() * 3;
+        }
+    }
 }
