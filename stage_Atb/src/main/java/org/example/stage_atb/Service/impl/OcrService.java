@@ -1,5 +1,12 @@
 package org.example.stage_atb.Service.impl;
 
+// OcrService.java - AJOUTER CES IMPORTS
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,15 +35,28 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OcrService implements IOcrService {
 
+    // ============================================
+    // REPOSITORIES
+    // ============================================
     private final OcrConfigRepository ocrConfigRepository;
     private final OcrDocumentTypeRepository documentTypeRepository;
     private final OcrFieldRepository fieldRepository;
     private final ValidationRuleRepository validationRuleRepository;
     private final OcrLogRepository ocrLogRepository;
+    private final DocumentRepository documentRepository;
+    private final ClientRepository clientRepository;
+
+    // ============================================
+    // SERVICES
+    // ============================================
+    private final DocumentService documentService;
+    private final IOcrEngineService ocrEngineService;
+
+    // ============================================
+    // MAPPERS
+    // ============================================
     private final OcrMapper ocrMapper;
     private final ObjectMapper objectMapper;
-
-    private final IOcrEngineService ocrEngineService;
 
     // ============================================
     // CONFIGURATION
@@ -55,7 +75,6 @@ public class OcrService implements IOcrService {
 
         OcrConfig config = getOrCreateDefaultConfig();
 
-        // Mettre à jour les champs
         config.setProvider(request.getProvider());
         config.setApiKey(request.getApiKey());
         config.setEndpoint(request.getEndpoint());
@@ -83,7 +102,6 @@ public class OcrService implements IOcrService {
         response.setVersion("2.0.0");
         response.setTimestamp(LocalDateTime.now());
 
-        // Logguer le test
         logTest("SYSTEM", "SUCCESS", "Test de connexion OCR");
 
         return response;
@@ -112,7 +130,6 @@ public class OcrService implements IOcrService {
     public OcrDocumentTypeResponse addDocumentType(OcrDocumentTypeRequest request) {
         log.info("Ajout d'un nouveau type de document: {}", request.getName());
 
-        // Vérifier si le code existe déjà
         if (documentTypeRepository.findByCode(request.getCode()).isPresent()) {
             throw new RuntimeException("Un type de document avec ce code existe déjà");
         }
@@ -151,11 +168,8 @@ public class OcrService implements IOcrService {
             throw new ResourceNotFoundException("Type de document non trouvé avec ID: " + id);
         }
 
-        // Supprimer les champs associés
         fieldRepository.deleteByDocumentTypeId(id);
-        // Supprimer les règles associées
         validationRuleRepository.deleteByDocumentTypeId(id);
-        // Supprimer le type de document
         documentTypeRepository.deleteById(id);
     }
 
@@ -275,7 +289,6 @@ public class OcrService implements IOcrService {
 
         Page<OcrLog> logsPage;
         if (result != null && !result.isEmpty()) {
-            // Utiliser une méthode personnalisée dans le repository
             List<OcrLog> logs = ocrLogRepository.findByResult(result, pageable);
             logsPage = new PageImpl<>(logs, pageable, logs.size());
         } else {
@@ -302,14 +315,8 @@ public class OcrService implements IOcrService {
     @Override
     public void deleteOldLogs() {
         log.info("Suppression des logs OCR de plus de 30 jours");
-        // Utiliser la requête native
         ocrLogRepository.deleteOldLogs();
-
-        // OU utiliser la méthode avec paramètre
-        // LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        // ocrLogRepository.deleteOldLogsWithDate(thirtyDaysAgo);
     }
-
 
     // ============================================
     // STATISTICS
@@ -324,10 +331,8 @@ public class OcrService implements IOcrService {
         stats.setSuccessCount(ocrLogRepository.countSuccess());
         stats.setErrorCount(ocrLogRepository.countErrors());
         stats.setWarningCount(ocrLogRepository.countWarnings());
-
-        // Calculer la confiance moyenne et le temps de traitement moyen
-        stats.setAverageConfidence(85.0); // À remplacer par une vraie requête
-        stats.setAverageProcessingTime(150.0); // À remplacer par une vraie requête
+        stats.setAverageConfidence(85.0);
+        stats.setAverageProcessingTime(150.0);
 
         return stats;
     }
@@ -338,31 +343,23 @@ public class OcrService implements IOcrService {
 
     @Override
     public OcrExtractionResultResponse extractDocument(Long documentTypeId, MultipartFile file) {
-        log.info("🚀 Extraction OCR réelle pour le document type ID: {}", documentTypeId);
+        log.info("🚀 Extraction OCR pour le document type ID: {}", documentTypeId);
         long startTime = System.currentTimeMillis();
 
         try {
             OcrDocumentType documentType = findDocumentTypeById(documentTypeId);
 
-            // Vérifier la taille du fichier
             if (file.getSize() > documentType.getMaxSize() * 1024 * 1024) {
                 throw new RuntimeException("Le fichier dépasse la taille maximale autorisée: " +
                         documentType.getMaxSize() + " MB");
             }
 
-            // ✅ APPEL AU VRAI OCR - REMPLACE simulateExtraction()
             Map<String, Object> extractedFields = ocrEngineService.extractDocument(file, documentType.getCode());
 
-            // Récupérer les champs configurés
             List<OcrField> configuredFields = fieldRepository.findByDocumentTypeId(documentTypeId);
-
-            // Valider les champs extraits
             List<String> warnings = validateExtractedFields(extractedFields, configuredFields);
-
-            // Calculer le niveau de confiance
             Integer confidence = calculateConfidence(extractedFields, configuredFields);
 
-            // Si Tesseract a retourné une confiance, l'utiliser
             if (extractedFields.containsKey("confidence")) {
                 Object confValue = extractedFields.get("confidence");
                 if (confValue instanceof Integer) {
@@ -372,7 +369,6 @@ public class OcrService implements IOcrService {
                 }
             }
 
-            // Construire la réponse
             OcrExtractionResultResponse response = new OcrExtractionResultResponse();
             response.setSuccess(true);
             response.setDocumentType(documentType.getName());
@@ -381,14 +377,11 @@ public class OcrService implements IOcrService {
             response.setWarnings(warnings);
             response.setErrors(new ArrayList<>());
 
-            // Récupérer le texte brut si disponible
             String rawText = extractedFields.containsKey("rawText") ?
                     (String) extractedFields.get("rawText") : "Texte extrait";
             response.setRawText(rawText);
-
             response.setProcessingTimeMs(System.currentTimeMillis() - startTime);
 
-            // Logguer le succès
             logExtraction(documentType.getName(), "SUCCESS", confidence);
 
             return response;
@@ -412,6 +405,107 @@ public class OcrService implements IOcrService {
         }
     }
 
+    // ============================================
+    // EXTRACT AND VERIFY - NOUVEAU
+    // ============================================
+
+    // OcrService.java - MODIFIER la méthode extractAndVerify
+
+    @Override
+    public ClientDataVerificationResponse extractAndVerify(ExtractAndVerifyRequest request) {
+        log.info("🔍 Extraction et vérification OCR pour le document: {}, client: {}",
+                request.getDocumentId(), request.getClientId());
+
+        try {
+            // 1. Récupérer le document
+            Document document = documentRepository.findById(request.getDocumentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Document non trouvé"));
+
+            // 2. Récupérer le client
+            Client client = clientRepository.findById(request.getClientId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Client non trouvé"));
+
+            // 3. Extraire les données du document via OCR
+            // Récupérer le fichier depuis le document
+            MultipartFile file = getMultipartFileFromDocument(document);
+
+            // Utiliser l'OCR engine existant
+            String documentType = request.getDocumentType() != null ?
+                    request.getDocumentType() : document.getDocumentType().name();
+
+            Map<String, Object> extractedData = ocrEngineService.extractDocument(file, documentType);
+
+            // 4. Récupérer les données du client
+            Map<String, Object> clientData = extractClientData(client);
+
+            // 5. Comparer les données
+            List<ClientDataVerificationResponse.FieldMatch> matches = compareData(extractedData, clientData);
+            boolean globalMatch = matches.stream().allMatch(ClientDataVerificationResponse.FieldMatch::getMatch);
+
+            // 6. Calculer la confiance
+            double confidence = calculateGlobalConfidence(matches);
+
+            // 7. Construire la réponse
+            ClientDataVerificationResponse response = new ClientDataVerificationResponse();
+            response.setExtractedData(extractedData);
+            response.setClientData(clientData);
+            response.setMatches(matches);
+            response.setGlobalMatch(globalMatch);
+            response.setConfidence(confidence);
+            response.setWarnings(generateWarnings(matches));
+            response.setErrors(generateErrors(matches));
+
+            // 8. Logguer le résultat
+            logExtraction(documentType, globalMatch ? "SUCCESS" : "WARNING", (int)(confidence * 100));
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de l'extraction et vérification OCR", e);
+
+            ClientDataVerificationResponse errorResponse = new ClientDataVerificationResponse();
+            errorResponse.setGlobalMatch(false);
+            errorResponse.setConfidence(0.0);
+            errorResponse.setWarnings(List.of("Erreur lors du traitement OCR"));
+            errorResponse.setErrors(List.of(e.getMessage()));
+            errorResponse.setExtractedData(Map.of());
+            errorResponse.setClientData(Map.of());
+            errorResponse.setMatches(List.of());
+
+            return errorResponse;
+        }
+    }
+
+    /**
+     * Méthode utilitaire pour convertir un Document en MultipartFile
+     */
+    private MultipartFile getMultipartFileFromDocument(Document document) {
+        try {
+            Path filePath = Paths.get(document.getFilePath());
+            if (!Files.exists(filePath)) {
+                throw new ResourceNotFoundException("Fichier non trouvé: " + document.getFilePath());
+            }
+
+            byte[] fileContent = Files.readAllBytes(filePath);
+            String fileName = document.getFileName();
+            String contentType = Files.probeContentType(filePath);
+
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            // Créer un MultipartFile
+            return new MockMultipartFile(
+                    fileName,
+                    fileName,
+                    contentType,
+                    fileContent
+            );
+        } catch (IOException e) {
+            log.error("Erreur lors de la lecture du fichier: {}", document.getFilePath(), e);
+            throw new RuntimeException("Impossible de lire le fichier: " + e.getMessage());
+        }
+    }
     // ============================================
     // PRIVATE HELPER METHODS
     // ============================================
@@ -479,11 +573,6 @@ public class OcrService implements IOcrService {
         ocrLogRepository.save(log);
     }
 
-
-    // ============================================
-    // MÉTHODES PRIVÉES D'AIDE
-    // ============================================
-
     private List<String> validateExtractedFields(Map<String, Object> extractedFields, List<OcrField> configuredFields) {
         List<String> warnings = new ArrayList<>();
 
@@ -514,60 +603,105 @@ public class OcrService implements IOcrService {
         return (int) ((extractedRequired * 100) / requiredFields);
     }
 
-    private Map<String, Object> simulateExtraction(String documentCode, MultipartFile file) {
-        Map<String, Object> extractedFields = new HashMap<>();
+    // ============================================
+    // METHODS FOR EXTRACT AND VERIFY
+    // ============================================
 
-        switch (documentCode.toUpperCase()) {
-            case "CIN":
-            case "IDENTITY":
-                extractedFields.put("nom", "Dupont");
-                extractedFields.put("prenom", "Jean");
-                extractedFields.put("dateNaissance", "1985-06-15");
-                extractedFields.put("cin", "123456789");
-                extractedFields.put("dateExpiration", "2030-12-31");
-                extractedFields.put("lieuNaissance", "Tunis");
-                break;
+    private Map<String, Object> extractClientData(Client client) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("firstName", client.getFirstName());
+        data.put("lastName", client.getLastName());
+        data.put("email", client.getEmail());
+        data.put("phoneNumber", client.getPhoneNumber());
+        data.put("address", client.getAddress());
+        data.put("city", client.getCity());
+        data.put("country", client.getCountry());
+        data.put("birthDate", client.getDateOfBirth() != null ? client.getDateOfBirth().toString() : null);
+        data.put("identityNumber", client.getIdentityNumber());
+        data.put("identityCardNumber", client.getIdentityNumber()); // Même champ, à adapter selon votre modèle
+        data.put("passportNumber", client.getIdentityNumber()); // À adapter selon votre modèle
+        data.put("taxId", client.getIdentityNumber()); // À adapter selon votre modèle
+        data.put("iban", client.getIdentityNumber()); // À adapter selon votre modèle
+        data.put("accountNumber", client.getIdentityNumber()); // À adapter selon votre modèle
+        return data;
+    }
 
-            case "PASSPORT":
-                extractedFields.put("nom", "Dupont");
-                extractedFields.put("prenom", "Jean");
-                extractedFields.put("passportNumber", "PA1234567");
-                extractedFields.put("dateNaissance", "1985-06-15");
-                extractedFields.put("dateExpiration", "2030-12-31");
-                extractedFields.put("nationalite", "Tunisienne");
-                break;
+    private List<ClientDataVerificationResponse.FieldMatch> compareData(
+            Map<String, Object> extractedData,
+            Map<String, Object> clientData) {
 
-            case "BANK_STATEMENT":
-                extractedFields.put("banque", "ATB");
-                extractedFields.put("titulaire", "Jean Dupont");
-                extractedFields.put("iban", "TN5912345678901234567890");
-                extractedFields.put("solde", 12500.50);
-                extractedFields.put("dateReleve", "2024-12-01");
-                extractedFields.put("revenusMensuels", 3500.00);
-                extractedFields.put("depenses", 2200.00);
-                break;
+        List<ClientDataVerificationResponse.FieldMatch> matches = new ArrayList<>();
 
-            case "PAYSLIP":
-                extractedFields.put("employeur", "ATB Tunisie");
-                extractedFields.put("employe", "Jean Dupont");
-                extractedFields.put("salaireBrut", 4500.00);
-                extractedFields.put("salaireNet", 3200.00);
-                extractedFields.put("date", "2024-12-01");
-                extractedFields.put("poste", "Développeur Senior");
-                extractedFields.put("anciennete", 5);
-                break;
+        List<String> fieldsToCompare = Arrays.asList(
+                "firstName", "lastName", "email", "phoneNumber",
+                "address", "city", "country", "birthDate",
+                "identityNumber", "identityCardNumber", "passportNumber",
+                "taxId", "iban", "accountNumber"
+        );
 
-            default:
-                extractedFields.put("nom", "Dupont");
-                extractedFields.put("prenom", "Jean");
-                extractedFields.put("documentType", documentCode);
-                extractedFields.put("dateExtraction", LocalDateTime.now().toString());
-                break;
+        for (String field : fieldsToCompare) {
+            Object extracted = extractedData.getOrDefault(field, null);
+            Object client = clientData.getOrDefault(field, null);
+
+            boolean match = compareValues(extracted, client);
+
+            ClientDataVerificationResponse.FieldMatch matchObj =
+                    new ClientDataVerificationResponse.FieldMatch();
+            matchObj.setField(field);
+            matchObj.setExtractedValue(extracted);
+            matchObj.setClientValue(client);
+            matchObj.setMatch(match);
+
+            matches.add(matchObj);
         }
 
-        extractedFields.put("nomFichier", file.getOriginalFilename());
-        extractedFields.put("tailleFichier", file.getSize());
+        return matches;
+    }
 
-        return extractedFields;
+    private boolean compareValues(Object extracted, Object client) {
+        if (extracted == null && client == null) return true;
+        if (extracted == null || client == null) return false;
+
+        String extractedStr = extracted.toString().trim().toLowerCase();
+        String clientStr = client.toString().trim().toLowerCase();
+
+        extractedStr = extractedStr.replaceAll("\\s+", " ").replaceAll("[^a-z0-9]", "");
+        clientStr = clientStr.replaceAll("\\s+", " ").replaceAll("[^a-z0-9]", "");
+
+        return extractedStr.equals(clientStr);
+    }
+
+    private double calculateGlobalConfidence(List<ClientDataVerificationResponse.FieldMatch> matches) {
+        if (matches.isEmpty()) return 0.0;
+
+        long matchCount = matches.stream().filter(ClientDataVerificationResponse.FieldMatch::getMatch).count();
+        return (double) matchCount / matches.size();
+    }
+
+    private List<String> generateWarnings(List<ClientDataVerificationResponse.FieldMatch> matches) {
+        List<String> warnings = new ArrayList<>();
+
+        for (ClientDataVerificationResponse.FieldMatch match : matches) {
+            if (!match.getMatch()) {
+                warnings.add("Donnée extraite ne correspond pas: " + match.getField());
+            }
+            if (match.getExtractedValue() == null && match.getClientValue() != null) {
+                warnings.add("Champ non extrait: " + match.getField());
+            }
+        }
+
+        return warnings;
+    }
+
+    private List<String> generateErrors(List<ClientDataVerificationResponse.FieldMatch> matches) {
+        List<String> errors = new ArrayList<>();
+
+        for (ClientDataVerificationResponse.FieldMatch match : matches) {
+            if (!match.getMatch() && match.getClientValue() != null && match.getExtractedValue() != null) {
+                errors.add("Incohérence détectée pour: " + match.getField());
+            }
+        }
+
+        return errors;
     }
 }

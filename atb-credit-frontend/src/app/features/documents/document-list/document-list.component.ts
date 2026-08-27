@@ -1,7 +1,7 @@
 // features/documents/document-list/document-list.component.ts
 import { Component, OnInit, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';  // ✅ AJOUTER Router
 import { DocumentResponseDTO, DocumentType, DOCUMENT_TYPE_CONFIG } from '@core/models';
 import { ToastrService } from 'ngx-toastr';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -33,6 +33,7 @@ export class DocumentListComponent implements OnInit, OnChanges {
   private documentService = inject(DocumentService);
   private toastr = inject(ToastrService);
   private modalService = inject(NgbModal);
+  private router = inject(Router);  // ✅ AJOUTER l'injection du Router
 
   ngOnInit(): void {
     if (this.clientId) {
@@ -256,5 +257,17 @@ export class DocumentListComponent implements OnInit, OnChanges {
     } catch {
       return false;
     }
+  }
+
+  // ✅ Méthode pour ouvrir la vérification OCR
+  openOcrVerification(doc: DocumentResponseDTO): void {
+    if (!doc) return;
+    this.router.navigate(['/documents/ocr-verify', doc.id], {
+      queryParams: { 
+        clientId: this.clientId,
+        creditRequestId: this.creditRequestId,
+        redirectTo: '/clients/' + this.clientId
+      }
+    });
   }
 }

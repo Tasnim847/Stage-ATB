@@ -232,50 +232,61 @@ export class DocumentUploadComponent implements OnInit {
     return DOCUMENT_TYPE_CONFIG[type]?.mandatory || false;
   }
 
-  onSubmit(): void {
-    if (this.uploadForm.invalid || !this.selectedFile) {
-      this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 5000 });
-      return;
-    }
 
-    this.uploading = true;
-    const formData = new FormData();
-    formData.append('file', this.selectedFile);
-    formData.append('clientId', this.uploadForm.get('clientId')?.value);
-    formData.append('documentType', this.uploadForm.get('documentType')?.value);
-    
-    if (this.uploadForm.get('description')?.value) {
-      formData.append('description', this.uploadForm.get('description')?.value);
-    }
-    
-    const creditRequestId = this.uploadForm.get('creditRequestId')?.value;
-    if (creditRequestId) {
-      formData.append('creditRequestId', creditRequestId);
-    }
-
-    this.documentService.uploadDocument(formData)
-      .pipe(finalize(() => {
-        this.uploading = false;
-      }))
-      .subscribe({
-        next: () => {
-          this.snackBar.open('📄 Document téléchargé avec succès', 'Fermer', { duration: 3000 });
-          
-          // ✅ Rediriger vers la page de détail du crédit si disponible
-          if (creditRequestId) {
-            this.router.navigate(['/credit-requests', creditRequestId]);
-          } else if (this.uploadForm.get('clientId')?.value) {
-            this.router.navigate(['/clients', this.uploadForm.get('clientId')?.value]);
-          } else {
-            this.router.navigate(['/documents']);
-          }
-        },
-        error: (error) => {
-          console.error('Erreur upload:', error);
-          this.snackBar.open('❌ Erreur lors du téléchargement du document', 'Fermer', { duration: 5000 });
-        }
-      });
+onSubmit(): void {
+  if (this.uploadForm.invalid || !this.selectedFile) {
+    this.snackBar.open('Veuillez remplir tous les champs obligatoires', 'Fermer', { duration: 5000 });
+    return;
   }
+
+  this.uploading = true;
+  const formData = new FormData();
+  formData.append('file', this.selectedFile);
+  formData.append('clientId', this.uploadForm.get('clientId')?.value);
+  formData.append('documentType', this.uploadForm.get('documentType')?.value);
+  
+  if (this.uploadForm.get('description')?.value) {
+    formData.append('description', this.uploadForm.get('description')?.value);
+  }
+  
+  const creditRequestId = this.uploadForm.get('creditRequestId')?.value;
+  if (creditRequestId) {
+    formData.append('creditRequestId', creditRequestId);
+  }
+
+  this.documentService.uploadDocument(formData)
+    .pipe(finalize(() => {
+      this.uploading = false;
+    }))
+    .subscribe({
+      next: (uploadedDoc) => {
+        this.snackBar.open('📄 Document téléchargé avec succès', 'Fermer', { duration: 3000 });
+        
+        // ✅ REDIRIGER VERS LA VÉRIFICATION OCR
+        const clientId = this.uploadForm.get('clientId')?.value;
+        const creditId = this.uploadForm.get('creditRequestId')?.value;
+        
+        let redirectTo = '/documents';
+        if (creditId) {
+          redirectTo = '/credit-requests/' + creditId;
+        } else if (clientId) {
+          redirectTo = '/clients/' + clientId;
+        }
+        
+        this.router.navigate(['/documents/ocr-verify', uploadedDoc.id], {
+          queryParams: { 
+            clientId: clientId,
+            creditRequestId: creditId,
+            redirectTo: redirectTo
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Erreur upload:', error);
+        this.snackBar.open('❌ Erreur lors du téléchargement du document', 'Fermer', { duration: 5000 });
+      }
+    });
+}
 
   cancel(): void {
     // ✅ Retourner à la page précédente

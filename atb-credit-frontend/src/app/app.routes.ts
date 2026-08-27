@@ -725,7 +725,17 @@ export const routes: Routes = [
           .then(m => m.PortfolioAnalyticsComponent),
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
-      }
+      },
+      // app.routes.ts
+// AJOUTER dans la section GESTION DES DOCUMENTS
+
+{
+  path: 'documents/ocr-verify/:documentId',
+  loadComponent: () => import('./features/documents/document-ocr-verification/document-ocr-verification.component')
+    .then(m => m.DocumentOcrVerificationComponent),
+  canActivate: [roleGuard],
+  data: { roles: ['ADMIN', 'ANALYST', 'ADVISOR'] }
+},
     ]
   },
   {

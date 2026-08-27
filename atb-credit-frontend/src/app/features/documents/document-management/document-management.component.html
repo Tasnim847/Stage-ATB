@@ -305,44 +305,67 @@
       </div>
 
       <!-- Actions -->
-      <div class="card-actions" (click)="$event.stopPropagation()">
-        <button mat-icon-button color="primary" (click)="downloadDocument(doc)" matTooltip="Télécharger">
-          <mat-icon>download</mat-icon>
-        </button>
-        <button *ngIf="canVerifyDocument()" 
-                mat-icon-button 
-                [color]="doc.verified ? 'warn' : 'primary'"
-                (click)="verifyDocument(doc)"
-                matTooltip="{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}">
-          <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
-        </button>
-        <button *ngIf="canDeleteDocument(doc)" 
-                mat-icon-button 
-                color="warn"
-                (click)="deleteDocument(doc)"
-                matTooltip="Supprimer">
-          <mat-icon>delete</mat-icon>
-        </button>
-        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        
-        <mat-menu #menu="matMenu">
-          <button mat-menu-item (click)="downloadDocument(doc)">
-            <mat-icon>download</mat-icon>
-            <span>Télécharger</span>
-          </button>
-          <button *ngIf="canVerifyDocument()" mat-menu-item (click)="verifyDocument(doc)">
-            <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
-            <span>{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}</span>
-          </button>
-          <mat-divider></mat-divider>
-          <button *ngIf="canDeleteDocument(doc)" mat-menu-item (click)="deleteDocument(doc)" class="danger-item">
-            <mat-icon color="warn">delete</mat-icon>
-            <span>Supprimer</span>
-          </button>
-        </mat-menu>
-      </div>
+      <!-- features/documents/document-management/document-management.component.html -->
+<!-- Dans les actions de la carte (vue grille) -->
+
+<!-- Actions -->
+<div class="card-actions" (click)="$event.stopPropagation()">
+  <button mat-icon-button color="primary" (click)="downloadDocument(doc)" matTooltip="Télécharger">
+    <mat-icon>download</mat-icon>
+  </button>
+  
+  <!-- ✅ BOUTON OCR AJOUTÉ -->
+  <button *ngIf="canVerifyDocument()" 
+          mat-icon-button 
+          color="accent"
+          (click)="openOcrVerification(doc)"
+          matTooltip="Vérifier avec OCR">
+    <mat-icon>auto_awesome</mat-icon>
+  </button>
+  
+  <button *ngIf="canVerifyDocument()" 
+          mat-icon-button 
+          [color]="doc.verified ? 'warn' : 'primary'"
+          (click)="verifyDocument(doc)"
+          matTooltip="{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}">
+    <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
+  </button>
+  
+  <button *ngIf="canDeleteDocument(doc)" 
+          mat-icon-button 
+          color="warn"
+          (click)="deleteDocument(doc)"
+          matTooltip="Supprimer">
+    <mat-icon>delete</mat-icon>
+  </button>
+  
+  <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Plus d'actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item (click)="downloadDocument(doc)">
+      <mat-icon>download</mat-icon>
+      <span>Télécharger</span>
+    </button>
+    
+    <!-- ✅ MENU OCR AJOUTÉ -->
+    <button *ngIf="canVerifyDocument()" mat-menu-item (click)="openOcrVerification(doc)">
+      <mat-icon color="accent">auto_awesome</mat-icon>
+      <span>Vérification OCR</span>
+    </button>
+    
+    <button *ngIf="canVerifyDocument()" mat-menu-item (click)="verifyDocument(doc)">
+      <mat-icon>{{ doc.verified ? 'cancel' : 'verified' }}</mat-icon>
+      <span>{{ doc.verified ? 'Annuler la vérification' : 'Vérifier' }}</span>
+    </button>
+    <mat-divider></mat-divider>
+    <button *ngIf="canDeleteDocument(doc)" mat-menu-item (click)="deleteDocument(doc)" class="danger-item">
+      <mat-icon color="warn">delete</mat-icon>
+      <span>Supprimer</span>
+    </button>
+  </mat-menu>
+</div>
     </mat-card>
   </div>
 
