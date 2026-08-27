@@ -145,6 +145,13 @@
             <version>3.5.1</version>
         </dependency>
 
+        <!-- pom.xml - AJOUTER CETTE DÉPENDANCE -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- pom.xml - Ajouter pour iText PDF -->
         <dependency>
             <groupId>com.itextpdf</groupId>

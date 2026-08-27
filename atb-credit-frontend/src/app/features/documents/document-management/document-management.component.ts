@@ -18,7 +18,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatBadgeModule } from '@angular/material/badge';
-import { MatTableModule } from '@angular/material/table'; // ✅ AJOUTÉ
+import { MatTableModule } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
@@ -52,7 +52,7 @@ import { GroupByPipe, ObjLengthPipe } from '../pipes/group-by.pipe';
     MatNativeDateModule,
     MatSlideToggleModule,
     MatBadgeModule,
-    MatTableModule, // ✅ AJOUTÉ
+    MatTableModule,
     GroupByPipe,
     ObjLengthPipe
   ],
@@ -180,7 +180,6 @@ export class DocumentManagementComponent implements OnInit, OnDestroy {
     this.completeDocuments = docs.filter(d => d?.complete).length;
     this.incompleteDocuments = docs.filter(d => !d?.complete).length;
     
-    // Calculer le nombre de clients uniques
     const clientIds = new Set(docs.map(d => d.clientId));
     this.clientCount = clientIds.size;
   }
@@ -280,14 +279,9 @@ export class DocumentManagementComponent implements OnInit, OnDestroy {
   // ============================================
   // 8. ACTIONS SUR LES DOCUMENTS
   // ============================================
-  // features/documents/document-management/document-management.component.ts
-// Modifier la méthode openUploadModal()
-
   openUploadModal(): void {
-    // ✅ Rediriger vers la page de téléchargement au lieu d'ouvrir un modal
     this.router.navigate(['/documents/upload']);
   }
-
 
   openDocumentDetail(doc: DocumentResponseDTO): void {
     if (!doc) return;
@@ -309,8 +303,18 @@ export class DocumentManagementComponent implements OnInit, OnDestroy {
 
   verifyDocument(doc: DocumentResponseDTO): void {
     if (!doc) return;
-    // ✅ Rediriger vers la page de vérification au lieu d'ouvrir un modal
     this.router.navigate(['/documents/verify', doc.id]);
+  }
+
+  // ✅ Méthode OCR Verification
+  openOcrVerification(doc: DocumentResponseDTO): void {
+    if (!doc) return;
+    this.router.navigate(['/documents/ocr-verify', doc.id], {
+      queryParams: { 
+        clientId: doc.clientId,
+        redirectTo: '/documents'
+      }
+    });
   }
 
   deleteDocument(doc: DocumentResponseDTO): void {
@@ -437,5 +441,4 @@ export class DocumentManagementComponent implements OnInit, OnDestroy {
       return false;
     }
   }
-  
 }

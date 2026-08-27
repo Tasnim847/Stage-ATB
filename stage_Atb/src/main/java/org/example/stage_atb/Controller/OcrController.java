@@ -216,4 +216,14 @@ public class OcrController {
                 documentTypeId, file.getOriginalFilename());
         return ResponseEntity.ok(ocrService.extractDocument(documentTypeId, file));
     }
+
+    // OcrController.java - AJOUTER CETTE MÉTHODE
+
+    @PostMapping("/extract-and-verify")
+    public ResponseEntity<ClientDataVerificationResponse> extractAndVerify(
+            @RequestBody ExtractAndVerifyRequest request) {
+        log.info("POST /api/ocr/extract-and-verify - DocumentId: {}, ClientId: {}",
+                request.getDocumentId(), request.getClientId());
+        return ResponseEntity.ok(ocrService.extractAndVerify(request));
+    }
 }

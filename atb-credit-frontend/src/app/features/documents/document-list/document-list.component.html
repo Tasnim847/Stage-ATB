@@ -114,6 +114,13 @@
                         (click)="deleteDocument(doc)">
                   <i class="fas fa-trash"></i>
                 </button>
+                <!-- ✅ BOUTON OCR VERIFICATION AJOUTÉ -->
+                <button *ngIf="canVerifyDocument()" 
+                        class="btn btn-sm btn-outline-accent" 
+                        (click)="openOcrVerification(doc)"
+                        title="Vérification automatique par OCR">
+                  <i class="fas fa-robot"></i>
+                </button>
               </div>
             </div>
           </div>
