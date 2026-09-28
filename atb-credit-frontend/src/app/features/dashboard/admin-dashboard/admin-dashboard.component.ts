@@ -1,18 +1,22 @@
-// features/dashboard/admin-dashboard/admin-dashboard.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Subject, takeUntil, catchError, finalize } from 'rxjs';
+import { Subject, takeUntil, finalize, catchError, of } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
+
 import { AuthService } from '@core/services/auth.service';
-import { UserService } from '@core/services/user.service';
-import { CreditRequestService } from '@core/services/credit-request.service';
+import {
+  DashboardService,
+  DashboardStats,
+  RecentActivity,
+  TopAnalyst
+} from '@core/services/dashboard.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -24,7 +28,6 @@ import { CreditRequestService } from '@core/services/credit-request.service';
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatChipsModule,
     MatDividerModule,
     MatTooltipModule
   ],
@@ -33,34 +36,27 @@ import { CreditRequestService } from '@core/services/credit-request.service';
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  isLoading = true;
+  private dashboardService = inject(DashboardService);
+  private authService = inject(AuthService);
+  private toastr = inject(ToastrService);
 
-  // Statistiques
+  isLoading = true;
+  user: any = null;
+
   stats = {
     totalUsers: 0,
+    activeUsers: 0,
     totalEmployees: 0,
     totalClients: 0,
     totalCreditRequests: 0,
     pendingRequests: 0,
     approvedRequests: 0,
     rejectedRequests: 0,
-    fraudAlerts: 0,
-    activeUsers: 0,
-    totalNotifications: 0
+    fraudAlerts: 0
   };
 
-  // Dernières activités
-  recentActivities: any[] = [];
-  topAnalysts: any[] = [];
-
-  // Données utilisateur
-  user: any = null;
-
-  constructor(
-    private authService: AuthService,
-    private userService: UserService,
-    private creditService: CreditRequestService
-  ) {}
+  recentActivities: RecentActivity[] = [];
+  topAnalysts: TopAnalyst[] = [];
 
   ngOnInit(): void {
     this.user = this.authService.getUserInfo();
@@ -74,37 +70,35 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   loadDashboardData(): void {
     this.isLoading = true;
-    // Simuler le chargement des données
-    setTimeout(() => {
-      this.stats = {
-        totalUsers: 42,
-        totalEmployees: 38,
-        totalClients: 156,
-        totalCreditRequests: 89,
-        pendingRequests: 23,
-        approvedRequests: 45,
-        rejectedRequests: 21,
-        fraudAlerts: 3,
-        activeUsers: 38,
-        totalNotifications: 12
-      };
 
-      this.recentActivities = [
-        { user: 'Jean Dupont', action: 'a créé une demande de crédit', time: 'Il y a 5 min', type: 'credit' },
-        { user: 'Marie Martin', action: 'a approuvé une demande', time: 'Il y a 15 min', type: 'approval' },
-        { user: 'Pierre Durand', action: 'a rejoint la plateforme', time: 'Il y a 30 min', type: 'user' },
-        { user: 'Sophie Bernard', action: 'a signalé une alerte fraude', time: 'Il y a 1h', type: 'fraud' },
-        { user: 'Thomas Petit', action: 'a modifié un paramètre système', time: 'Il y a 2h', type: 'system' }
-      ];
+    this.dashboardService.getStats()
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          this.toastr.error('Impossible de charger les statistiques', 'Erreur');
+          console.error(err);
+          return of(null);
+        }),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe((data: DashboardStats | null) => {
+        if (!data) return;
 
-      this.topAnalysts = [
-        { name: 'Marie Martin', requests: 24, avgScore: 95 },
-        { name: 'Jean Dupont', requests: 18, avgScore: 88 },
-        { name: 'Pierre Durand', requests: 15, avgScore: 82 }
-      ];
+        this.stats = {
+          totalUsers: data.totalUsers,
+          activeUsers: data.activeUsers,
+          totalEmployees: data.totalEmployees,
+          totalClients: data.totalClients,
+          totalCreditRequests: data.totalCreditRequests,
+          pendingRequests: data.pendingRequests,
+          approvedRequests: data.approvedRequests,
+          rejectedRequests: data.rejectedRequests,
+          fraudAlerts: data.fraudAlerts
+        };
 
-      this.isLoading = false;
-    }, 800);
+        this.recentActivities = data.recentActivities || [];
+        this.topAnalysts = data.topAnalysts || [];
+      });
   }
 
   getInitials(): string {
@@ -117,36 +111,68 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return `${this.user.firstName || ''} ${this.user.lastName || ''}`.trim() || 'Administrateur';
   }
 
-  getRoleLabel(role: string): string {
-    const labels: { [key: string]: string } = {
-      'ADMIN': 'Administrateur',
-      'ANALYST': 'Analyste',
-      'ADVISOR': 'Conseiller',
-      'MANAGER': 'Manager',
-      'CLIENT': 'Client'
-    };
-    return labels[role] || role;
+  // ============================================================
+  // Helpers pour mapper le STATUT (backend) → type d'activité (UI)
+  // ============================================================
+  getActivityTypeFromStatus(status: string): string {
+    switch (status) {
+      case 'APPROVED':           return 'approval';
+      case 'REJECTED':           return 'fraud';
+      case 'PENDING_ANALYSIS':   return 'credit';
+      case 'UNDER_REVIEW':       return 'credit';   // ✅ corrigé (était PENDING_REVIEW)
+      case 'PENDING_DOCUMENTS':  return 'credit';
+      case 'COMPLETED':          return 'approval';
+      case 'CANCELLED':          return 'fraud';
+      case 'DRAFT':              return 'system';
+      default:                   return 'system';
+    }
   }
 
   getActivityIcon(type: string): string {
-    const icons: { [key: string]: string } = {
-      'credit': 'assignment',
-      'approval': 'check_circle',
-      'user': 'person_add',
-      'fraud': 'security',
-      'system': 'settings'
+    const icons: Record<string, string> = {
+      credit:   'assignment',
+      approval: 'check_circle',
+      user:     'person_add',
+      fraud:    'security',
+      system:   'settings'
     };
     return icons[type] || 'info';
   }
 
   getActivityColor(type: string): string {
-    const colors: { [key: string]: string } = {
-      'credit': '#C62828',
-      'approval': '#1B5E20',
-      'user': '#0D47A1',
-      'fraud': '#B71C1C',
-      'system': '#4A148C'
+    const colors: Record<string, string> = {
+      credit:   '#C62828',
+      approval: '#1B5E20',
+      user:     '#0D47A1',
+      fraud:    '#B71C1C',
+      system:   '#4A148C'
     };
     return colors[type] || '#888';
+  }
+
+  // ============================================================
+  // Helpers de formatage pour le template
+  // ============================================================
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffH = Math.floor(diffMs / 3600000);
+      const diffD = Math.floor(diffMs / 86400000);
+
+      if (diffMin < 1)  return "à l'instant";
+      if (diffMin < 60) return `il y a ${diffMin} min`;
+      if (diffH < 24)   return `il y a ${diffH} h`;
+      if (diffD < 7)    return `il y a ${diffD} j`;
+
+      return d.toLocaleDateString('fr-FR', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
   }
 }

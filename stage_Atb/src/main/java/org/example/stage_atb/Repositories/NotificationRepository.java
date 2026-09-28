@@ -29,4 +29,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
 
     @Query("SELECT n FROM Notification n WHERE n.type = :type AND n.read = false")
     List<Notification> findUnreadByType(@Param("type") NotificationType type);
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.read = false")
+    long countUnread();
 }

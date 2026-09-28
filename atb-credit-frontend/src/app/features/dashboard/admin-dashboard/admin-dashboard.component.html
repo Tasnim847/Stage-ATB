@@ -28,9 +28,7 @@
     <!-- Statistiques -->
     <div class="stats-grid">
       <mat-card class="stat-card">
-        <div class="stat-icon users">
-          <mat-icon>people</mat-icon>
-        </div>
+        <div class="stat-icon users"><mat-icon>people</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.totalUsers }}</h3>
           <p>Utilisateurs</p>
@@ -39,9 +37,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon employees">
-          <mat-icon>badge</mat-icon>
-        </div>
+        <div class="stat-icon employees"><mat-icon>badge</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.totalEmployees }}</h3>
           <p>Employés</p>
@@ -49,9 +45,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon clients">
-          <mat-icon>people_outline</mat-icon>
-        </div>
+        <div class="stat-icon clients"><mat-icon>people_outline</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.totalClients }}</h3>
           <p>Clients</p>
@@ -59,9 +53,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon requests">
-          <mat-icon>assignment</mat-icon>
-        </div>
+        <div class="stat-icon requests"><mat-icon>assignment</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.totalCreditRequests }}</h3>
           <p>Demandes de crédit</p>
@@ -69,9 +61,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon pending">
-          <mat-icon>hourglass_empty</mat-icon>
-        </div>
+        <div class="stat-icon pending"><mat-icon>hourglass_empty</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.pendingRequests }}</h3>
           <p>En attente</p>
@@ -79,9 +69,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon approved">
-          <mat-icon>check_circle</mat-icon>
-        </div>
+        <div class="stat-icon approved"><mat-icon>check_circle</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.approvedRequests }}</h3>
           <p>Approuvées</p>
@@ -89,9 +77,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon rejected">
-          <mat-icon>cancel</mat-icon>
-        </div>
+        <div class="stat-icon rejected"><mat-icon>cancel</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.rejectedRequests }}</h3>
           <p>Refusées</p>
@@ -99,9 +85,7 @@
       </mat-card>
 
       <mat-card class="stat-card">
-        <div class="stat-icon fraud">
-          <mat-icon>security</mat-icon>
-        </div>
+        <div class="stat-icon fraud"><mat-icon>security</mat-icon></div>
         <div class="stat-content">
           <h3>{{ stats.fraudAlerts }}</h3>
           <p>Alertes fraude</p>
@@ -111,6 +95,7 @@
 
     <!-- Grille principale -->
     <div class="dashboard-grid">
+
       <!-- Dernières activités -->
       <mat-card class="activity-card">
         <div class="card-header">
@@ -125,14 +110,22 @@
         </div>
         <mat-divider></mat-divider>
         <div class="card-content">
+          <!-- ✅ État vide -->
+          <div *ngIf="recentActivities.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <p>Aucune activité récente</p>
+          </div>
+
+          <!-- ✅ Liste corrigée : status/clientName/actionDate -->
           <div *ngFor="let activity of recentActivities" class="activity-item">
-            <div class="activity-icon" [style.background-color]="getActivityColor(activity.type)">
-              <mat-icon>{{ getActivityIcon(activity.type) }}</mat-icon>
+            <div class="activity-icon"
+                 [style.background-color]="getActivityColor(getActivityTypeFromStatus(activity.status))">
+              <mat-icon>{{ getActivityIcon(getActivityTypeFromStatus(activity.status)) }}</mat-icon>
             </div>
             <div class="activity-details">
-              <span class="activity-user">{{ activity.user }}</span>
+              <span class="activity-user">{{ activity.clientName }}</span>
               <span class="activity-action">{{ activity.action }}</span>
-              <span class="activity-time">{{ activity.time }}</span>
+              <span class="activity-time">{{ formatDate(activity.actionDate) }}</span>
             </div>
           </div>
         </div>
@@ -152,16 +145,28 @@
         </div>
         <mat-divider></mat-divider>
         <div class="card-content">
+          <!-- ✅ État vide -->
+          <div *ngIf="topAnalysts.length === 0" class="empty-state">
+            <mat-icon>inbox</mat-icon>
+            <p>Aucun analyste disponible</p>
+          </div>
+
+          <!-- ✅ Liste corrigée : name/requests/avgScore restent alignés sur TopAnalystDTO -->
           <div *ngFor="let analyst of topAnalysts; let i = index" class="analyst-item">
-            <div class="analyst-rank" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
+            <div class="analyst-rank"
+                 [class.gold]="i === 0"
+                 [class.silver]="i === 1"
+                 [class.bronze]="i === 2">
               #{{ i + 1 }}
             </div>
             <div class="analyst-info">
               <span class="analyst-name">{{ analyst.name }}</span>
-              <span class="analyst-stats">{{ analyst.requests }} dossiers · Score {{ analyst.avgScore }}%</span>
+              <span class="analyst-stats">
+                {{ analyst.requests }} dossiers · Score {{ analyst.avgScore }}%
+              </span>
             </div>
             <div class="analyst-score">
-              <div class="score-bar" [style.width]="analyst.avgScore + '%'"></div>
+              <div class="score-bar" [style.width.%]="analyst.avgScore"></div>
             </div>
           </div>
         </div>
@@ -179,28 +184,22 @@
         <div class="card-content">
           <div class="actions-grid">
             <button mat-raised-button class="action-btn" routerLink="/admin/users">
-              <mat-icon>people</mat-icon>
-              Gérer les utilisateurs
+              <mat-icon>people</mat-icon> Gérer les utilisateurs
             </button>
             <button mat-raised-button class="action-btn" routerLink="/admin/employees">
-              <mat-icon>badge</mat-icon>
-              Gérer les employés
+              <mat-icon>badge</mat-icon> Gérer les employés
             </button>
             <button mat-raised-button class="action-btn" routerLink="/admin/credit-requests">
-              <mat-icon>assignment</mat-icon>
-              Voir les demandes
+              <mat-icon>assignment</mat-icon> Voir les demandes
             </button>
             <button mat-raised-button class="action-btn" routerLink="/admin/roles">
-              <mat-icon>admin_panel_settings</mat-icon>
-              Gérer les rôles
+              <mat-icon>admin_panel_settings</mat-icon> Gérer les rôles
             </button>
             <button mat-raised-button class="action-btn" routerLink="/admin/parametrage">
-              <mat-icon>settings</mat-icon>
-              Paramètres système
+              <mat-icon>settings</mat-icon> Paramètres système
             </button>
             <button mat-raised-button class="action-btn" routerLink="/admin/audit-logs">
-              <mat-icon>history</mat-icon>
-              Journal d'audit
+              <mat-icon>history</mat-icon> Journal d'audit
             </button>
           </div>
         </div>
