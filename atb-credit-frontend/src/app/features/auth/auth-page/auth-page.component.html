@@ -1,80 +1,514 @@
 <!-- features/auth/auth-page/auth-page.component.html -->
-<div class="auth-page">
-  <!-- ===== HEADER ===== -->
-  <header class="auth-header">
-    <div class="header-left">
-      <img src="assets/images/atb.jpg" alt="ATB" class="header-logo" />
-      <span class="header-brand">ATB</span>
-    </div>
-    <nav class="header-nav">
-      <a href="#features">Fonctionnalités</a>
-      <a href="#about">À propos</a>
-      <a href="#contact">Contact</a>
-    </nav>
-    <div class="header-actions">
-      <button mat-stroked-button color="primary" (click)="openAuthDialog('login')">
-        <mat-icon>login</mat-icon> Connexion
-      </button>
-      <button mat-raised-button color="primary" (click)="openAuthDialog('register')">
-        <mat-icon>person_add</mat-icon> S'inscrire
-      </button>
+<div class="atb-home">
+
+  <!-- ============================================================
+       TOP BAR
+       ============================================================ -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <a href="#" class="brand">
+        <img src="assets/images/atb-logo.png" alt="ATB" class="brand-logo" />
+      </a>
+
+      <a class="top-link active" href="#">À propos de l'ATB</a>
+
+      <div class="je-suis">
+        <select>
+          <option>Je suis</option>
+          <option>Particulier</option>
+          <option>Professionnel</option>
+          <option>Entreprise</option>
+        </select>
+      </div>
+
+      <div class="top-bar-right">
+        <button class="icon-btn" aria-label="Recherche">
+          <mat-icon>search</mat-icon>
+        </button>
+
+        <button class="atb-connect" (click)="openAuthDialog('login')">
+          <mat-icon>public</mat-icon>
+          <span>ATB Connect</span>
+        </button>
+
+        <div class="lang">
+          <span>Français</span>
+          <mat-icon>expand_more</mat-icon>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- ===== HERO ===== -->
-  <section class="hero-section">
+  <!-- ============================================================
+       NAV
+       ============================================================ -->
+  <nav class="main-nav">
+    <ul>
+      <li *ngFor="let item of navItems">
+        <a href="#">
+          {{ item.label }}
+          <mat-icon *ngIf="item.hasDropdown">expand_more</mat-icon>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img src="assets/images/hero-sakan.jpg" alt="100 jours SAKAN by ATB" />
+      <div class="hero-gradient"></div>
+    </div>
+
     <div class="hero-content">
-      <h1>ATB <span>Credit Intelligence</span></h1>
-      <p class="hero-subtitle">
-        Plateforme intelligente de gestion et d'analyse de crédit
-      </p>
-      <p class="hero-description">
-        Optimisez vos décisions crédit grâce à l'intelligence artificielle,
-        l'analyse en temps réel et des tableaux de bord personnalisés.
-      </p>
-      <div class="hero-actions">
-        <button mat-raised-button color="primary" class="cta-btn" (click)="openAuthDialog('login')">
-          <mat-icon>rocket_launch</mat-icon> Commencer maintenant
-        </button>
-        <button mat-stroked-button class="cta-btn-secondary" (click)="openAuthDialog('register')">
-          Créer un compte
-        </button>
+      <div class="hero-text">
+        <span class="hero-badge">100 JOURS</span>
+        <h1>SAKAN <span>by ATB</span></h1>
+        <p class="hero-subtitle">
+          Offres exclusives destinées aux Tunisiens résidant en Tunisie et à l'étranger.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary">
+            Découvrir l'offre
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+          <button class="btn-ghost">
+            Prendre rendez-vous
+          </button>
+        </div>
       </div>
     </div>
-    <div class="hero-image">
-      <img src="assets/images/atb.jpg" alt="ATB Credit Intelligence" />
-    </div>
-  </section>
 
-  <!-- ===== FEATURES ===== -->
-  <section class="features-section" id="features">
-    <h2>Pourquoi choisir ATB Credit Intelligence ?</h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <mat-icon>verified_user</mat-icon>
-        <h3>Sécurité renforcée</h3>
-        <p>Vos données sont protégées avec les standards bancaires les plus élevés.</p>
-      </div>
-      <div class="feature-card">
-        <mat-icon>analytics</mat-icon>
-        <h3>Analyse en temps réel</h3>
-        <p>Visualisez et analysez vos dossiers de crédit instantanément.</p>
-      </div>
-      <div class="feature-card">
-        <mat-icon>smart_toy</mat-icon>
-        <h3>IA intégrée</h3>
-        <p>Détection de fraude, scoring et prévisions basés sur l'intelligence artificielle.</p>
-      </div>
-      <div class="feature-card">
+    <div class="hero-nav">
+      <button class="hero-nav-btn" aria-label="Précédent">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <button class="hero-nav-btn" aria-label="Suivant">
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+
+    <div class="hero-dots">
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+
+    <!-- Floating side -->
+    <aside class="floating-side">
+      <button title="Chat en ligne" aria-label="Chat">
+        <mat-icon>chat_bubble_outline</mat-icon>
+      </button>
+      <button title="Votre avis" aria-label="Avis">
+        <mat-icon>sentiment_satisfied_alt</mat-icon>
+      </button>
+      <button title="Nous aimer" aria-label="Like">
+        <mat-icon>thumb_up_alt</mat-icon>
+      </button>
+      <button title="Trouver une agence" aria-label="Agence">
+        <mat-icon>place</mat-icon>
+      </button>
+      <button title="Support 24/7" aria-label="Support">
         <mat-icon>support_agent</mat-icon>
-        <h3>Support 24/7</h3>
-        <p>Une équipe dédiée disponible à tout moment pour vous accompagner.</p>
+      </button>
+    </aside>
+  </section>
+
+  <!-- ============================================================
+       RATES BAR
+       ============================================================ -->
+  <section class="rates-bar">
+    <div class="rates-inner">
+      <div class="rate-item highlight">
+        <span class="label">TMM (Septembre) 2026</span>
+        <span class="value">7 %</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="rate-item link">
+        <mat-icon>trending_up</mat-icon>
+        <span>Valeurs des SICAV</span>
+        <mat-icon>arrow_forward</mat-icon>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="rate-item"><span class="flag">🇺🇸</span> USD = <strong>3.003</strong></div>
+      <div class="rate-item"><span class="flag">🇬🇧</span> GBP = <strong>3.997</strong></div>
+
+      <div class="divider"></div>
+
+      <a class="rate-item link red" href="#">
+        Taux de change <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       NEWS
+       ============================================================ -->
+  <section class="news-section">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow red">ATB Actualités</span>
+        <h2>Restez informé, restez en avance.</h2>
+      </div>
+      <button class="btn-outline">
+        Toutes nos actualités
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+
+    <div class="filter-row">
+      <button
+        *ngFor="let f of newsFilters"
+        class="filter-chip"
+        [class.active]="selectedFilter === f"
+        (click)="selectFilter(f)">
+        {{ f }}
+      </button>
+    </div>
+
+    <div class="news-grid">
+      <article class="news-card" *ngFor="let n of newsCards">
+        <div class="news-image">
+          <img [src]="n.image" [alt]="n.title" loading="lazy" />
+          <span class="news-tag">#Actualités</span>
+        </div>
+        <div class="news-body">
+          <div class="news-meta">
+            <span class="news-date">28 Sept 2026</span>
+            <span class="news-cat">Événement</span>
+          </div>
+          <h3>{{ n.title }}</h3>
+          <p>{{ n.description }}</p>
+          <a href="#" class="news-link">
+            En savoir plus <mat-icon>north_east</mat-icon>
+          </a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       GROUP SECTION
+       ============================================================ -->
+  <section class="group-section">
+    <div class="group-card">
+      <div class="group-card-bg">
+        <img src="assets/images/group-building.jpg" alt="Arab Bank" />
+      </div>
+      <div class="group-card-content">
+        <span class="eyebrow-light">Réseau Mondial</span>
+        <h2>ATB, filiale du groupe<br/>Arab Bank.</h2>
+        <p>Grâce à cette alliance, nos clients bénéficient :</p>
+        <ul>
+          <li><mat-icon>check_circle</mat-icon> D'un réseau mondial pour leurs opérations.</li>
+          <li><mat-icon>check_circle</mat-icon> De solutions sécurisées et adaptées.</li>
+          <li><mat-icon>check_circle</mat-icon> D'un accompagnement renforcé pour le commerce et l'investissement international.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="group-stats">
+      <h3>Un groupe bancaire<br/>d'envergure mondiale.</h3>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="stat-value">600</span>
+          <span class="stat-label">Agences</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">30</span>
+          <span class="stat-label">Pays</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">5</span>
+          <span class="stat-label">Continents</span>
+        </div>
+      </div>
+
+      <div class="stat-big">
+        <span class="stat-value">1130.1<small>M USD</small></span>
+        <span class="stat-label">Résultat Net 2025</span>
+      </div>
+
+      <a href="#" class="stat-link">
+        Découvrir nos correspondants à l'étranger
+        <mat-icon>north_east</mat-icon>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       REPORTS
+       ============================================================ -->
+  <section class="reports-section">
+    <div class="report-card">
+      <div class="report-icon">
+        <mat-icon>bar_chart</mat-icon>
+      </div>
+      <h3>États Financiers</h3>
+      <p>Consultez les états financiers certifiés de l'ATB.</p>
+      <a href="#">États Financiers Décembre 2022 <mat-icon>north_east</mat-icon></a>
+    </div>
+
+    <div class="report-card">
+      <div class="report-icon">
+        <mat-icon>insert_photo</mat-icon>
+      </div>
+      <h3>Rapports Annuels</h3>
+      <p>Téléchargez les rapports annuels consolidés.</p>
+      <a href="#">Rapport annuel 2023 <mat-icon>north_east</mat-icon></a>
+    </div>
+
+    <div class="report-card">
+      <div class="report-icon">
+        <mat-icon>donut_large</mat-icon>
+      </div>
+      <h3>Indicateurs d'activités</h3>
+      <p>Suivez les indicateurs clés de performance.</p>
+      <a href="#">Indicateurs d'activités Mars 2024 <mat-icon>north_east</mat-icon></a>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       AGENCY
+       ============================================================ -->
+  <section class="agency-section">
+    <div>
+      <span class="eyebrow red">Réseau d'agences</span>
+      <h2>Trouver une agence ATB</h2>
+      <p>À l'ATB, notre vision de demain prend vie grâce à l'engagement et à l'expertise de nos collaborateurs.</p>
+    </div>
+    <button class="btn-red">
+      Consulter <mat-icon>arrow_forward</mat-icon>
+    </button>
+  </section>
+
+  <!-- ============================================================
+       HUMAN
+       ============================================================ -->
+  <section class="human-section">
+    <span class="eyebrow red center">Perspective & Capital Humain</span>
+    <h2 class="center">Construire l'avenir avec nos talents !</h2>
+    <p class="center subtitle">
+      À l'ATB, notre vision de demain prend vie grâce à l'engagement et à l'expertise de nos collaborateurs.
+    </p>
+
+    <div class="human-grid">
+      <div class="human-image">
+        <img src="assets/images/team-mountain.jpg" alt="ATB Team" />
+        <div class="human-badge">
+          <mat-icon>groups</mat-icon>
+          <span>+3000 collaborateurs</span>
+        </div>
+      </div>
+
+      <div class="human-content">
+        <div class="human-block">
+          <div class="human-icon"><mat-icon>people_outline</mat-icon></div>
+          <div>
+            <h3>Nos collaborateurs, notre plus grande richesse.</h3>
+            <p>Former, valoriser et faire grandir nos équipes pour bâtir une culture d'excellence et de proximité.</p>
+          </div>
+        </div>
+        <div class="human-block">
+          <div class="human-icon"><mat-icon>rocket_launch</mat-icon></div>
+          <div>
+            <h3>Une banque tournée vers l'avenir</h3>
+            <p>Innover, digitaliser et renforcer notre présence internationale pour mieux accompagner nos clients.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== FOOTER ===== -->
-  <footer class="auth-footer">
-    <p>&copy; 2026 ATB. Tous droits réservés.</p>
+  <!-- ============================================================
+       ENGAGEMENT
+       ============================================================ -->
+  <section class="engagement-section">
+    <div class="engagement-inner">
+      <div class="engagement-header">
+        <div>
+          <span class="eyebrow red">Notre engagement</span>
+          <h2>ATB, une banque engagée pour un avenir durable.</h2>
+        </div>
+        <button class="btn-outline">
+          Découvrir nos engagements
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <div class="engagement-cards">
+        <div class="eng-card">
+          <div class="eng-icon"><mat-icon>verified</mat-icon></div>
+          <h3>Engagement qualité</h3>
+          <p>Une exigence de qualité à chaque étape de votre parcours.</p>
+        </div>
+        <div class="eng-card">
+          <div class="eng-icon"><mat-icon>card_membership</mat-icon></div>
+          <h3>Certifications</h3>
+          <p>Des certifications reconnues internationalement.</p>
+        </div>
+        <div class="eng-card">
+          <div class="eng-icon"><mat-icon>public</mat-icon></div>
+          <h3>FATCA Compliance</h3>
+          <p>Conformité totale avec les normes internationales.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ACCOMPAGNEMENT
+       ============================================================ -->
+  <section class="accompagnement">
+    <div class="acc-content">
+      <h2>Accompagnement & Conseils</h2>
+      <p>Bénéficiez d'un partenaire à vos côtés pour optimiser vos choix financiers et réaliser vos projets, avec un suivi personnalisé à chaque étape.</p>
+    </div>
+    <div class="acc-action">
+      <p>Faites le premier pas,<br/>nous faisons le reste.</p>
+      <button class="btn-white">
+        Contactez un conseiller <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TOOLS
+       ============================================================ -->
+  <section class="tools-section">
+    <div class="tools-inner">
+      <div class="tools-header">
+        <div>
+          <span class="eyebrow red">Nos services</span>
+          <h2>Outils et Services</h2>
+        </div>
+        <nav class="tools-nav">
+          <a href="#">Simulateur de crédit <mat-icon>north_east</mat-icon></a>
+          <a href="#">Simulateur de placement <mat-icon>north_east</mat-icon></a>
+          <a href="#">Taux de change <mat-icon>north_east</mat-icon></a>
+        </nav>
+      </div>
+
+      <div class="tools-cards">
+        <div class="tool-card">
+          <div class="tool-icon"><mat-icon>credit_card</mat-icon></div>
+          <h3>Votre banque en ligne</h3>
+          <p>Effectuez vos transactions en toute sécurité.</p>
+          <a href="#">Découvrir nos solutions <mat-icon>arrow_forward</mat-icon></a>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon"><mat-icon>description</mat-icon></div>
+          <h3>Documents Utiles</h3>
+          <p>Trouvez le formulaire que vous cherchez !</p>
+          <a href="#">Nos Documents <mat-icon>arrow_forward</mat-icon></a>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon"><mat-icon>credit_card</mat-icon></div>
+          <h3>Conseils Carte</h3>
+          <p>Obtenez des réponses à vos questions à un seul endroit.</p>
+          <a href="#">Consulter <mat-icon>arrow_forward</mat-icon></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       RATES STRIP
+       ============================================================ -->
+  <div class="rates-strip">
+    <div class="rates-strip-inner">
+      <div class="rate" *ngFor="let r of rates">
+        <span class="flag">{{ r.flag }}</span>
+        <span class="code">{{ r.code }}</span>
+        <span class="eq">=</span>
+        <span class="value">{{ r.value }}</span>
+      </div>
+      <a class="rate-link" href="#">Taux de change <mat-icon>arrow_forward</mat-icon></a>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="atb-footer">
+    <div class="footer-inner">
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>À propos de l'ATB</h4>
+          <ul>
+            <li><a href="#">Histoire de l'ATB</a></li>
+            <li><a href="#">Vision de l'ATB</a></li>
+            <li><a href="#">Capital humain de l'ATB</a></li>
+            <li><a href="#">Gouvernance de l'ATB</a></li>
+            <li><a href="#">Le groupe ATB</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Découvrir</h4>
+          <ul>
+            <li><a href="#">Espace Particuliers</a></li>
+            <li><a href="#">Espace Professionnels</a></li>
+            <li><a href="#">Espace Entreprises</a></li>
+            <li><a href="#">Espace Finance</a></li>
+            <li><a href="#">Trouver une agence</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul class="contact-list">
+            <li><mat-icon>phone</mat-icon> Standard: (+216) 71 351 155</li>
+            <li><mat-icon>phone</mat-icon> CRC : (+216) 70 026 267</li>
+            <li><mat-icon>email</mat-icon> contact&#64;atb.com.tn</li>
+            <li><mat-icon>email</mat-icon> crc-atb&#64;atb.com.tn</li>
+            <li><mat-icon>public</mat-icon> Code swift : C85YIU.00008.ME.788</li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Adresse</h4>
+          <ul class="contact-list">
+            <li><mat-icon>place</mat-icon> <strong>Siège Social :</strong> 9 Rue Hédi Nouira - 1001 Tunis</li>
+            <li><mat-icon>place</mat-icon> <strong>Siège Lac 2 :</strong> Rue de la feuille d'érable lac 2 - Immeuble les Pins Bloc A - 1053 Tunis</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <img src="assets/images/atb-logo.png" alt="ATB" class="footer-logo" />
+        <div class="socials">
+          <a href="#" aria-label="X"><mat-icon>close</mat-icon></a>
+          <a href="#" aria-label="LinkedIn"><mat-icon>linkedin</mat-icon></a>
+          <a href="#" aria-label="Facebook"><mat-icon>facebook</mat-icon></a>
+          <a href="#" aria-label="YouTube"><mat-icon>youtube</mat-icon></a>
+          <a href="#" aria-label="Instagram"><mat-icon>photo_camera</mat-icon></a>
+          <a href="#" aria-label="TikTok"><mat-icon>music_note</mat-icon></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-copy">
+      <div class="footer-copy-inner">
+        <span>&copy; 2026 ATB. Tous droits réservés.</span>
+        <div class="footer-links">
+          <a href="#">Médiateur de l'ATB</a>
+          <a href="#">Informations légales</a>
+          <a href="#">Politique Cookies</a>
+          <span class="powered">Powered by ACCESS</span>
+        </div>
+      </div>
+    </div>
   </footer>
+
+  <button class="back-top" (click)="scrollToTop()" aria-label="Haut de page">
+    <mat-icon>keyboard_arrow_up</mat-icon>
+  </button>
 </div>
