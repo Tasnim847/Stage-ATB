@@ -1,0 +1,228 @@
+<!-- features/auth/auth-page/auth-dialog/auth-dialog.component.html -->
+<div class="auth-dialog-container">
+  <button mat-icon-button class="close-btn" (click)="closeDialog()">
+    <mat-icon>close</mat-icon>
+  </button>
+
+  <div class="dialog-header">
+    <img src="assets/images/atb.jpg" alt="ATB" class="dialog-logo" />
+    <h2>ATB Credit Intelligence</h2>
+    <p class="dialog-subtitle">Accédez à votre espace</p>
+  </div>
+
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="300ms" class="auth-tabs">
+
+    <!-- ========== ONGLET LOGIN ========== -->
+    <mat-tab label="Connexion">
+      <div class="tab-content">
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmitLogin()" class="auth-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="exemple@atb.com" />
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="hasEmailError()">{{ getEmailErrorMessage() }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Mot de passe</mat-label>
+            <input matInput formControlName="password"
+                   [type]="hideLoginPassword ? 'password' : 'text'"
+                   placeholder="••••••" />
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideLoginPassword = !hideLoginPassword">
+              <mat-icon>{{ hideLoginPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="hasPasswordError()">{{ getPasswordErrorMessage() }}</mat-error>
+          </mat-form-field>
+
+          <div *ngIf="loginErrorMessage" class="error-message">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ loginErrorMessage }}</span>
+          </div>
+
+          <div class="login-options">
+            <mat-checkbox formControlName="rememberMe" color="primary">
+              Se souvenir de moi
+            </mat-checkbox>
+            <a routerLink="/forgot-password" class="forgot-link">Mot de passe oublié ?</a>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit"
+                  class="submit-btn" [disabled]="loginForm.invalid || isLoadingLogin">
+            <mat-spinner diameter="20" *ngIf="isLoadingLogin"></mat-spinner>
+            <span *ngIf="!isLoadingLogin">
+              <mat-icon>login</mat-icon> Se connecter
+            </span>
+            <span *ngIf="isLoadingLogin">Connexion...</span>
+          </button>
+
+          <div class="switch-link">
+            <span>Pas encore de compte ?</span>
+            <a (click)="selectedTabIndex = 1">S'inscrire</a>
+          </div>
+        </form>
+      </div>
+    </mat-tab>
+
+    <!-- ========== ONGLET REGISTER ========== -->
+    <mat-tab label="Inscription">
+      <div class="tab-content scrollable">
+        <div class="mode-toggle">
+          <button mat-button [class.active]="registrationMode === 'employee'"
+                  (click)="toggleMode('employee')">
+            <mat-icon>work</mat-icon> Employé
+          </button>
+          <button mat-button [class.active]="registrationMode === 'client'"
+                  (click)="toggleMode('client')">
+            <mat-icon>person</mat-icon> Client
+          </button>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmitRegister()" class="auth-form">
+          <div *ngIf="registerErrorMessage" class="error-message">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ registerErrorMessage }}</span>
+          </div>
+
+          <div class="row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Prénom</mat-label>
+              <input matInput formControlName="firstName" />
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Nom</mat-label>
+              <input matInput formControlName="lastName" />
+              <mat-icon matPrefix>person</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nom d'utilisateur</mat-label>
+            <input matInput formControlName="username" />
+            <mat-icon matPrefix>account_circle</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" formControlName="email" />
+            <mat-icon matPrefix>email</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Téléphone</mat-label>
+            <input matInput formControlName="phoneNumber" />
+            <mat-icon matPrefix>phone</mat-icon>
+          </mat-form-field>
+
+          <!-- Champs Employé -->
+          <ng-container *ngIf="registrationMode === 'employee'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Numéro d'employé</mat-label>
+              <input matInput formControlName="employeeNumber" />
+              <mat-icon matPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Rôle</mat-label>
+              <mat-select formControlName="role">
+                <mat-option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</mat-option>
+              </mat-select>
+              <mat-icon matPrefix>badge</mat-icon>
+            </mat-form-field>
+
+            <div class="row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Département</mat-label>
+                <input matInput formControlName="department" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Poste</mat-label>
+                <input matInput formControlName="position" />
+              </mat-form-field>
+            </div>
+          </ng-container>
+
+          <!-- Champs Client -->
+          <ng-container *ngIf="registrationMode === 'client'">
+            <div class="row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Date de naissance</mat-label>
+                <input matInput type="date" formControlName="dateOfBirth" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Lieu de naissance</mat-label>
+                <input matInput formControlName="placeOfBirth" />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Nationalité</mat-label>
+              <mat-select formControlName="nationality">
+                <mat-option *ngFor="let n of nationalities" [value]="n">{{ n }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Profession</mat-label>
+              <input matInput formControlName="profession" />
+            </mat-form-field>
+          </ng-container>
+
+          <!-- Adresse (commun) -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Adresse</mat-label>
+            <input matInput formControlName="address" />
+            <mat-icon matPrefix>home</mat-icon>
+          </mat-form-field>
+
+          <div class="row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Ville</mat-label>
+              <input matInput formControlName="city" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Pays</mat-label>
+              <input matInput formControlName="country" />
+            </mat-form-field>
+          </div>
+
+          <div class="row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Mot de passe</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" />
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Confirmer</mat-label>
+              <input matInput [type]="hideConfirmPassword ? 'password' : 'text'" formControlName="confirmPassword" />
+              <button mat-icon-button matSuffix type="button" (click)="hideConfirmPassword = !hideConfirmPassword">
+                <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="registerForm?.errors?.['mismatch']">
+                Les mots de passe ne correspondent pas
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit"
+                  class="submit-btn" [disabled]="registerForm.invalid || isLoadingRegister">
+            <mat-spinner diameter="20" *ngIf="isLoadingRegister"></mat-spinner>
+            <span *ngIf="!isLoadingRegister">
+              <mat-icon>person_add</mat-icon> S'inscrire
+            </span>
+            <span *ngIf="isLoadingRegister">Inscription...</span>
+          </button>
+
+          <div class="switch-link">
+            <span>Déjà un compte ?</span>
+            <a (click)="selectedTabIndex = 0">Se connecter</a>
+          </div>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

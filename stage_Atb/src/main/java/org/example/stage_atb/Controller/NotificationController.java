@@ -4,6 +4,7 @@ import org.example.stage_atb.Service.INotificationService;
 import org.example.stage_atb.dto.request.NotificationRequestDTO;
 import org.example.stage_atb.dto.response.NotificationResponseDTO;
 import org.example.stage_atb.enums.NotificationType;
+import org.example.stage_atb.exception.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ public class NotificationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<NotificationResponseDTO> getNotificationById(@PathVariable String id) {
+        validateId(id);
         NotificationResponseDTO response = notificationService.getNotificationById(id);
         return ResponseEntity.ok(response);
     }
@@ -62,18 +64,21 @@ public class NotificationController {
     public ResponseEntity<NotificationResponseDTO> updateNotification(
             @PathVariable String id,
             @Valid @RequestBody NotificationRequestDTO requestDTO) {
+        validateId(id);
         NotificationResponseDTO response = notificationService.updateNotification(id, requestDTO);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotification(@PathVariable String id) {
+        validateId(id);
         notificationService.deleteNotification(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/read")
     public ResponseEntity<NotificationResponseDTO> markAsRead(@PathVariable String id) {
+        validateId(id);
         NotificationResponseDTO response = notificationService.markAsRead(id);
         return ResponseEntity.ok(response);
     }
@@ -106,5 +111,18 @@ public class NotificationController {
     public ResponseEntity<Void> processNotifications() {
         notificationService.processNotifications();
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Valide qu'un ID ressemble à un ObjectId MongoDB (24 caractères hexadécimaux).
+     * Empêche les appels du type /api/notifications/my qui produisent un 500.
+     */
+    private void validateId(String id) {
+        if (id == null || id.isBlank()) {
+            throw new BusinessException("Notification id must not be empty");
+        }
+        if (!id.matches("^[a-fA-F0-9]{24}$")) {
+            throw new BusinessException("Invalid notification id format: " + id);
+        }
     }
 }
