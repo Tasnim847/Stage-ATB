@@ -1,0 +1,149 @@
+/* features/auth/auth-page/auth-dialog/auth-dialog.component.css */
+.auth-dialog-container {
+  position: relative;
+  padding: 24px 28px 16px;
+  background: #fff;
+  border-radius: 16px;
+  max-width: 560px;
+  width: 100%;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #666;
+  z-index: 10;
+}
+
+.dialog-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.dialog-logo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.dialog-header h2 {
+  margin: 8px 0 4px;
+  font-size: 1.4rem;
+  color: #1a237e;
+  font-weight: 700;
+}
+
+.dialog-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.auth-tabs ::ng-deep .mat-mdc-tab-labels {
+  justify-content: center;
+}
+
+.tab-content {
+  padding: 20px 4px 8px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.tab-content.scrollable {
+  max-height: 60vh;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width { width: 100%; }
+.half-width { flex: 1; min-width: 0; }
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin: 4px 0;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0 12px;
+  font-size: 0.875rem;
+}
+
+.forgot-link {
+  color: #1a237e;
+  text-decoration: none;
+  font-weight: 500;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+.submit-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submit-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.switch-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.875rem;
+  color: #666;
+}
+.switch-link a {
+  color: #1a237e;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.switch-link a:hover { text-decoration: underline; }
+
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.mode-toggle button {
+  flex: 1;
+  border-radius: 6px;
+  color: #666;
+  font-weight: 500;
+}
+.mode-toggle button.active {
+  background: #1a237e;
+  color: #fff;
+}

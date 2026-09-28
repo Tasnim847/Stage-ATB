@@ -1,12 +1,12 @@
 package org.example.stage_atb.Service.impl;
 
-
 import org.example.stage_atb.Service.INotificationService;
 import org.example.stage_atb.dto.request.NotificationRequestDTO;
 import org.example.stage_atb.dto.response.NotificationResponseDTO;
 import org.example.stage_atb.entity.Notification;
 import org.example.stage_atb.entity.User;
 import org.example.stage_atb.enums.NotificationType;
+import org.example.stage_atb.exception.ResourceNotFoundException;
 import org.example.stage_atb.Mappers.NotificationMapper;
 import org.example.stage_atb.Repositories.NotificationRepository;
 import org.example.stage_atb.Repositories.UserRepository;
@@ -35,7 +35,8 @@ public class NotificationServiceImpl implements INotificationService {
 
         // Vérifier que l'utilisateur existe
         User user = userRepository.findById(notificationRequestDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + notificationRequestDTO.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id: " + notificationRequestDTO.getUserId()));
 
         // Créer la notification
         Notification notification = notificationMapper.toEntity(notificationRequestDTO);
@@ -53,7 +54,8 @@ public class NotificationServiceImpl implements INotificationService {
     @Override
     public NotificationResponseDTO getNotificationById(String id) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Notification not found with id: " + id));
         return notificationMapper.toResponseDTO(notification);
     }
 
@@ -92,7 +94,8 @@ public class NotificationServiceImpl implements INotificationService {
     @Override
     public NotificationResponseDTO updateNotification(String id, NotificationRequestDTO notificationRequestDTO) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Notification not found with id: " + id));
 
         notificationMapper.updateEntity(notification, notificationRequestDTO);
 
@@ -103,7 +106,7 @@ public class NotificationServiceImpl implements INotificationService {
     @Override
     public void deleteNotification(String id) {
         if (!notificationRepository.existsById(id)) {
-            throw new RuntimeException("Notification not found with id: " + id);
+            throw new ResourceNotFoundException("Notification not found with id: " + id);
         }
         notificationRepository.deleteById(id);
         log.info("Notification deleted with id: {}", id);
@@ -112,7 +115,8 @@ public class NotificationServiceImpl implements INotificationService {
     @Override
     public NotificationResponseDTO markAsRead(String id) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Notification not found with id: " + id));
 
         notification.setRead(true);
         Notification updatedNotification = notificationRepository.save(notification);
@@ -141,18 +145,13 @@ public class NotificationServiceImpl implements INotificationService {
 
         // Marquer comme envoyée
         Notification notification = notificationRepository.findById(createdNotification.getId())
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Notification not found with id: " + createdNotification.getId()));
         notification.setSent(true);
         notificationRepository.save(notification);
 
         // Logique d'envoi réel (email, SMS, push notification, etc.)
         log.info("Notification sent: {}", createdNotification.getTitle());
-
-        // Ici, vous pouvez intégrer :
-        // - Envoi d'email avec JavaMailSender
-        // - Envoi de SMS avec Twilio
-        // - Notification push avec Firebase
-        // - WebSocket pour notification en temps réel
     }
 
     @Override

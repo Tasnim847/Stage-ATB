@@ -8,15 +8,16 @@ export const routes: Routes = [
     redirectTo: '/auth',
     pathMatch: 'full'
   },
+  // Dans votre routes.ts, remplacez les redirections :
   {
     path: 'auth',
     loadComponent: () => import('./features/auth/auth-page/auth-page.component')
       .then(m => m.AuthPageComponent)
   },
-  // Redirection pour compatibilité avec les anciennes routes
+  // Rediriger les anciennes routes vers /auth
   {
     path: 'login',
-    redirectTo: '/auth'  
+    redirectTo: '/auth'
   },
   {
     path: 'register',
@@ -726,8 +727,6 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['MANAGER'] }
       },
-      // app.routes.ts
-// AJOUTER dans la section GESTION DES DOCUMENTS
 
 {
   path: 'documents/ocr-verify/:documentId',
