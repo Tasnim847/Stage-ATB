@@ -164,4 +164,90 @@ public interface CreditRequestRepository extends JpaRepository<CreditRequest, St
     @Query("SELECT COUNT(cr) FROM CreditRequest cr WHERE cr.status IN :validatedStatuses AND cr.managerValidationRequired = true")
     long countManagerValidated(@Param("validatedStatuses") List<CreditStatus> validatedStatuses);
 
+
+    // ============================================
+    // ✅ MÉTHODES AJOUTÉES POUR LE DASHBOARD
+    // ============================================
+
+    /** Compte total de toutes les demandes */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr")
+    long countAll();
+
+    /** Compte par statut (dérivée Spring Data, pas besoin de @Query) */
+    long countByStatus(CreditStatus status);
+
+    /**
+     * Demandes traitées par un analyste (approuvées + rejetées).
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId " +
+            "AND cr.status IN ('APPROVED', 'REJECTED')")
+    long countProcessedByAnalyst(@Param("analystId") String analystId);
+
+    /** Demandes approuvées par un analyste */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId AND cr.status = 'APPROVED'")
+    long countApprovedByAnalyst(@Param("analystId") String analystId);
+
+    /** Demandes rejetées par un analyste */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId AND cr.status = 'REJECTED'")
+    long countRejectedByAnalyst(@Param("analystId") String analystId);
+
+    /**
+     * Compte par analyste ET par statut (appelé par le service :
+     * countByAnalystAndStatus(analystId, CreditStatus.X))
+     */
+    @Query("SELECT COUNT(cr) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId AND cr.status = :status")
+    long countByAnalystAndStatus(@Param("analystId") String analystId,
+                                 @Param("status") CreditStatus status);
+
+    /** Distribution par statut pour un analyste donné */
+    @Query("SELECT cr.status, COUNT(cr) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId GROUP BY cr.status")
+    List<Object[]> countByAnalystGroupedByStatus(@Param("analystId") String analystId);
+
+    /**
+     * Temps moyen de traitement (en jours) sur les demandes traitées.
+     * ⚠️ Adapter la fonction DATEDIFF au SGBD :
+     *   - MySQL      : DATEDIFF(cr.updatedAt, cr.createdAt)
+     *   - PostgreSQL : EXTRACT(EPOCH FROM (cr.updatedAt - cr.createdAt))/86400
+     *   - H2         : DATEDIFF('DAY', cr.createdAt, cr.updatedAt)
+     */
+    @Query(value = "SELECT AVG(DATEDIFF(cr.updated_at, cr.created_at)) " +
+            "FROM credit_requests cr " +
+            "JOIN clients c ON cr.client_id = c.id " +
+            "WHERE c.analyst_id = :analystId " +
+            "AND cr.status IN ('APPROVED','REJECTED')",
+            nativeQuery = true)
+    Double avgProcessingTimeDays(@Param("analystId") String analystId);
+
+    /** Temps moyen de décision (en heures) */
+    @Query(value = "SELECT AVG(TIMESTAMPDIFF(HOUR, cr.created_at, cr.updated_at)) " +
+            "FROM credit_requests cr " +
+            "JOIN clients c ON cr.client_id = c.id " +
+            "WHERE c.analyst_id = :analystId " +
+            "AND cr.status IN ('APPROVED','REJECTED')",
+            nativeQuery = true)
+    Double avgDecisionTimeHours(@Param("analystId") String analystId);
+
+    /** Somme des montants par analyste et statut */
+    @Query("SELECT SUM(cr.amount) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId AND cr.status = :status")
+    BigDecimal sumAmountByAnalystAndStatus(@Param("analystId") String analystId,
+                                           @Param("status") CreditStatus status);
+
+    /** Top 3 dernières activités d'un analyste */
+    @Query("SELECT cr FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId " +
+            "ORDER BY cr.updatedAt DESC")
+    List<CreditRequest> findTop3ByAnalystIdOrderByUpdatedAtDesc(
+            @Param("analystId") String analystId,
+            org.springframework.data.domain.Pageable pageable);
+
+    /** Dernière date d'activité d'un analyste */
+    @Query("SELECT MAX(cr.updatedAt) FROM CreditRequest cr " +
+            "WHERE cr.client.analyst.id = :analystId")
+    LocalDateTime findLastActivityDateByAnalyst(@Param("analystId") String analystId);
 }

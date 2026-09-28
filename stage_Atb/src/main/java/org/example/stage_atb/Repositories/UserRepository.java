@@ -23,6 +23,11 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findByRole(UserRole role);
 
+    // ✅ Comptage dérivé (Spring Data génère la requête)
+    long countByRole(UserRole role);
+
+    long countByActiveTrue();
+
     @Query("SELECT u FROM User u WHERE u.active = true AND u.role = :role")
     List<User> findActiveUsersByRole(@Param("role") UserRole role);
 
@@ -35,6 +40,11 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT u FROM User u WHERE u.lastName LIKE %:query% OR u.firstName LIKE %:query% OR u.email LIKE %:query%")
     List<User> searchUsers(@Param("query") String query);
 
+    // ✅ Renommé pour éviter le conflit avec countByRole(UserRole) et clarifier l'usage
     @Query("SELECT u.role, COUNT(u) FROM User u GROUP BY u.role")
-    List<Object[]> countByRole();
+    List<Object[]> countUsersGroupedByRole();
+
+    // ✅ NOUVEAU : analystes actifs (utilisé par getTopAnalysts / buildTopAnalystsLegacy)
+    @Query("SELECT u FROM User u WHERE u.active = true AND u.role = 'ANALYST'")
+    List<User> findAllActiveAnalysts();
 }
