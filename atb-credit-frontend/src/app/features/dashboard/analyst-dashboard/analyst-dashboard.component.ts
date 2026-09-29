@@ -1,5 +1,5 @@
 // features/dashboard/analyst-dashboard/analyst-dashboard.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -29,6 +29,7 @@ import { AuthService } from '@core/services/auth.service';
 })
 export class AnalystDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private authService = inject(AuthService);   // ✅ injection moderne
   isLoading = true;
   user: any = null;
 
@@ -54,7 +55,6 @@ export class AnalystDashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  constructor(private authService: AuthService) {}
 
   loadDashboardData(): void {
     setTimeout(() => {
