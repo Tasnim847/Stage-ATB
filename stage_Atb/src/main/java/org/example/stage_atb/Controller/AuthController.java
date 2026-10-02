@@ -21,7 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
+import org.example.stage_atb.dto.request.ForgotPasswordRequest;
+import org.example.stage_atb.dto.request.ResetPasswordRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -266,6 +267,49 @@ public class AuthController {
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse("USER_NOT_FOUND", "Utilisateur non trouvé"));
+        }
+    }
+
+    // Controller/AuthController.java - AJOUTER CES 2 MÉTHODES
+
+    @PostMapping("/forgot-password")
+    @Operation(
+            summary = "Demander la réinitialisation du mot de passe",
+            description = "Envoie un email avec un lien de réinitialisation"
+    )
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Demande de réinitialisation pour: {}", request.getEmail());
+        try {
+            userService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok(Map.of(
+                    "message", "Si votre email existe, un lien de réinitialisation vous a été envoyé."
+            ));
+        } catch (Exception e) {
+            log.error("Erreur forgot-password: {}", e.getMessage());
+            // ⚠️ On retourne toujours OK pour ne pas révéler si l'email existe
+            return ResponseEntity.ok(Map.of(
+                    "message", "Si votre email existe, un lien de réinitialisation vous a été envoyé."
+            ));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(
+            summary = "Réinitialiser le mot de passe avec le token",
+            description = "Réinitialise le mot de passe à partir d'un token valide"
+    )
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Réinitialisation du mot de passe avec token");
+        try {
+            userService.resetPassword(request.getToken(), request.getNewPassword(), request.getConfirmPassword());
+            return ResponseEntity.ok(Map.of("message", "Mot de passe réinitialisé avec succès."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("INVALID_TOKEN", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Erreur reset-password: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("SERVER_ERROR", "Erreur lors de la réinitialisation"));
         }
     }
 }

@@ -44,7 +44,7 @@ export class AuthDialogComponent implements OnInit {
   private toastr = inject(ToastrService);
   private dialogRef = inject(MatDialogRef<AuthDialogComponent>);
 
-  // Onglet actif : 0 = login, 1 = register
+  // Onglet actif : 0 = login, 1 = register, 2 = reset
   selectedTabIndex = 0;
 
   // ========== LOGIN ==========
@@ -62,6 +62,19 @@ export class AuthDialogComponent implements OnInit {
   registerErrorMessage = '';
   registrationMode: 'employee' | 'client' = 'employee';
 
+  // ========== FORGOT PASSWORD ==========
+  forgotPasswordForm!: FormGroup;
+  isLoadingForgot = false;
+  forgotErrorMessage = '';
+  forgotSuccessMessage = '';
+
+  // ========== RESET PASSWORD ==========
+  resetPasswordForm!: FormGroup;
+  isLoadingReset = false;
+  resetErrorMessage = '';
+  resetSuccessMessage = '';
+  showResetForm = false;
+
   roles = [
     { value: 'ANALYST', label: 'Analyste' },
     { value: 'ADVISOR', label: 'Conseiller' },
@@ -78,6 +91,8 @@ export class AuthDialogComponent implements OnInit {
   ngOnInit(): void {
     this.initLoginForm();
     this.initRegisterForm();
+    this.initForgotPasswordForm();
+    this.initResetPasswordForm();
   }
 
   // ============================================
@@ -179,10 +194,26 @@ export class AuthDialogComponent implements OnInit {
     this.toggleMode('employee');
   }
 
+  // ============================================
+  // VALIDATORS
+  // ============================================
+  /**
+   * Validateur pour le formulaire d'INSCRIPTION (champs : password / confirmPassword)
+   */
   passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
     const password = group.get('password')?.value;
     const confirmPassword = group.get('confirmPassword')?.value;
     return password === confirmPassword ? null : { mismatch: true };
+  }
+
+  /**
+   * ✅ Validateur dédié pour le formulaire de RÉINITIALISATION
+   * (champs : newPassword / confirmPassword)
+   */
+  resetPasswordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
+    const newPassword = group.get('newPassword')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    return newPassword === confirmPassword ? null : { mismatch: true };
   }
 
   toggleMode(mode: 'employee' | 'client'): void {
@@ -331,4 +362,115 @@ export class AuthDialogComponent implements OnInit {
   closeDialog(): void {
     this.dialogRef.close(false);
   }
+
+  // ============================================
+  // FORGOT PASSWORD
+  // ============================================
+  initForgotPasswordForm(): void {
+    this.forgotPasswordForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+  }
+
+  // ============================================
+  // RESET PASSWORD
+  // ============================================
+  initResetPasswordForm(): void {
+    this.resetPasswordForm = this.fb.group({
+      token: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required]]
+    }, { validators: this.resetPasswordMatchValidator });   // ✅ CORRIGÉ
+  }
+
+  // ============================================
+  // ACTIONS MOT DE PASSE OUBLIÉ
+  // ============================================
+  onSubmitForgotPassword(): void {
+    if (this.forgotPasswordForm.invalid) {
+      this.forgotPasswordForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoadingForgot = true;
+    this.forgotErrorMessage = '';
+    this.forgotSuccessMessage = '';
+
+    const { email } = this.forgotPasswordForm.value;
+
+    this.authService.forgotPassword(email).subscribe({
+      next: (response) => {
+        this.isLoadingForgot = false;
+        this.forgotSuccessMessage = response.message
+          || 'Un email de réinitialisation vous a été envoyé.';
+        this.toastr.success(this.forgotSuccessMessage, 'Email envoyé');
+        // Basculer automatiquement vers le formulaire reset après 1.5s
+        setTimeout(() => this.showResetForm = true, 1500);
+      },
+      error: (error) => {
+        this.isLoadingForgot = false;
+        this.forgotErrorMessage = error.message || 'Erreur lors de l\'envoi';
+        this.toastr.error(this.forgotErrorMessage, 'Erreur');
+      }
+    });
+  }
+
+  // ============================================
+  // ACTIONS RÉINITIALISATION
+  // ============================================
+  onSubmitResetPassword(): void {
+    // ✅ LOGS DE DEBUG
+    console.log('🟢 onSubmitResetPassword appelé');
+    console.log('Form valid:', this.resetPasswordForm.valid);
+    console.log('Form value:', this.resetPasswordForm.value);
+    console.log('Form errors:', this.resetPasswordForm.errors);
+
+    if (this.resetPasswordForm.invalid) {
+      this.resetPasswordForm.markAllAsTouched();
+      console.log('❌ Formulaire invalide, arrêt');
+      return;
+    }
+
+    this.isLoadingReset = true;
+    this.resetErrorMessage = '';
+    this.resetSuccessMessage = '';
+
+    const { token, newPassword, confirmPassword } = this.resetPasswordForm.value;
+    console.log('📤 Envoi resetPassword avec token:', token);
+
+    this.authService.resetPassword(token, newPassword, confirmPassword).subscribe({
+      next: (response) => {
+        console.log('✅ Succès:', response);
+        this.isLoadingReset = false;
+        this.resetSuccessMessage = response.message || 'Mot de passe réinitialisé !';
+        this.toastr.success(this.resetSuccessMessage, 'Succès');
+        // Revenir à l'onglet login après 2s
+        setTimeout(() => {
+          this.selectedTabIndex = 0;
+          this.showResetForm = false;
+          this.resetPasswordForm.reset();
+          this.forgotPasswordForm.reset();
+          this.forgotSuccessMessage = '';
+        }, 2000);
+      },
+      error: (error) => {
+        console.log('❌ Erreur:', error);
+        this.isLoadingReset = false;
+        this.resetErrorMessage = error.message || 'Token invalide ou expiré';
+        this.toastr.error(this.resetErrorMessage, 'Erreur');
+      }
+    });
+  }
+
+  // Basculer entre "forgot" et "reset"
+  toggleResetForm(show: boolean): void {
+    this.showResetForm = show;
+    this.forgotErrorMessage = '';
+    this.forgotSuccessMessage = '';
+    this.resetErrorMessage = '';
+    this.resetSuccessMessage = '';
+  }
+
+  // Getters forgot
+  get forgotEmail() { return this.forgotPasswordForm.get('email'); }
 }

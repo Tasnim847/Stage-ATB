@@ -147,3 +147,42 @@
   background: #1a237e;
   color: #fff;
 }
+
+/* ===== Messages info / succès ===== */
+.info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.info-message mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.success-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin: 4px 0;
+}
+
+.success-message mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}

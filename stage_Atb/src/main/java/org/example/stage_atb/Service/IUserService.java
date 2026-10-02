@@ -57,6 +57,11 @@ public interface IUserService {
 
     void updatePassword(String userId, String currentPassword, String newPassword);
 
+    // Service/IUserService.java - AJOUTER
+
+    void forgotPassword(String email);
+
+    void resetPassword(String token, String newPassword, String confirmPassword);
 
     // Service/IUserService.java - AJOUTER
     org.example.stage_atb.entity.Client getClientByUserId(String userId);

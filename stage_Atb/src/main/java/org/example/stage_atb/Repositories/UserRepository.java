@@ -47,4 +47,8 @@ public interface UserRepository extends JpaRepository<User, String> {
     // ✅ NOUVEAU : analystes actifs (utilisé par getTopAnalysts / buildTopAnalystsLegacy)
     @Query("SELECT u FROM User u WHERE u.active = true AND u.role = 'ANALYST'")
     List<User> findAllActiveAnalysts();
+
+    // Repositories/UserRepository.java - AJOUTER
+
+    Optional<User> findByResetToken(String resetToken);
 }

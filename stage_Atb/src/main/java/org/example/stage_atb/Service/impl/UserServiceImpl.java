@@ -2,6 +2,7 @@ package org.example.stage_atb.Service.impl;
 
 import org.example.stage_atb.Repositories.ClientRepository;
 import org.example.stage_atb.Repositories.EmployeeRepository;
+import org.example.stage_atb.Service.IEmailService;
 import org.example.stage_atb.Service.IUserService;
 import org.example.stage_atb.dto.request.*;
 import org.example.stage_atb.dto.response.AuthResponse;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements IUserService {
 
+    private final IEmailService emailService;   // ✅ AJOUTER (avec les autres @Autowired/private final)
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -450,5 +453,62 @@ public class UserServiceImpl implements IUserService {
         User user = getUserEntityById(userId);
         // Récupérer le client associé
         return clientRepository.findByEmail(user.getEmail()).orElse(null);
+    }
+
+    // Service/impl/UserServiceImpl.java - AJOUTER CES 2 MÉTHODES
+
+    @Override
+    @Transactional
+    public void forgotPassword(String email) {
+        log.info("Demande de reset password pour: {}", email);
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            log.warn("Email inconnu: {}", email);
+            return;
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        log.info("Token de reset généré pour {} : {}", email, token);
+
+        // ✅ ENVOYER L'EMAIL
+        try {
+            emailService.sendPasswordResetEmail(
+                    user.getEmail(),
+                    user.getFirstName(),
+                    token
+            );
+        } catch (Exception e) {
+            log.error("Erreur envoi email pour {} : {}", email, e.getMessage());
+            // On ne lève pas d'exception pour ne pas révéler si l'email a été envoyé
+        }
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String token, String newPassword, String confirmPassword) {
+        log.info("Tentative de reset password avec token");
+
+        if (!newPassword.equals(confirmPassword)) {
+            throw new IllegalArgumentException("Les mots de passe ne correspondent pas");
+        }
+
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token invalide ou expiré"));
+
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Token expiré");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+
+        log.info("Mot de passe réinitialisé pour: {}", user.getEmail());
     }
 }

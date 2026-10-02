@@ -221,4 +221,26 @@ export class AuthService {
   checkAccountStatus(email: string): Observable<any> {
     return this.http.get<any>(`${environment.authUrl}/check-status/${email}`);
   }
+
+    // ========== MOT DE PASSE OUBLIÉ ==========
+
+  /**
+   * Demander la réinitialisation du mot de passe
+   */
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.authUrl}/forgot-password`,
+      { email }
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Réinitialiser le mot de passe avec le token
+   */
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.authUrl}/reset-password`,
+      { token, newPassword, confirmPassword }
+    ).pipe(catchError(this.handleError));
+  }
 }
