@@ -78,4 +78,12 @@ public class User {
 
     @Version
     private Long version;
+
+    // Entity/User.java - AJOUTER CES 2 CHAMPS
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
 }

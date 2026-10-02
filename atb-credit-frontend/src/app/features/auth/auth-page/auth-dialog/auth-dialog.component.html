@@ -45,7 +45,7 @@
             <mat-checkbox formControlName="rememberMe" color="primary">
               Se souvenir de moi
             </mat-checkbox>
-            <a routerLink="/forgot-password" class="forgot-link">Mot de passe oublié ?</a>
+            <a (click)="selectedTabIndex = 2" class="forgot-link">Mot de passe oublié ?</a>
           </div>
 
           <button mat-raised-button color="primary" type="submit"
@@ -220,6 +220,132 @@
           <div class="switch-link">
             <span>Déjà un compte ?</span>
             <a (click)="selectedTabIndex = 0">Se connecter</a>
+          </div>
+        </form>
+      </div>
+    </mat-tab>
+
+    <!-- ========== ONGLET RÉINITIALISER ========== -->
+    <mat-tab label="Réinitialiser">
+      <div class="tab-content">
+
+        <!-- Formulaire "Mot de passe oublié" -->
+        <form *ngIf="!showResetForm"
+              [formGroup]="forgotPasswordForm"
+              (ngSubmit)="onSubmitForgotPassword()"
+              class="auth-form">
+
+          <div class="info-message">
+            <mat-icon>info</mat-icon>
+            <span>Entrez votre email pour recevoir un lien de réinitialisation.</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email"
+                   placeholder="exemple@atb.com" />
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="forgotEmail?.invalid && forgotEmail?.touched">
+              Email valide requis
+            </mat-error>
+          </mat-form-field>
+
+          <div *ngIf="forgotErrorMessage" class="error-message">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ forgotErrorMessage }}</span>
+          </div>
+
+          <div *ngIf="forgotSuccessMessage" class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ forgotSuccessMessage }}</span>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit"
+                  class="submit-btn" [disabled]="isLoadingForgot">
+            <mat-spinner diameter="20" *ngIf="isLoadingForgot"></mat-spinner>
+            <span *ngIf="!isLoadingForgot">
+              <mat-icon>send</mat-icon> Envoyer le lien
+            </span>
+            <span *ngIf="isLoadingForgot">Envoi...</span>
+          </button>
+
+          <div class="switch-link">
+            <span>Vous avez déjà un token ?</span>
+            <a (click)="toggleResetForm(true)">Réinitialiser</a>
+          </div>
+
+          <div class="switch-link">
+            <a (click)="selectedTabIndex = 0">← Retour à la connexion</a>
+          </div>
+        </form>
+
+        <!-- Formulaire "Reset password" -->
+        <form *ngIf="showResetForm"
+              [formGroup]="resetPasswordForm"
+              (ngSubmit)="onSubmitResetPassword()"
+              class="auth-form">
+
+          <div class="info-message">
+            <mat-icon>info</mat-icon>
+            <span>Collez le token reçu par email et choisissez un nouveau mot de passe.</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Token de réinitialisation</mat-label>
+            <input matInput formControlName="token"
+                   placeholder="Collez le token ici" />
+            <mat-icon matPrefix>vpn_key</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nouveau mot de passe</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'"
+                   formControlName="newPassword" />
+            <mat-icon matPrefix>lock</mat-icon>
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hidePassword = !hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="resetPasswordForm.get('newPassword')?.errors?.['minlength']">
+              Minimum 6 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirmer le mot de passe</mat-label>
+            <input matInput [type]="hideConfirmPassword ? 'password' : 'text'"
+                   formControlName="confirmPassword" />
+            <mat-icon matPrefix>lock_outline</mat-icon>
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideConfirmPassword = !hideConfirmPassword">
+              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="resetPasswordForm.errors?.['mismatch']">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+
+          <div *ngIf="resetErrorMessage" class="error-message">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ resetErrorMessage }}</span>
+          </div>
+
+          <div *ngIf="resetSuccessMessage" class="success-message">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ resetSuccessMessage }}</span>
+          </div>
+
+          <button mat-raised-button color="primary" type="submit"
+                  class="submit-btn" [disabled]="isLoadingReset">
+            <mat-spinner diameter="20" *ngIf="isLoadingReset"></mat-spinner>
+            <span *ngIf="!isLoadingReset">
+              <mat-icon>lock_reset</mat-icon> Réinitialiser
+            </span>
+            <span *ngIf="isLoadingReset">Traitement...</span>
+          </button>
+
+          <div class="switch-link">
+            <a (click)="toggleResetForm(false)">← Retour</a>
           </div>
         </form>
       </div>
